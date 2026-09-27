@@ -222,6 +222,27 @@ export function AuthProvider({ children }) {
     return true;
   };
 
+  const updateProfile = async (name) => {
+    if (!supabase) {
+      throw new Error('El sistema de autenticación no está disponible.');
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: { full_name: name },
+    });
+
+    if (error) {
+      const msg = translateSupabaseError(error.message);
+      throw new Error(msg);
+    }
+
+    if (data?.user) {
+      setUser(mapSupabaseUser(data.user));
+    }
+
+    return true;
+  };
+
   // ── Login Social (Google / Apple) ──────────────────────────────────────────
 
   const loginWithProvider = async (provider) => {
@@ -273,6 +294,7 @@ export function AuthProvider({ children }) {
         resetPasswordForEmail,
         verifyOtpAndSetPassword,
         updatePassword,
+        updateProfile,
       }}
     >
       {children}

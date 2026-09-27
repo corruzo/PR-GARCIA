@@ -1,12 +1,19 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Mail, Calendar, ShieldCheck, LogOut, X, Bookmark, Smartphone, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Calendar, ShieldCheck, LogOut, X, Bookmark, Smartphone, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
-  const { user, logout, updatePassword } = useAuth();
+  const { user, logout, updatePassword, updateProfile } = useAuth();
+  
+  const [showNameForm, setShowNameForm]         = useState(false);
+  const [newName, setNewName]                   = useState('');
+  const [loadingName, setLoadingName]           = useState(false);
+  const [nameError, setNameError]               = useState('');
+  const [nameSuccess, setNameSuccess]           = useState('');
+
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword]           = useState('');
   const [confirmPassword, setConfirmPassword]   = useState('');
@@ -20,6 +27,38 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
   const handleLogout = () => {
     logout();
     onClose();
+  };
+
+  const handleOpenNameForm = () => {
+    setNewName(user?.name || '');
+    setNameError('');
+    setNameSuccess('');
+    setShowNameForm(true);
+  };
+
+  const handleChangeName = async (e) => {
+    e.preventDefault();
+    setNameError('');
+    setNameSuccess('');
+
+    if (!newName.trim()) {
+      setNameError('El nombre no puede estar vacío.');
+      return;
+    }
+
+    setLoadingName(true);
+    try {
+      await updateProfile(newName.trim());
+      setNameSuccess('¡Nombre actualizado exitosamente!');
+      setTimeout(() => {
+        setNameSuccess('');
+        setShowNameForm(false);
+      }, 1500);
+    } catch (err) {
+      setNameError(err?.message || 'No se pudo actualizar el nombre.');
+    } finally {
+      setLoadingName(false);
+    }
   };
 
   const handleChangePassword = async (e) => {
@@ -67,11 +106,11 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-title"
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-saas-modal"
+        className="w-full max-w-md overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-saas-modal max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Encabezado */}
-        <header className="relative flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-brand-500 text-white">
+        <header className="relative flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-brand-500 text-white shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 font-extrabold text-xl backdrop-blur">
               {user.name.charAt(0).toUpperCase()}
@@ -96,7 +135,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
         </header>
 
         {/* Detalles del Perfil */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto">
           <div className="space-y-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/50 p-4 border border-slate-200/70 dark:border-slate-800">
             <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
               <Mail size={16} className="text-brand-500 shrink-0" />
@@ -136,6 +175,72 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
               </span>
               <span className="text-[10px] text-slate-400">cálculo ultrarrápido</span>
             </div>
+          </div>
+
+          {/* Sección Cambiar Nombre */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+            {!showNameForm ? (
+              <button
+                type="button"
+                onClick={handleOpenNameForm}
+                className="w-full flex items-center justify-between p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-xs font-bold transition-all shadow-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <User size={15} className="text-brand-500" />
+                  <span>Cambiar Nombre de Usuario</span>
+                </div>
+                <span className="text-[11px] text-brand-600 dark:text-brand-400 font-bold">Editar →</span>
+              </button>
+            ) : (
+              <form onSubmit={handleChangeName} className="space-y-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 animate-fade-in">
+                <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <User size={14} className="text-brand-500" /> Cambiar Nombre
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowNameForm(false)}
+                    className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+
+                {nameError && (
+                  <div className="flex items-center gap-1.5 p-2.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-700 dark:text-red-300">
+                    <AlertCircle size={14} className="shrink-0 text-red-500" />
+                    <span>{nameError}</span>
+                  </div>
+                )}
+
+                {nameSuccess && (
+                  <div className="flex items-center gap-1.5 p-2.5 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-900/60 text-xs text-brand-700 dark:text-brand-300">
+                    <CheckCircle size={14} className="shrink-0 text-brand-500" />
+                    <span>{nameSuccess}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="label-base">Nuevo Nombre</label>
+                  <input
+                    type="text"
+                    placeholder="Tu nombre completo"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    disabled={loadingName}
+                    className="input-base text-xs min-h-10"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loadingName}
+                  className="w-full flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {loadingName ? 'Guardando…' : 'Guardar Nuevo Nombre'}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Sección Cambiar Contraseña */}
@@ -240,3 +345,4 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
     document.body,
   );
 }
+
