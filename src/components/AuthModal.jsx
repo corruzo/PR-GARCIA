@@ -184,7 +184,7 @@ export function AuthModal() {
                 {tab === 'forgot' && 'Recuperar Contraseña'}
                 {tab === 'otp' && 'Verificación OTP'}
               </h2>
-              <p className="text-[11px] font-semibold text-slate-400">PRGARCÍA · Calculadora SaaS</p>
+              <p className="text-[11px] font-semibold text-slate-400">PRGARCÍA · Calculadora</p>
             </div>
           </div>
 

@@ -309,7 +309,7 @@ function AppContent() {
 
               {/* Resultados (Ocultos hasta completar) */}
               <aside className="mt-6 lg:mt-0 lg:sticky lg:top-20">
-                {resultado?.valido && values.nombreCliente ? (
+                {resultado?.valido ? (
                   <>
                     <div className="mb-4 hidden lg:block">
                       <h2 className="text-base font-bold text-gray-900 dark:text-white">Resumen</h2>
@@ -333,7 +333,7 @@ function AppContent() {
             </div>
 
             {/* Cronograma de pagos */}
-            {resultado?.valido && values.nombreCliente && (
+            {resultado?.valido && (
               <CronogramaTable resultado={resultado} cronograma={cronograma} />
             )}
           </div>
@@ -352,7 +352,7 @@ function AppContent() {
         {/* Footer */}
         <footer className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
           <p className="text-xs text-gray-400 dark:text-gray-600">
-            PRGARCÍA · Soluciones de préstamo · Propuestas sujetas a validación.
+            PRGARCÍA · Calculadora de Préstamos
             Verifica la tasa BCV en{' '}
             <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer"
                className="underline hover:text-brand-600 transition-colors">bcv.org.ve</a>

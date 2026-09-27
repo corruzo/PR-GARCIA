@@ -16,13 +16,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['favicon.svg', 'icon-192.svg', 'icon-512.svg'],
+      includeAssets: ['favicon.svg', 'icon-192.svg', 'icon-512.svg', 'sitemap.xml', 'robots.txt'],
       manifest: {
-        name: 'PRGARCÍA',
+        name: 'PRGARCÍA · Calculadora de Préstamos',
         short_name: 'PRGARCÍA',
-        description: 'Calculadora de préstamos e intereses simple para Venezuela.',
-        theme_color: '#18181b',
-        background_color: '#18181b',
+        description: 'Calculadora de préstamos e intereses simple y compuesta en Venezuela con tasa BCV en tiempo real.',
+        theme_color: '#10B981',
+        background_color: '#0F172A',
         display: 'standalone',
         start_url: '/',
         scope: '/',

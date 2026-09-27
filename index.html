@@ -3,23 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
-    <meta name="description" content="Calculadora de préstamos e intereses para Venezuela. Dual USD/VES con tasa BCV." />
+    <meta name="theme-color" content="#10B981" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#10B981" media="(prefers-color-scheme: light)" />
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>PRGARCÍA | Calculadora de Préstamos e Intereses en Venezuela y BCV</title>
+    <meta name="title" content="PRGARCÍA | Calculadora de Préstamos e Intereses en Venezuela y BCV" />
+    <meta name="description" content="Calculadora de préstamos e intereses para Venezuela. Simula cuotas en Dólares (USD) y Bolívares (VES) a la tasa oficial del Banco Central de Venezuela (BCV) en tiempo real." />
+    <meta name="keywords" content="calculadora de prestamos venezuela, calculo prestamos tasa bcv, cuotas dolares bolivares, prestamos e intereses venezuela, simulador de prestamo bcv, prgarcia" />
+    <meta name="author" content="PRGARCÍA" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://prgarcia.app/" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://prgarcia.app/" />
+    <meta property="og:site_name" content="PRGARCÍA" />
+    <meta property="og:title" content="PRGARCÍA | Calculadora de Préstamos e Intereses en Venezuela" />
+    <meta property="og:description" content="Calcula préstamos y cuotas duales (USD/VES) con la tasa del BCV en tiempo real. Exporta propuestas para WhatsApp." />
+    <meta property="og:image" content="https://prgarcia.app/icon-512.svg" />
+    <meta property="og:locale" content="es_VE" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://prgarcia.app/" />
+    <meta property="twitter:title" content="PRGARCÍA | Calculadora de Préstamos e Intereses en Venezuela" />
+    <meta property="twitter:description" content="Calcula préstamos y cuotas duales (USD/VES) con la tasa del BCV en tiempo real." />
+    <meta property="twitter:image" content="https://prgarcia.app/icon-512.svg" />
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <!-- PWA -->
+    
+    <!-- PWA Web App Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="PRGARCÍA" />
-    <title>PRGARCÍA · Calculadora de Préstamos Venezuela</title>
+
+    <!-- Google Structured Data (JSON-LD) for Search Engine Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "PRGARCÍA - Calculadora de Préstamos Venezuela",
+      "url": "https://prgarcia.app",
+      "description": "Calculadora de préstamos e intereses con conversión automática USD/VES y actualización en tiempo real de la tasa oficial del Banco Central de Venezuela (BCV).",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+

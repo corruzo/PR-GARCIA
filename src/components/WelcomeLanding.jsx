@@ -239,7 +239,7 @@ export function WelcomeLanding() {
 
       {/* SaaS Footer */}
       <footer className="py-5 border-t border-slate-200/80 dark:border-slate-800 text-center text-xs font-medium text-slate-400">
-        PRGARCÍA · Sistema de Cotización Financiera · Venezuela
+        PRGARCÍA · Calculadora de Préstamos.
       </footer>
     </div>
   );
