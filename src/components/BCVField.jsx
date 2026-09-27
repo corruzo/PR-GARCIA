@@ -71,7 +71,10 @@ export function BCVField({ value, onChange }) {
             step="any"
             placeholder="Ej: 855.66"
             value={value}
-            onChange={e => onChange(e.target.value)}
+            onChange={e => {
+              const val = e.target.value;
+              onChange(typeof val === 'string' ? val.replace(',', '.') : val);
+            }}
             className="input-base pl-9 font-mono"
           />
         </div>

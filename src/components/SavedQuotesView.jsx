@@ -122,7 +122,7 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
                   <button
                     type="button"
                     onClick={() => onOpen?.(item)}
-                    className="flex-1 flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-xs font-semibold text-white transition-all active:scale-95"
+                    className="flex-1 flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white shadow-xs transition-all active:scale-95"
                   >
                     <ExternalLink size={14} /> Cargar en simulador
                   </button>

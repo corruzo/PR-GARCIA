@@ -12,11 +12,15 @@ const FRECUENCIAS = [
   { value: 'diario',    label: 'Diario' },
   { value: 'semanal',   label: 'Semanal' },
   { value: 'quincenal', label: 'Quincenal' },
+  { value: 'mensual',   label: 'Mensual' },
 ];
 
 export function LoanForm({ values, onChange }) {
   const set = (key) => (e) => {
-    const val = e?.target ? e.target.value : e;
+    let val = e?.target ? e.target.value : e;
+    if (typeof val === 'string') {
+      val = val.replace(',', '.');
+    }
     onChange(key, val);
   };
 

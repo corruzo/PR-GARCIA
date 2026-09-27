@@ -140,6 +140,110 @@ export function AuthProvider({ children }) {
     return data.user ? mapSupabaseUser(data.user) : null;
   };
 
+  // ── Recuperación de Contraseña & OTP ──────────────────────────────────────
+
+  const resetPasswordForEmail = async (email) => {
+    if (!supabase) {
+      throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
+    }
+
+    // Usar signInWithOtp con shouldCreateUser: false
+    // Si el correo NO existe en la base de datos de Supabase, devolverá un error impidiendo el envío.
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+      },
+    });
+
+    if (error) {
+      const msg = translateSupabaseError(error.message);
+      throw new Error(msg);
+    }
+
+    return true;
+  };
+
+  const verifyOtpAndSetPassword = async (email, token, newPassword) => {
+    if (!supabase) {
+      throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
+    }
+
+    // 1. Verificar OTP token (tipo 'email' o fallback 'recovery')
+    let verifyRes = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+
+    if (verifyRes.error) {
+      verifyRes = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'recovery',
+      });
+    }
+
+    if (verifyRes.error) {
+      const msg = translateSupabaseError(verifyRes.error.message);
+      throw new Error(msg);
+    }
+
+    // 2. Si hay nueva contraseña, actualizarla en Supabase
+    if (newPassword) {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        const msg = translateSupabaseError(updateError.message);
+        throw new Error(msg);
+      }
+    }
+
+    closeAuthModal();
+    return verifyRes.data?.user ? mapSupabaseUser(verifyRes.data.user) : null;
+  };
+
+  const updatePassword = async (newPassword) => {
+    if (!supabase) {
+      throw new Error('El sistema de autenticación no está disponible.');
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      const msg = translateSupabaseError(error.message);
+      throw new Error(msg);
+    }
+
+    return true;
+  };
+
+  // ── Login Social (Google / Apple) ──────────────────────────────────────────
+
+  const loginWithProvider = async (provider) => {
+    if (!supabase) {
+      throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
+    }
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider.toLowerCase(),
+      options: {
+        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+      },
+    });
+
+    if (error) {
+      const msg = translateSupabaseError(error.message);
+      throw new Error(msg);
+    }
+
+    return data;
+  };
+
   // ── Logout ────────────────────────────────────────────────────────────────
 
   const logout = async () => {
@@ -165,6 +269,10 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        loginWithProvider,
+        resetPasswordForEmail,
+        verifyOtpAndSetPassword,
+        updatePassword,
       }}
     >
       {children}
@@ -185,6 +293,23 @@ function translateSupabaseError(message = '') {
 
   if (m.includes('invalid login credentials') || m.includes('invalid credentials'))
     return 'Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.';
+
+  if (
+    m.includes('signups not allowed') ||
+    m.includes('signup is disabled') ||
+    m.includes('user not found') ||
+    m.includes('email not found') ||
+    m.includes('unable to find') ||
+    m.includes('no user') ||
+    m.includes('not registered')
+  )
+    return 'No existe ninguna cuenta registrada con este correo electrónico. Verifica la dirección o regístrate.';
+
+  if (m.includes('token has expired') || m.includes('otp has expired'))
+    return 'El código de 6 dígitos ha expirado. Solicita un nuevo código.';
+
+  if (m.includes('invalid token') || m.includes('invalid otp') || m.includes('token is invalid'))
+    return 'El código de 6 dígitos ingresado es incorrecto.';
 
   if (m.includes('email not confirmed'))
     return 'Tu cuenta aún no ha sido confirmada. Revisa tu correo electrónico.';

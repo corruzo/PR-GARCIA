@@ -16,9 +16,10 @@ import { differenceInDays, parseISO, isValid, addDays, format } from 'date-fns';
 
 /** Días equivalentes por modalidad de tasa */
 export const DIAS_POR_MODALIDAD = {
-  diaria:  1,
-  semanal: 7,
+  diaria:    1,
+  semanal:   7,
   quincenal: 15,
+  mensual:   30,
 };
 
 /** Días entre pagos según frecuencia */
@@ -26,6 +27,7 @@ export const DIAS_POR_FRECUENCIA = {
   diario:    1,
   semanal:   7,
   quincenal: 15,
+  mensual:   30,
 };
 
 export const MONEDAS = {
@@ -55,13 +57,14 @@ export function calcularDiasExactos(fechaInicio, fechaFin) {
  * Calcula el interés generado bajo la fórmula de Interés Simple.
  *
  * Fórmula:
- *   - Tasa Diaria:   I = P × (r/100) × d
- *   - Tasa Semanal:  I = P × (r/100) × (d / 7)
+ *   - Tasa Diaria:    I = P × (r/100) × d
+ *   - Tasa Semanal:   I = P × (r/100) × (d / 7)
  *   - Tasa Quincenal: I = P × (r/100) × (d / 15)
+ *   - Tasa Mensual:   I = P × (r/100) × (d / 30)
  *
  * @param {number}  monto        Capital principal
  * @param {number}  tasa         Tasa de interés en porcentaje (ej: 5 para 5%)
- * @param {string}  modalidad    'diaria' | 'semanal' | 'quincenal'
+ * @param {string}  modalidad    'diaria' | 'semanal' | 'quincenal' | 'mensual'
  * @param {number}  dias         Días totales del préstamo
  * @returns {number}             Interés total generado
  */
@@ -79,7 +82,7 @@ export function calcularInteresSimple(monto, tasa, modalidad, dias) {
  * La última cuota cubre los días restantes si no es divisible exactamente.
  *
  * @param {number} diasTotales
- * @param {string} frecuencia  'diario' | 'semanal' | 'quincenal'
+ * @param {string} frecuencia  'diario' | 'semanal' | 'quincenal' | 'mensual'
  * @returns {number} número de cuotas (mínimo 1)
  */
 export function calcularNumeroCuotas(diasTotales, frecuencia) {
@@ -129,7 +132,7 @@ export function formatearMoneda(monto, moneda = 'USD') {
  * @param {number}           params.monto         Capital principal
  * @param {'USD'|'VES'}      params.moneda        Moneda del préstamo
  * @param {number}           params.tasa          Tasa de interés (%)
- * @param {'diaria'|'semanal'|'quincenal'} params.modalidadTasa
+ * @param {'diaria'|'semanal'|'quincenal'|'mensual'} params.modalidadTasa
  * @param {string}           params.fechaInicio   ISO date string 'YYYY-MM-DD'
  * @param {string}           params.fechaFin      ISO date string 'YYYY-MM-DD'
  * @param {string}           params.frecuenciaPago
@@ -233,23 +236,27 @@ export function generarCronograma(resultado) {
   } = resultado;
 
   const intervalo = DIAS_POR_FRECUENCIA[frecuenciaPago] ?? 1;
-  const capitalXCuota = monto / numeroCuotas;
+  const capitalBaseCuota = Number((monto / numeroCuotas).toFixed(2));
   const inicio = parseISO(fechaInicio);
 
   const cuotas = [];
   let saldo = monto;
+  let capitalAcumulado = 0;
   let fechaAnterior = inicio;
 
   for (let i = 0; i < numeroCuotas; i++) {
     const esUltima = i === numeroCuotas - 1;
-    const cap = esUltima ? saldo : capitalXCuota;
+    // En la última cuota ajustamos centavos remanentes para que la suma del capital sea exacto
+    const cap = esUltima ? Number((monto - capitalAcumulado).toFixed(2)) : capitalBaseCuota;
+    capitalAcumulado += cap;
+
     const fechaCuota = esUltima
       ? parseISO(fechaFin)
       : addDays(inicio, (i + 1) * intervalo);
     const diasPeriodo = calcularDiasExactos(fechaAnterior, fechaCuota);
     const int = interes * (diasPeriodo / resultado.diasTotales);
     const tot = cap + int;
-    saldo -= cap;
+    saldo = esUltima ? 0 : Math.max(0, Number((saldo - cap).toFixed(2)));
     fechaAnterior = fechaCuota;
 
     cuotas.push({
@@ -259,7 +266,7 @@ export function generarCronograma(resultado) {
       capital:      cap,
       interes:      int,
       total:        tot,
-      saldo:        Math.max(0, saldo),
+      saldo:        saldo,
       totalAlterna: convertirMoneda(tot, tasaBCV, moneda, monedaAlterna),
     });
   }

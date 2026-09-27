@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
+import { RotateCcw } from 'lucide-react';
 import { Header } from './components/Header';
 import { LoanForm } from './components/LoanForm';
 import { ResultPanel } from './components/ResultPanel';
@@ -26,13 +27,32 @@ const DEFAULTS = {
   tasaBCV:       '',
 };
 const DRAFT_KEY = 'prgarcia.loan.draft.v1';
+const DRAFT_EXPIRATION_MS = 30 * 60 * 1000; // 30 minutos de inactividad
 const HISTORY_KEY = 'prgarcia.quotes.history.v1';
 
 function loadDraft() {
   try {
-    const saved = localStorage.getItem(DRAFT_KEY);
+    // Si existía un borrador antiguo persistido en localStorage, lo eliminamos
+    if (localStorage.getItem(DRAFT_KEY)) {
+      localStorage.removeItem(DRAFT_KEY);
+    }
+
+    const saved = sessionStorage.getItem(DRAFT_KEY);
     if (!saved) return DEFAULTS;
-    const draft = { ...DEFAULTS, ...JSON.parse(saved) };
+
+    const parsed = JSON.parse(saved);
+
+    // Soporte para estructura { values, timestamp } o retrocompatibilidad directa
+    const draftValues = parsed.values || parsed;
+    const timestamp = parsed.timestamp;
+
+    // Si ha pasado más de 30 minutos desde la última edición, el borrador expira
+    if (timestamp && (Date.now() - timestamp > DRAFT_EXPIRATION_MS)) {
+      sessionStorage.removeItem(DRAFT_KEY);
+      return DEFAULTS;
+    }
+
+    const draft = { ...DEFAULTS, ...draftValues };
     if (draft.modalidadTasa === 'mensual') draft.modalidadTasa = 'quincenal';
     if (draft.frecuenciaPago === 'mensual') draft.frecuenciaPago = 'quincenal';
     return draft;
@@ -102,9 +122,56 @@ function AppContent() {
     setValues(prev => ({ ...prev, [key]: val }));
   };
 
-  useEffect(() => {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(values));
+  const handleResetForm = () => {
+    setValues(DEFAULTS);
+    try {
+      sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const isFormDirty = useMemo(() => {
+    return Boolean(values.monto || values.nombreCliente || values.fechaFin);
   }, [values]);
+
+  // Guardado de datos en sessionStorage de manera temporal con la estampa de tiempo
+  useEffect(() => {
+    const payload = {
+      values,
+      timestamp: Date.now(),
+    };
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignore storage errors if private window restricts it
+    }
+  }, [values]);
+
+  // Expiración automática por inactividad (30 minutos)
+  useEffect(() => {
+    const checkExpiration = () => {
+      try {
+        const saved = sessionStorage.getItem(DRAFT_KEY);
+        if (!saved) return;
+        const parsed = JSON.parse(saved);
+        if (parsed.timestamp && (Date.now() - parsed.timestamp > DRAFT_EXPIRATION_MS)) {
+          sessionStorage.removeItem(DRAFT_KEY);
+          setValues(DEFAULTS);
+        }
+      } catch {
+        // Ignore
+      }
+    };
+
+    const interval = setInterval(checkExpiration, 60 * 1000); // Revisar cada minuto
+    window.addEventListener('focus', checkExpiration);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkExpiration);
+    };
+  }, []);
 
   const resultado = useMemo(() => {
     const { monto, tasa, fechaFin, tasaBCV } = values;
@@ -214,7 +281,7 @@ function AppContent() {
             <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-8 lg:items-start">
               {/* Formulario */}
               <section>
-                <div className="page-intro mb-5">
+                <div className="page-intro mb-5 flex items-center justify-between">
                   <div>
                     <h1 className="text-xl font-bold leading-tight text-gray-900 dark:text-white">
                       Nuevo Préstamo
@@ -223,6 +290,17 @@ function AppContent() {
                       Ingresa los datos para calcular las cuotas.
                     </p>
                   </div>
+                  {isFormDirty && (
+                    <button
+                      type="button"
+                      onClick={handleResetForm}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700/80 rounded-lg transition-colors border border-gray-200/60 dark:border-gray-700/60 shadow-sm"
+                      title="Reiniciar y limpiar borrador"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Limpiar</span>
+                    </button>
+                  )}
                 </div>
                 <div className="mt-4">
                   <LoanForm values={values} onChange={handleChange} />

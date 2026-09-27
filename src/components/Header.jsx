@@ -26,25 +26,25 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
           </button>
 
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onChangeTab?.('calculator')}>
-            <div className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl shadow-md">
-              <Calculator size={18} className="text-white" />
+            <div className="h-9 w-9 bg-brand-500 rounded-xl flex items-center justify-center text-white shadow-sm shadow-brand-500/30">
+              <Calculator size={18} />
             </div>
             <div className="leading-tight">
-              <p className="text-sm font-bold tracking-tight text-gray-900 dark:text-white">PRGARCÍA</p>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Calculadora de Préstamos · Venezuela</p>
+              <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">PRGARCÍA</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora SaaS · Venezuela</p>
             </div>
           </div>
         </div>
 
         {/* NAVEGACIÓN TOPBAR - Solo visible en Laptops (lg:) */}
-        <nav className="hidden lg:flex items-center gap-1.5 bg-gray-100/70 dark:bg-gray-900/60 p-1 rounded-xl border border-gray-200/60 dark:border-gray-800">
+        <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
           <button
             type="button"
             onClick={() => onChangeTab?.('calculator')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'calculator'
-                ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
             <Calculator size={14} />
@@ -54,16 +54,16 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
           <button
             type="button"
             onClick={() => onChangeTab?.('saved')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'saved'
-                ? 'bg-white dark:bg-gray-800 text-brand-600 dark:text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
             <Bookmark size={14} />
             <span>Cotizaciones Guardadas</span>
             {historyCount > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+              <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
                 {historyCount}
               </span>
             )}

@@ -36,8 +36,8 @@ export function NavigationTabs({ activeTab, onChangeTab, historyCount = 0 }) {
               onClick={() => onChangeTab(tab.id)}
               className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
                 isActive
-                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20'
-                  : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100/60 dark:hover:bg-gray-800/60'
+                  ? 'bg-brand-500 text-white shadow-sm shadow-brand-500/30'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <Icon size={16} className={isActive ? 'text-white' : 'text-gray-400'} />

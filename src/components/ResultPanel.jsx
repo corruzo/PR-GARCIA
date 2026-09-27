@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Save, Share2, TrendingUp, AlertCircle, Info } from 'lucide-react';
+import { Save, TrendingUp, AlertCircle, Info, Copy, Check } from 'lucide-react';
 import { convertirMoneda, formatearMoneda, generarCronograma } from '../utils/calculator';
 import { format } from 'date-fns';
 
@@ -32,8 +32,8 @@ function Divider({ label }) {
 }
 
 export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBCVPersonalizada = false }) {
-  const [imagenPreparada, setImagenPreparada] = useState(false);
   const [cotizacionGuardada, setCotizacionGuardada] = useState(false);
+  const [textoCopiado, setTextoCopiado] = useState(false);
   if (!resultado) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center text-gray-400 dark:text-gray-600 gap-3">
@@ -104,10 +104,10 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
     : `(equivalente en USD: ${fmtA(totalAlterna)})`;
 
   const notaIndexacion = moneda === 'VES'
-    ? `*Protección de pago en Bs.:* Aunque el préstamo esté calculado en Bolívares (Bs.), todas las cuotas futuras están indexadas a su valor base en Dólares ($ USD) para evitar pérdidas por depreciación. Si cancelas en Bolívares, se calculará al tipo de cambio oficial del BCV vigente en la fecha exacta de tu pago.`
+    ? `*Protección de pago en Bs.:* Aunque el préstamo esté calculated en Bolívares (Bs.), todas las cuotas futuras están indexadas a su valor base en Dólares ($ USD) para evitar pérdidas por depreciación. Si cancelas en Bolívares, se calculará al tipo de cambio oficial del BCV vigente en la fecha exacta de tu pago.`
     : `*Nota:* Todas las cuotas se cobran en Dólares ($ USD). Si se efectúa el pago en Bolívares (Bs.), se liquidará a la tasa oficial del BCV en la fecha exacta de tu pago.`;
 
-  const whatsappMessage = encodeURIComponent(
+  const rawTextoCotizacion = 
     `Hola ${nombre}, los datos de tu solicitud de préstamo son:\n\n` +
     `• Monto del préstamo: ${fmtP(monto)}\n` +
     `• Plazo de pago: ${diasTotales} días\n` +
@@ -118,79 +118,29 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
     `• ${etiquetaTasa} usada: Bs. ${parseFloat(tasaBCV).toFixed(2)}\n` +
     (tasaBCVPersonalizada ? `• ⚠️ Nota: La tasa usada fue modificada manualmente, NO es la tasa oficial BCV del día.\n` : '') +
     `• Fecha de hoy: ${fechaHoyStr}\n\n` +
-    `${notaIndexacion}`
-  );
+    `${notaIndexacion}`;
+
+  const whatsappMessage = encodeURIComponent(rawTextoCotizacion);
 
   const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
 
-  const crearImagenCotizacion = async () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1080;
-    canvas.height = 1450;
-    const context = canvas.getContext('2d');
-    const padding = 86;
-
-    context.fillStyle = '#f8fafc';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = '#2563eb';
-    context.fillRect(0, 0, canvas.width, 230);
-    context.fillStyle = '#ffffff';
-    context.font = '700 48px Arial';
-    context.fillText('PRGARCÍA', padding, 92);
-    context.font = '400 28px Arial';
-    context.fillText('Cotización de Préstamo', padding, 142);
-    context.font = '400 22px Arial';
-    context.fillText(`Cliente: ${nombre} · ${fechaHoyStr}`, padding, 190);
-
-    context.fillStyle = '#0f172a';
-    context.font = '700 30px Arial';
-    context.fillText('Resumen de Cotización', padding, 300);
-
-    const lines = [
-      ['Monto del préstamo', fmtP(monto)],
-      ['Plazo de pago', `${diasTotales} días (${numeroCuotas} cuotas)`],
-      ['Intereses Generados', fmtP(interes)],
-      ['Total a cobrar', `${fmtP(totalPagar)} (≈ ${fmtA(totalAlterna)})`],
-      [etiquetaTasa, `Bs. ${parseFloat(tasaBCV).toFixed(2)} por USD`],
-    ];
-
-    lines.forEach(([label, text], index) => {
-      const y = 360 + index * 90;
-      context.fillStyle = '#64748b';
-      context.font = '400 22px Arial';
-      context.fillText(label, padding, y);
-      context.fillStyle = '#0f172a';
-      context.font = '700 26px Arial';
-      context.fillText(text, padding, y + 35);
-      context.strokeStyle = '#e2e8f0';
-      context.beginPath();
-      context.moveTo(padding, y + 55);
-      context.lineTo(canvas.width - padding, y + 55);
-      context.stroke();
-    });
-
-    context.fillStyle = '#64748b';
-    context.font = '400 20px Arial';
-    const notaImagen = tasaBCVPersonalizada
-      ? `Tasa usada: Bs. ${parseFloat(tasaBCV).toFixed(2)} (personalizada, no es la tasa oficial BCV).`
-      : `Nota: Los montos en Bs. cambian según la tasa oficial BCV del día del pago.`;
-    context.fillText(notaImagen, padding, 1180);
-    context.fillText('PRGARCÍA · Soluciones Financieras Venezuela', padding, 1340);
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    const file = new File([blob], 'cotizacion-prgarcia.png', { type: 'image/png' });
-
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ title: 'Cotización PRGARCÍA', files: [file] });
-    } else {
-      const link = document.createElement('a');
-      link.download = file.name;
-      link.href = URL.createObjectURL(blob);
-      link.click();
-      URL.revokeObjectURL(link.href);
+  const copiarAlPortapapeles = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(rawTextoCotizacion);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = rawTextoCotizacion;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setTextoCopiado(true);
+      setTimeout(() => setTextoCopiado(false), 2200);
+    } catch {
+      // Fallback
     }
-    setImagenPreparada(true);
-    setTimeout(() => setImagenPreparada(false), 2200);
   };
 
   const guardarCotizacion = () => {
@@ -356,7 +306,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
           <button
             type="button"
             onClick={guardarCotizacion}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 hover:border-brand-500/50 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all duration-200 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
           >
             <Save size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />
             <span className="truncate">{cotizacionGuardada ? 'Guardada' : 'Guardar'}</span>
@@ -364,11 +314,12 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
 
           <button
             type="button"
-            onClick={crearImagenCotizacion}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm transition-all duration-200 hover:border-brand-500/50 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
+            onClick={copiarAlPortapapeles}
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all duration-200 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
+            title="Copiar propuesta en texto al portapapeles"
           >
-            {imagenPreparada ? <Share2 size={16} className="text-emerald-600 shrink-0" /> : <Download size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />}
-            <span className="truncate">{imagenPreparada ? 'Compartida' : 'Compartir imagen'}</span>
+            {textoCopiado ? <Check size={16} className="text-emerald-500 shrink-0" /> : <Copy size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />}
+            <span className="truncate">{textoCopiado ? '¡Copiado!' : 'Copiar'}</span>
           </button>
         </div>
       </div>
