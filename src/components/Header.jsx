@@ -31,7 +31,7 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
             </div>
             <div className="leading-tight">
               <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">PRGARCÍA</p>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora · Venezuela</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora</p>
             </div>
           </div>
         </div>

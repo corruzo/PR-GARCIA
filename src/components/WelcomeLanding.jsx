@@ -33,7 +33,7 @@ const ONBOARDING_STEPS = [
   },
   {
     id: 'step2',
-    badge: 'Multi-Moneda Venezuela',
+    badge: 'Multi-Moneda',
     title: 'Anclaje a Tasa BCV Oficial',
     description: 'Convierte automáticamente entre Dólares y Bolívares con la tasa de cambio oficial del BCV en tiempo real.',
     icon: RefreshCw,

@@ -20,7 +20,7 @@ export default defineConfig({
       manifest: {
         name: 'PRGARCÍA · Calculadora de Préstamos',
         short_name: 'PRGARCÍA',
-        description: 'Calculadora de préstamos e intereses simple y compuesta en Venezuela con tasa BCV en tiempo real.',
+        description: 'Calculadora de préstamos e intereses simple y compuesta con la tasa BCV en tiempo real.',
         theme_color: '#10B981',
         background_color: '#0F172A',
         display: 'standalone',
