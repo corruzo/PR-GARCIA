@@ -351,12 +351,12 @@ function AppContent() {
 
         {/* Footer */}
         <footer className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
-          <p className="text-xs text-gray-400 dark:text-gray-600">
-            PRGARCÍA · Calculadora de Préstamos
-            Verifica la tasa BCV en{' '}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            PRGARCÍA · Calculadora de préstamos. Verifica la tasa en{' '}
             <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer"
-               className="underline hover:text-brand-600 transition-colors">bcv.org.ve</a>
+               className="underline hover:text-brand-profundo dark:hover:text-brand-menta transition-colors">bcv.org.ve</a>.
           </p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
         </footer>
 
       </main>

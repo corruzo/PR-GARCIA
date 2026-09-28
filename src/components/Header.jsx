@@ -25,15 +25,17 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
             <Menu size={20} />
           </button>
 
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onChangeTab?.('calculator')}>
-            <div className="h-9 w-9 bg-brand-500 rounded-xl flex items-center justify-center text-white shadow-sm shadow-brand-500/30">
-              <Calculator size={18} />
-            </div>
+          <button
+            type="button"
+            onClick={() => onChangeTab?.('calculator')}
+            className="flex items-center gap-2.5 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-esmeralda focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+          >
+            <img src="/logo-mark.svg" alt="" width="36" height="36" className="h-9 w-9 shrink-0" />
             <div className="leading-tight">
               <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">PRGARCÍA</p>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora</p>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* NAVEGACIÓN TOPBAR - Solo visible en Laptops (lg:) */}

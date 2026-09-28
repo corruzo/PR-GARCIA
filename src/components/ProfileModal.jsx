@@ -228,7 +228,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     disabled={loadingName}
-                    className="input-base text-xs min-h-10"
+                    className="input-base min-h-10"
                   />
                 </div>
 
@@ -295,7 +295,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={loadingPass}
-                      className="input-base text-xs pr-10 min-h-10"
+                      className="input-base pr-10 min-h-10"
                     />
                     <button
                       type="button"
@@ -315,7 +315,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={loadingPass}
-                    className="input-base text-xs min-h-10"
+                    className="input-base min-h-10"
                   />
                 </div>
 

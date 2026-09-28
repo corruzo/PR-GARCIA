@@ -16,25 +16,15 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['favicon.svg', 'icon-192.svg', 'icon-512.svg', 'sitemap.xml', 'robots.txt'],
-      manifest: {
-        name: 'PRGARCÍA · Calculadora de Préstamos',
-        short_name: 'PRGARCÍA',
-        description: 'Calculadora de préstamos e intereses simple y compuesta con la tasa BCV en tiempo real.',
-        theme_color: '#10B981',
-        background_color: '#0F172A',
-        display: 'standalone',
-        start_url: '/',
-        scope: '/',
-        orientation: 'portrait-primary',
-        icons: [
-          { src: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
-        ],
-      },
+      includeAssets: [
+        'favicon.svg', 'favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png',
+        'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png',
+        'sitemap.xml', 'robots.txt',
+      ],
+      manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
+        globIgnores: ['**/icon-192.svg', '**/icon-512.svg'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           {

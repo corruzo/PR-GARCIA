@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Calculator, LogIn, UserPlus, Zap, Shield, DollarSign, ArrowRight, CheckCircle2, Moon, Sun, ChevronRight, Sparkles, MessageCircle, RefreshCw } from 'lucide-react';
+import { LogIn, UserPlus, Zap, Shield, DollarSign, ArrowRight, CheckCircle2, Moon, Sun, ChevronRight, Sparkles, MessageCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const ONBOARDING_STEPS = [
   {
     id: 'step1',
-    badge: 'Cálculo Inteligente',
     title: 'Simulación de Préstamos en Segundos',
     description: 'Calcula cuotas exactas con tasa simple diaria, semanal, quincenal o mensual por días reales transcurridos.',
     icon: Zap,
@@ -100,12 +99,10 @@ export function WelcomeLanding() {
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-brand-500 rounded-xl flex items-center justify-center text-white shadow-sm shadow-brand-500/30">
-              <Calculator size={20} />
-            </div>
+            <img src="/logo-mark.svg" alt="" width="40" height="40" className="h-10 w-10 shrink-0" />
             <div className="leading-tight">
               <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">PRGARCÍA</p>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora SaaS</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora</p>
             </div>
           </div>
 
@@ -238,8 +235,12 @@ export function WelcomeLanding() {
       </main>
 
       {/* SaaS Footer */}
-      <footer className="py-5 border-t border-slate-200/80 dark:border-slate-800 text-center text-xs font-medium text-slate-400">
-        PRGARCÍA · Calculadora de Préstamos.
+      <footer className="py-5 border-t border-slate-200/80 dark:border-slate-800 text-center text-xs font-medium text-slate-600 dark:text-slate-400">
+        <p>
+          PRGARCÍA · Calculadora de préstamos. Verifica la tasa en{' '}
+          <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer" className="underline hover:text-brand-profundo dark:hover:text-brand-menta">bcv.org.ve</a>.
+        </p>
+        <p className="mt-1">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
       </footer>
     </div>
   );

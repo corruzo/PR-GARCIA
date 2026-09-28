@@ -187,7 +187,7 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               <select
                 value={modalidadTasa}
                 onChange={(e) => setModalidadTasa(e.target.value)}
-                className="input-base cursor-pointer font-semibold text-xs"
+                className="input-base cursor-pointer font-semibold"
               >
                 <option value="quincenal">Quincenal (15d)</option>
                 <option value="semanal">Semanal (7d)</option>
@@ -230,7 +230,7 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               <select
                 value={frecuenciaPago}
                 onChange={(e) => setFrecuenciaPago(e.target.value)}
-                className="input-base cursor-pointer font-semibold text-xs"
+                className="input-base cursor-pointer font-semibold"
               >
                 <option value="quincenal">Quincenal</option>
                 <option value="semanal">Semanal</option>

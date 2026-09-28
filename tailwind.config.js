@@ -10,6 +10,10 @@ export default {
       },
       colors: {
         brand: {
+          esmeralda: '#10B981',
+          profundo: '#047857',
+          tinta: '#0B1F3A',
+          menta: '#ECFDF5',
           50:  '#ecfdf5',
           100: '#d1fae5',
           200: '#a7f3d0',

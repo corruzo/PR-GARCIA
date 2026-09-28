@@ -1,29 +1,30 @@
 {
-  "name": "PRGARCÍA · Calculadora de Préstamos",
+  "name": "PRGARCÍA",
   "short_name": "PRGARCÍA",
-  "description": "Calculadora de préstamos e intereses simple y compuesta en Venezuela con tasa BCV en tiempo real.",
+  "description": "Calculadora de préstamos en dólares y bolívares con tasa oficial del BCV.",
+  "lang": "es-VE",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F172A",
+  "background_color": "#F8FAFC",
   "theme_color": "#10B981",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon-192.svg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "/icon-maskable-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]
