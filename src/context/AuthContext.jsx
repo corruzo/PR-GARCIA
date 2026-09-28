@@ -16,6 +16,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
+import { normalizePlainText } from '../utils/inputValidation';
 
 // ─── Contexto ─────────────────────────────────────────────────────────────────
 
@@ -96,11 +97,7 @@ export function AuthProvider({ children }) {
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      // Traducir errores comunes de Supabase al español
-      const msg = translateSupabaseError(error.message);
-      throw new Error(msg);
-    }
+    if (error) throw new Error('Correo o contraseña incorrectos.');
 
     // onAuthStateChange actualizará el estado automáticamente
     closeAuthModal();
@@ -114,11 +111,14 @@ export function AuthProvider({ children }) {
       throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
     }
 
+    const safeName = normalizePlainText(name).trim();
+    if (!safeName) throw new Error('Ingresa un nombre válido.');
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { full_name: safeName },
       },
     });
 
@@ -147,8 +147,6 @@ export function AuthProvider({ children }) {
       throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
     }
 
-    // Usar signInWithOtp con shouldCreateUser: false
-    // Si el correo NO existe en la base de datos de Supabase, devolverá un error impidiendo el envío.
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -157,8 +155,10 @@ export function AuthProvider({ children }) {
     });
 
     if (error) {
-      const msg = translateSupabaseError(error.message);
-      throw new Error(msg);
+      const message = error.message.toLowerCase();
+      if (message.includes('user not found') || message.includes('email not found')) return true;
+      console.warn('[PRGARCIA Auth] No se pudo solicitar el correo de recuperación.');
+      throw new Error('No se pudo solicitar la recuperación. Si el correo está asociado a una cuenta, inténtalo de nuevo más tarde.');
     }
 
     return true;
@@ -227,8 +227,11 @@ export function AuthProvider({ children }) {
       throw new Error('El sistema de autenticación no está disponible.');
     }
 
+    const safeName = normalizePlainText(name).trim();
+    if (!safeName) throw new Error('Ingresa un nombre válido.');
+
     const { data, error } = await supabase.auth.updateUser({
-      data: { full_name: name },
+      data: { full_name: safeName },
     });
 
     if (error) {
@@ -250,10 +253,18 @@ export function AuthProvider({ children }) {
       throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
     }
 
+    const allowedProviders = new Set(['google', 'apple']);
+    const normalizedProvider = provider.toLowerCase();
+    if (!allowedProviders.has(normalizedProvider)) {
+      throw new Error('Proveedor de inicio de sesión no válido.');
+    }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: provider.toLowerCase(),
+      provider: normalizedProvider,
       options: {
-        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        redirectTo: typeof window !== 'undefined'
+          ? (import.meta.env.DEV ? window.location.origin : 'https://prgarcia.app/')
+          : 'https://prgarcia.app/',
       },
     });
 

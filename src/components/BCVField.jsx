@@ -68,6 +68,7 @@ export function BCVField({ value, onChange }) {
             type="number"
             inputMode="decimal"
             min="0"
+            max={Number.MAX_SAFE_INTEGER}
             step="any"
             placeholder="Ej: 855.66"
             value={value}

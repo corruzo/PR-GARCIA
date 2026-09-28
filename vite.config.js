@@ -2,6 +2,15 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vite';
 
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://open.er-api.com https://ve.dolarapi.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+};
+
 export default defineConfig({
   server: {
     proxy: {
@@ -10,6 +19,12 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  preview: {
+    headers: securityHeaders,
+  },
+  build: {
+    sourcemap: false,
   },
   plugins: [
     react(),

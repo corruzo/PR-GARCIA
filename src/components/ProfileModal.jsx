@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Mail, Calendar, ShieldCheck, LogOut, X, Bookmark, Smartphone, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -224,9 +225,10 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                   <label className="label-base">Nuevo Nombre</label>
                   <input
                     type="text"
+                    maxLength={MAX_PERSON_NAME_LENGTH}
                     placeholder="Tu nombre completo"
                     value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
+                    onChange={(e) => setNewName(normalizePlainText(e.target.value))}
                     disabled={loadingName}
                     className="input-base min-h-10"
                   />

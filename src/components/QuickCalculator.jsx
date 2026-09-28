@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Zap, DollarSign, Send, RotateCcw, Percent, Calendar } from 'lucide-react';
 import { simularPrestamo, formatearMoneda, convertirMoneda } from '../utils/calculator';
 import { format } from 'date-fns';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
 
 const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
 const PRESET_DAYS = [7, 15, 30];
@@ -97,9 +98,10 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
             <label className="label-base">Cliente (Opcional)</label>
             <input
               type="text"
+              maxLength={MAX_PERSON_NAME_LENGTH}
               placeholder="Ej: Pedro Pérez"
               value={nombreCliente}
-              onChange={(e) => setNombreCliente(e.target.value)}
+              onChange={(e) => setNombreCliente(normalizePlainText(e.target.value))}
               className="input-base"
             />
           </div>
@@ -140,6 +142,8 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               <input
                 type="number"
                 inputMode="decimal"
+                min="0.01"
+                max={Number.MAX_SAFE_INTEGER}
                 value={monto}
                 onChange={(e) => setMonto(e.target.value)}
                 placeholder="100"
@@ -174,6 +178,8 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
                 <input
                   type="number"
                   inputMode="decimal"
+                  min="0.000001"
+                  max={Number.MAX_SAFE_INTEGER}
                   value={tasa}
                   onChange={(e) => setTasa(e.target.value)}
                   placeholder="10"
@@ -203,6 +209,8 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               <input
                 type="number"
                 inputMode="numeric"
+                min="1"
+                max="36500"
                 value={dias}
                 onChange={(e) => setDias(e.target.value)}
                 placeholder="15"

@@ -148,11 +148,17 @@ export function simularPrestamo(params) {
 
   // Validaciones
   const errores = [];
-  if (!monto || monto <= 0)    errores.push('El monto debe ser mayor a 0.');
-  if (!tasa  || tasa  <= 0)    errores.push('La tasa de interés debe ser mayor a 0.');
+  if (!Number.isFinite(monto) || monto < 0.01 || monto > Number.MAX_SAFE_INTEGER) {
+    errores.push('Ingresa un monto mayor a 0 y dentro del rango permitido.');
+  }
+  if (!Number.isFinite(tasa) || tasa < 0.000001 || tasa > Number.MAX_SAFE_INTEGER) {
+    errores.push('Ingresa una tasa mayor a 0 y dentro del rango permitido.');
+  }
   if (!fechaInicio)             errores.push('Ingresa la fecha de inicio.');
   if (!fechaFin)                errores.push('Ingresa la fecha de fin.');
-  if (!tasaBCV || tasaBCV <= 0) errores.push('La tasa BCV debe ser mayor a 0.');
+  if (!Number.isFinite(tasaBCV) || tasaBCV < 0.000001 || tasaBCV > Number.MAX_SAFE_INTEGER) {
+    errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
+  }
 
   if (errores.length > 0) return { valido: false, errores };
 

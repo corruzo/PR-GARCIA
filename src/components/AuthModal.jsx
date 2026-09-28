@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { User, Mail, Lock, X, LogIn, UserPlus, AlertCircle, Eye, EyeOff, CheckCircle, ShieldAlert, KeyRound, ArrowLeft, Smartphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
 
 export function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalTab, login, register, resetPasswordForEmail, verifyOtpAndSetPassword, loginWithProvider, supabaseReady } = useAuth();
@@ -91,7 +92,7 @@ export function AuthModal() {
       setCargando(true);
       try {
         await resetPasswordForEmail(email);
-        setSuccess(`Código de verificación enviado a ${email}. Revisa tu bandeja o spam.`);
+        setSuccess(`Si ${email} está asociado a una cuenta, recibirás instrucciones. Revisa tu bandeja o spam.`);
         setTab('otp');
       } catch (err) {
         setError(err?.message || 'No se pudo verificar el correo electrónico.');
@@ -297,9 +298,10 @@ export function AuthModal() {
                 <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
+                  maxLength={MAX_PERSON_NAME_LENGTH}
                   placeholder="Ej: María González"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(normalizePlainText(e.target.value))}
                   disabled={cargando}
                   className="input-base pl-11"
                 />

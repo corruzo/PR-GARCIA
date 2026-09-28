@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Save, TrendingUp, AlertCircle, Info, Copy, Check } from 'lucide-react';
 import { convertirMoneda, formatearMoneda, generarCronograma } from '../utils/calculator';
+import { normalizePlainText } from '../utils/inputValidation';
 import { format } from 'date-fns';
 
 function Stat({ label, value, alt, highlight = false, accent = 'blue' }) {
@@ -97,7 +98,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
     .join('\n');
 
   const fechaHoyStr = format(new Date(), 'dd/MM/yyyy');
-  const nombre = nombreCliente.trim() || 'Estimado cliente';
+  const nombre = normalizePlainText(nombreCliente).trim() || 'Estimado cliente';
 
   const equivalenteBolivaresStr = moneda === 'USD'
     ? `(equivalente en Bs.: ${fmtA(totalAlterna)})`

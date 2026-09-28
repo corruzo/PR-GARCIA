@@ -1,8 +1,3 @@
-import dns from 'node:dns';
-import https from 'node:https';
-
-dns.setDefaultResultOrder('ipv4first');
-
 function normalizeRate(value) {
   if (!value) return null;
 
@@ -13,34 +8,6 @@ function normalizeRate(value) {
   const rate = Number(normalized);
 
   return Number.isFinite(rate) && rate > 0 ? rate : null;
-}
-
-function requestBCVWithSystemTLS() {
-  return new Promise((resolve, reject) => {
-    const request = https.get('https://www.bcv.org.ve/', {
-      headers: {
-        Accept: 'text/html,application/xhtml+xml',
-        'User-Agent': 'Mozilla/5.0 (compatible; PrestamoCalc/1.0)',
-      },
-      // The BCV server currently presents an incomplete certificate chain.
-      // The response is still validated by the expected BCV HTML structure.
-      rejectUnauthorized: false,
-    }, (response) => {
-      let body = '';
-      response.setEncoding('utf8');
-      response.on('data', (chunk) => { body += chunk; });
-      response.on('end', () => {
-        if (response.statusCode && response.statusCode >= 400) {
-          reject(new Error(`BCV respondió con HTTP ${response.statusCode}`));
-          return;
-        }
-        resolve(body);
-      });
-    });
-
-    request.setTimeout(10000, () => request.destroy(new Error('Tiempo de espera agotado al consultar el BCV')));
-    request.on('error', reject);
-  });
 }
 
 export function extractBCVDollarRate(html) {
@@ -65,7 +32,7 @@ export async function fetchOfficialBCVRate() {
     if (res.ok) {
       const data = await res.json();
       const val = Number(data?.rates?.VES);
-      if (val > 0) return { rate: val, source: 'BCV Oficial (OpenER)' };
+      if (Number.isFinite(val) && val > 0) return { rate: val, source: 'BCV Oficial (OpenER)' };
     }
   } catch (err) {
     console.warn('[server/bcv] Falló OpenER:', err.message);
@@ -80,33 +47,26 @@ export async function fetchOfficialBCVRate() {
     if (res.ok) {
       const data = await res.json();
       const val = Number(data?.promedio);
-      if (val > 0) return { rate: val, source: 'DolarApi (BCV Oficial)' };
+      if (Number.isFinite(val) && val > 0) return { rate: val, source: 'DolarApi (BCV Oficial)' };
     }
   } catch (err) {
     console.warn('[server/bcv] Falló DolarApi:', err.message);
   }
 
   // 3. Scraping directo de la web oficial del BCV (último recurso)
-  let html;
-  try {
-    const response = await fetch('https://www.bcv.org.ve/', {
-      headers: {
-        Accept: 'text/html,application/xhtml+xml',
-        'User-Agent': 'Mozilla/5.0 (compatible; PrestamoCalc/1.0)',
-      },
-      signal: AbortSignal.timeout(8000),
-    });
+  const response = await fetch('https://www.bcv.org.ve/', {
+    headers: {
+      Accept: 'text/html,application/xhtml+xml',
+      'User-Agent': 'Mozilla/5.0 (compatible; PrestamoCalc/1.0)',
+    },
+    signal: AbortSignal.timeout(8000),
+  });
 
-    if (!response.ok) {
-      throw new Error(`BCV respondió con HTTP ${response.status}`);
-    }
-
-    html = await response.text();
-  } catch {
-    html = await requestBCVWithSystemTLS();
+  if (!response.ok) {
+    throw new Error(`BCV respondió con HTTP ${response.status}`);
   }
 
-  const rate = extractBCVDollarRate(html);
+  const rate = extractBCVDollarRate(await response.text());
   if (!rate) {
     throw new Error('No se encontró la tasa USD en ninguna de las fuentes');
   }

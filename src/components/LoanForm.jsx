@@ -1,5 +1,6 @@
 import { UserRound, DollarSign, Calendar, Percent, CheckCircle2 } from 'lucide-react';
 import { BCVField } from './BCVField';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
 
 const MODALIDADES = [
   { value: 'diaria', label: 'Diaria' },
@@ -21,6 +22,7 @@ export function LoanForm({ values, onChange }) {
     if (typeof val === 'string') {
       val = val.replace(',', '.');
     }
+    if (key === 'nombreCliente') val = normalizePlainText(val);
     onChange(key, val);
   };
 
@@ -94,6 +96,8 @@ export function LoanForm({ values, onChange }) {
                 id="input-monto"
                 type="number"
                 inputMode="decimal"
+                min="0.01"
+                max={Number.MAX_SAFE_INTEGER}
                 placeholder="0.00"
                 value={values.monto}
                 onChange={set('monto')}
@@ -137,6 +141,8 @@ export function LoanForm({ values, onChange }) {
                 id="input-tasa"
                 type="number"
                 inputMode="decimal"
+                min="0.000001"
+                max={Number.MAX_SAFE_INTEGER}
                 placeholder="Ej. 7"
                 value={values.tasa}
                 onChange={set('tasa')}
@@ -269,6 +275,7 @@ export function LoanForm({ values, onChange }) {
             <input
               id="input-cliente"
               type="text"
+              maxLength={MAX_PERSON_NAME_LENGTH}
               placeholder="Ej. Carlos Mendoza"
               value={values.nombreCliente}
               onChange={set('nombreCliente')}

@@ -13,6 +13,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { simularPrestamo, generarCronograma } from './utils/calculator';
 import { supabase } from './utils/supabase/client';
 import { getCachedBCV } from './services/bcvService';
+import { normalizePlainText } from './utils/inputValidation';
 
 const HOY = format(new Date(), 'yyyy-MM-dd');
 const DEFAULTS = {
@@ -85,7 +86,7 @@ function AppContent() {
       setLoadingHistory(true);
       const { data, error } = await supabase
         .from('user_history')
-        .select('*')
+        .select('id,created_at,prestamo_data')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
@@ -200,7 +201,7 @@ function AppContent() {
     const payload = {
       user_id: user.id,
       prestamo_data: {
-        values: { ...values },
+        values: { ...values, nombreCliente: normalizePlainText(values.nombreCliente) },
         resultado: { ...resultado }
       }
     };
@@ -208,7 +209,7 @@ function AppContent() {
     const { data, error } = await supabase
       .from('user_history')
       .insert([payload])
-      .select()
+      .select('id,created_at,prestamo_data')
       .single();
 
     if (!error && data) {
