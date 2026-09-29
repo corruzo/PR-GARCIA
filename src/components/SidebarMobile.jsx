@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { InfoModal } from './InfoModal';
 import { useState } from 'react';
+import { handleTabKeyDown } from '../utils/keyboardTabs';
 
 export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
   const { user, logout } = useAuth();
@@ -40,6 +41,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
             <button
               type="button"
               onClick={onClose}
+              aria-label="Cerrar menú"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <X size={18} />
@@ -49,7 +51,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
           {/* Perfil del Usuario Resumido */}
           {user && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-950/60 border border-gray-100 dark:border-gray-800">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white font-bold text-sm shadow-md shadow-brand-600/20 shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 shrink-0">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -60,16 +62,21 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
           )}
 
           {/* Enlaces de Navegación */}
-          <nav className="space-y-1.5">
+          <nav role="tablist" aria-label="Vistas de la cuenta" className="space-y-1.5">
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === 'calculator'}
+              aria-controls="app-tab-panel"
+              tabIndex={activeTab === 'calculator' ? 0 : -1}
+              onKeyDown={handleTabKeyDown}
               onClick={() => {
                 onChangeTab('calculator');
                 onClose();
               }}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'calculator'
-                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20'
+                  ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
@@ -81,13 +88,18 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
 
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === 'saved'}
+              aria-controls="app-tab-panel"
+              tabIndex={activeTab === 'saved' ? 0 : -1}
+              onKeyDown={handleTabKeyDown}
               onClick={() => {
                 onChangeTab('saved');
                 onClose();
               }}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'saved'
-                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20'
+                  ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >

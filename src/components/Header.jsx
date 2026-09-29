@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { InfoModal } from './InfoModal';
 import { UserMenu } from './UserMenu';
 import { SidebarMobile } from './SidebarMobile';
+import { handleTabKeyDown } from '../utils/keyboardTabs';
 
 export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
   const { dark, toggle } = useTheme();
@@ -39,9 +40,15 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
         </div>
 
         {/* NAVEGACIÓN TOPBAR - Solo visible en Laptops (lg:) */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+        <nav role="tablist" aria-label="Vistas de la cuenta" className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
           <button
             type="button"
+            id="tab-calculator"
+            role="tab"
+            aria-selected={activeTab === 'calculator'}
+            aria-controls="app-tab-panel"
+            tabIndex={activeTab === 'calculator' ? 0 : -1}
+            onKeyDown={handleTabKeyDown}
             onClick={() => onChangeTab?.('calculator')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'calculator'
@@ -55,6 +62,12 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
 
           <button
             type="button"
+            id="tab-saved"
+            role="tab"
+            aria-selected={activeTab === 'saved'}
+            aria-controls="app-tab-panel"
+            tabIndex={activeTab === 'saved' ? 0 : -1}
+            onKeyDown={handleTabKeyDown}
             onClick={() => onChangeTab?.('saved')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'saved'

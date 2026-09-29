@@ -273,6 +273,7 @@ export function AuthModal() {
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
+                    aria-label={`Dígito ${idx + 1} del código de verificación`}
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
@@ -293,10 +294,11 @@ export function AuthModal() {
           {/* Register Name input */}
           {tab === 'register' && (
             <div>
-              <label className="label-base">Nombre completo</label>
+              <label htmlFor="auth-name" className="label-base">Nombre completo</label>
               <div className="relative">
                 <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="auth-name"
                   type="text"
                   maxLength={MAX_PERSON_NAME_LENGTH}
                   placeholder="Ej: María González"
@@ -312,10 +314,11 @@ export function AuthModal() {
           {/* Email input (login, register, forgot) */}
           {tab !== 'otp' && (
             <div>
-              <label className="label-base">Correo electrónico</label>
+              <label htmlFor="auth-email" className="label-base">Correo electrónico</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="auth-email"
                   ref={emailInputRef}
                   type="email"
                   placeholder="usuario@ejemplo.com"
@@ -333,7 +336,7 @@ export function AuthModal() {
           {(tab === 'login' || tab === 'register' || tab === 'otp') && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="label-base mb-0">
+                <label htmlFor="auth-password" className="label-base mb-0">
                   {tab === 'otp' ? 'Nueva Contraseña' : 'Contraseña'}
                 </label>
                 {tab === 'login' && (
@@ -349,6 +352,7 @@ export function AuthModal() {
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder={tab === 'otp' ? 'Ingresa tu nueva contraseña' : '••••••••'}
                   value={password}
@@ -360,6 +364,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                   tabIndex={-1}
                 >
@@ -373,7 +378,7 @@ export function AuthModal() {
           <button
             type="submit"
             disabled={cargando}
-            className="w-full flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-sm font-bold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 mt-2"
+            className="w-full flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-sm font-bold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 mt-2"
           >
             {cargando ? (
               <span className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />

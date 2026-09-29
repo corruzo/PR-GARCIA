@@ -1,6 +1,7 @@
 import { UserRound, DollarSign, Calendar, Percent, CheckCircle2 } from 'lucide-react';
 import { BCVField } from './BCVField';
 import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
+import { handleRadioKeyDown } from '../utils/keyboardTabs';
 
 const MODALIDADES = [
   { value: 'diaria', label: 'Diaria' },
@@ -56,14 +57,15 @@ export function LoanForm({ values, onChange }) {
         <div className="p-5 space-y-4">
           {/* Selector de Moneda */}
           <div>
-            <label className="label-base">Moneda de Préstamo</label>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            <span id="label-moneda-prestamo" className="label-base">Moneda de Préstamo</span>
+            <div role="group" aria-labelledby="label-moneda-prestamo" className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
               <button
                 type="button"
+                aria-pressed={values.moneda === 'USD'}
                 onClick={() => onChange('moneda', 'USD')}
                 className={`py-2 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
                   values.moneda === 'USD'
-                    ? 'bg-emerald-500 text-white shadow-sm'
+                    ? 'bg-brand-700 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -72,10 +74,11 @@ export function LoanForm({ values, onChange }) {
               </button>
               <button
                 type="button"
+                aria-pressed={values.moneda === 'VES'}
                 onClick={() => onChange('moneda', 'VES')}
                 className={`py-2 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
                   values.moneda === 'VES'
-                    ? 'bg-emerald-500 text-white shadow-sm'
+                    ? 'bg-brand-700 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -198,16 +201,20 @@ export function LoanForm({ values, onChange }) {
         <div className="p-5 space-y-4">
           {/* Frecuencia de Cobro */}
           <div>
-            <label className="label-base">Frecuencia de Cuotas</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            <span id="label-frecuencia-cuotas" className="label-base">Frecuencia de Cuotas</span>
+            <div role="radiogroup" aria-labelledby="label-frecuencia-cuotas" className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
               {FRECUENCIAS.map(f => (
                 <button
                   key={f.value}
                   type="button"
+                  role="radio"
+                  aria-checked={values.frecuenciaPago === f.value}
+                  tabIndex={values.frecuenciaPago === f.value ? 0 : -1}
+                  onKeyDown={handleRadioKeyDown}
                   onClick={() => onChange('frecuenciaPago', f.value)}
                   className={`py-2 px-2 text-xs font-bold rounded-lg transition-all text-center ${
                     values.frecuenciaPago === f.value
-                      ? 'bg-emerald-500 text-white shadow-sm'
+                      ? 'bg-brand-700 text-white shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >

@@ -11,11 +11,11 @@ const ONBOARDING_STEPS = [
     icon: Zap,
     graphic: (
       <div className="w-full h-44 bg-gradient-to-br from-brand-50 to-emerald-100/40 dark:from-slate-800/80 dark:to-slate-900 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl flex flex-col justify-center items-center p-6 relative overflow-hidden">
-        <div className="absolute top-3 right-3 px-2.5 py-1 bg-brand-500 text-white rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
+        <div className="absolute top-3 right-3 px-2.5 py-1 bg-brand-700 text-white rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
           Interés Real
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-brand-500 text-white flex items-center justify-center shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-brand-700 text-white flex items-center justify-center shadow-md">
             <DollarSign size={24} />
           </div>
           <div className="text-left">
@@ -43,7 +43,7 @@ const ONBOARDING_STEPS = [
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Divisas</span>
             <span className="text-lg font-bold text-slate-900 dark:text-white font-mono">$100 USD</span>
           </div>
-          <div className="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+          <div className="w-8 h-8 rounded-full bg-brand-700 text-white flex items-center justify-center shrink-0 shadow-xs">
             ⇄
           </div>
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-center shadow-xs w-1/2">
@@ -125,7 +125,7 @@ export function WelcomeLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 flex flex-col justify-between selection:bg-brand-700 selection:text-white">
       {/* Header SaaS Minimalista */}
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
@@ -160,7 +160,7 @@ export function WelcomeLanding() {
               type="button"
               onClick={() => openAuthModal('register')}
               aria-label="Crear cuenta"
-              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-4 text-xs font-bold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all active:scale-95"
+              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 px-4 text-xs font-bold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all active:scale-95"
             >
               <UserPlus size={15} />
               <span className="hidden sm:inline">Crear Cuenta</span>
@@ -215,7 +215,7 @@ export function WelcomeLanding() {
                 type="button"
                 onClick={() => setActiveStep(idx)}
                 aria-label={`Ir al paso ${idx + 1}`}
-                className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeStep ? 'w-8 bg-brand-500' : 'w-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300'
+                className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeStep ? 'w-8 bg-brand-700' : 'w-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300'
                   }`}
               />
             ))}
@@ -234,7 +234,7 @@ export function WelcomeLanding() {
             <button
               type="button"
               onClick={handleNext}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-bold text-sm shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white font-bold text-sm shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all active:scale-[0.98]"
             >
               <span>{activeStep === ONBOARDING_STEPS.length - 1 ? 'Empezar Ahora' : 'Siguiente'}</span>
               <ChevronRight size={16} />

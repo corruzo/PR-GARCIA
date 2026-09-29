@@ -35,6 +35,8 @@ function Divider({ label }) {
 export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBCVPersonalizada = false }) {
   const [cotizacionGuardada, setCotizacionGuardada] = useState(false);
   const [textoCopiado, setTextoCopiado] = useState(false);
+  const [guardandoCotizacion, setGuardandoCotizacion] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState('');
   if (!resultado) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center text-gray-400 dark:text-gray-600 gap-3">
@@ -144,11 +146,21 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
     }
   };
 
-  const guardarCotizacion = () => {
-    const saved = onSaveQuote?.();
-    if (saved) {
+  const guardarCotizacion = async () => {
+    setErrorGuardado('');
+    setGuardandoCotizacion(true);
+    try {
+      const saved = await onSaveQuote?.();
+      if (!saved) {
+        setErrorGuardado('No pudimos guardar la cotización. Revisa tu conexión e inténtalo de nuevo.');
+        return;
+      }
       setCotizacionGuardada(true);
       setTimeout(() => setCotizacionGuardada(false), 2200);
+    } catch {
+      setErrorGuardado('No pudimos guardar la cotización. Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setGuardandoCotizacion(false);
     }
   };
 
@@ -219,7 +231,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
           accent="gray"
         />
         <Stat
-          label="Ganancia por intereses"
+          label="Total de intereses"
           value={fmtP(interes)}
           alt={`≈ ${fmtA(interesAlterna ?? interes)}`}
           highlight
@@ -237,7 +249,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
 
       {/* Total a pagar */}
       <div className="result-card border-l-4 border-l-brand-600">
-        <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Total a cobrar</span>
+        <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Total a pagar</span>
         <span className="result-value text-brand-600 dark:text-brand-500 block">{fmtP(totalPagar)}</span>
         <span className="result-alt">≈ {fmtA(totalAlterna ?? totalPagar)}</span>
       </div>
@@ -289,6 +301,8 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
       </div>
 
       <div className="space-y-2.5 pt-3">
+        {errorGuardado && <p role="alert" aria-live="assertive" className="text-sm text-red-800 dark:text-red-200">{errorGuardado}</p>}
+
         {/* Botón WhatsApp - Acción Principal */}
         <a
           href={whatsappUrl}
@@ -307,10 +321,12 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
           <button
             type="button"
             onClick={guardarCotizacion}
+            disabled={guardandoCotizacion}
+            aria-busy={guardandoCotizacion}
             className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all duration-200 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
           >
             <Save size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />
-            <span className="truncate">{cotizacionGuardada ? 'Guardada' : 'Guardar'}</span>
+            <span className="truncate">{guardandoCotizacion ? 'Guardando…' : cotizacionGuardada ? 'Guardada' : 'Guardar'}</span>
           </button>
 
           <button

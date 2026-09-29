@@ -31,7 +31,7 @@ export function UserMenu({ onOpenProfile }) {
         <button
           type="button"
           onClick={() => openAuthModal('register')}
-          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 px-3 text-xs font-semibold text-white shadow-sm transition-all active:scale-95"
+          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 px-3 text-xs font-semibold text-white shadow-sm transition-all active:scale-95"
         >
           <UserPlus size={13} />
           <span className="hidden sm:inline">Registrarse</span>

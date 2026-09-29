@@ -78,7 +78,12 @@ function AppContent() {
   const [showProfile, setShowProfile] = useState(false);
   const [values, setValues] = useState(loadDraft);
   const [history, setHistory] = useState([]);
+  const [historyOwnerId, setHistoryOwnerId] = useState(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState('');
+  const [historyReloadKey, setHistoryReloadKey] = useState(0);
+  const currentHistory = user && historyOwnerId === user.id ? history : [];
+  const currentHistoryError = user && historyOwnerId === user.id ? historyError : '';
 
   useEffect(() => {
     const robotsMeta = document.querySelector('meta[name="robots"]');
@@ -93,29 +98,48 @@ function AppContent() {
 
   // Cargar historial de Supabase
   useEffect(() => {
-    if (!user) return;
+    let cancelled = false;
+
+    if (!user) return undefined;
+
     const fetchHistory = async () => {
       setLoadingHistory(true);
-      const { data, error } = await supabase
-        .from('user_history')
-        .select('id,created_at,prestamo_data')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        // Transformar de la DB al formato del frontend
+
+      try {
+        const { data, error } = await supabase
+          .from('user_history')
+          .select('id,created_at,prestamo_data')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (cancelled) return;
+
         const formatted = data.map(row => ({
           id: row.id,
           createdAt: row.created_at,
           values: row.prestamo_data.values,
-          resultado: row.prestamo_data.resultado
+          resultado: row.prestamo_data.resultado,
         }));
+        setHistoryError('');
         setHistory(formatted);
+        setHistoryOwnerId(user.id);
+      } catch {
+        if (cancelled) return;
+        setHistory([]);
+        setHistoryOwnerId(user.id);
+        setHistoryError('No pudimos cargar tus cotizaciones. Revisa tu conexión e inténtalo de nuevo.');
+      } finally {
+        if (!cancelled) setLoadingHistory(false);
       }
-      setLoadingHistory(false);
     };
+
     fetchHistory();
-  }, [user]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, historyReloadKey]);
 
   const currencyColors = values.moneda === 'USD'
     ? {
@@ -231,23 +255,32 @@ function AppContent() {
         values: data.prestamo_data.values,
         resultado: data.prestamo_data.resultado
       };
-      setHistory(prev => [newItem, ...prev].slice(0, 30));
+      setHistoryOwnerId(user.id);
+      setHistory(prev => [newItem, ...(historyOwnerId === user.id ? prev : [])].slice(0, 30));
       return true;
     }
     return false;
   };
 
   const eliminarCotizacion = async (id) => {
-    const { error } = await supabase.from('user_history').delete().eq('id', id).eq('user_id', user.id);
-    if (!error) {
+    try {
+      const { error } = await supabase.from('user_history').delete().eq('id', id).eq('user_id', user.id);
+      if (error) return false;
       setHistory(prev => prev.filter(item => item.id !== id));
+      return true;
+    } catch {
+      return false;
     }
   };
 
   const limpiarCotizaciones = async () => {
-    const { error } = await supabase.from('user_history').delete().eq('user_id', user.id);
-    if (!error) {
+    try {
+      const { error } = await supabase.from('user_history').delete().eq('user_id', user.id);
+      if (error) return false;
       setHistory([]);
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -258,8 +291,9 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-light dark:bg-surface-dark">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600" />
+      <div className="min-h-screen flex items-center justify-center bg-surface-light dark:bg-surface-dark" role="status" aria-live="polite">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-700" aria-hidden="true" />
+        <span className="sr-only">Cargando tu sesión…</span>
       </div>
     );
   }
@@ -284,10 +318,10 @@ function AppContent() {
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         onOpenProfile={() => setShowProfile(true)}
-        historyCount={history.length}
+        historyCount={currentHistory.length}
       />
 
-      <main className="mx-auto max-w-6xl px-4 py-6 lg:px-6 lg:py-9">
+      <main id="app-tab-panel" role="tabpanel" aria-label={activeTab === 'calculator' ? 'Calculadora' : 'Cotizaciones guardadas'} tabIndex={0} className="mx-auto max-w-6xl px-4 py-6 lg:px-6 lg:py-9">
 
         {/* 1. CALCULADORA UNIFICADA Y SIMPLIFICADA */}
         {activeTab === 'calculator' && (
@@ -356,10 +390,13 @@ function AppContent() {
         {/* 2. MODO MIS COTIZACIONES GUARDADAS */}
         {activeTab === 'saved' && (
           <SavedQuotesView
-            items={history}
+            items={currentHistory}
+            loading={loadingHistory}
+            error={currentHistoryError}
             onOpen={abrirCotizacion}
             onDelete={eliminarCotizacion}
             onClear={limpiarCotizaciones}
+            onRetry={() => setHistoryReloadKey(current => current + 1)}
           />
         )}
 
@@ -379,7 +416,7 @@ function AppContent() {
       <ProfileModal
         open={showProfile}
         onClose={() => setShowProfile(false)}
-        totalQuotes={history.length}
+        totalQuotes={currentHistory.length}
       />
       </div>
     </Suspense>

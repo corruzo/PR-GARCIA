@@ -14,6 +14,7 @@ export function BCVField({ value, onChange }) {
     error,
     fuente,
     cacheInfo,
+    online,
     tasaAnticuada,
     verificadaBCV,
     cambioBCV,
@@ -59,12 +60,13 @@ export function BCVField({ value, onChange }) {
 
   return (
     <div className="space-y-1.5">
-      <label className="label-base">Tasa BCV del día (VES / USD)</label>
+      <label htmlFor="input-tasa-bcv" className="label-base">Tasa BCV del día (VES / USD)</label>
 
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 select-none">Bs.</span>
           <input
+            id="input-tasa-bcv"
             type="number"
             inputMode="decimal"
             min="0"
@@ -91,6 +93,16 @@ export function BCVField({ value, onChange }) {
       </div>
 
       <div className="flex flex-col gap-1 min-h-4">
+        {cacheTimestamp && (error || !online) && (
+          <p className="rounded-md bg-amber-50 px-2.5 py-2 text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-100" role="status" aria-live="polite">
+            {!online
+              ? `Sin conexión: mostrando la última tasa guardada (${format(cacheTimestamp, 'dd/MM/yyyy HH:mm', { locale: es })}).`
+              : `No pudimos consultar la fuente; mostramos la última tasa guardada (${format(cacheTimestamp, 'dd/MM/yyyy HH:mm', { locale: es })}).`}
+          </p>
+        )}
+        {error && !cacheTimestamp && (
+          <p className="text-xs text-red-700 dark:text-red-300" role="alert">No pudimos obtener la tasa y todavía no hay una guardada. Revisa tu conexión e inténtalo de nuevo.</p>
+        )}
         {cargando ? (
           <span className="flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400">
             <RefreshCw size={11} className="animate-spin" /> Consultando la tasa oficial del BCV…

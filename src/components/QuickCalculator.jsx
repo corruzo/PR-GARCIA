@@ -95,8 +95,9 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
           
           {/* Cliente opcional */}
           <div>
-            <label className="label-base">Cliente (Opcional)</label>
+            <label htmlFor="quick-client" className="label-base">Cliente (Opcional)</label>
             <input
+              id="quick-client"
               type="text"
               maxLength={MAX_PERSON_NAME_LENGTH}
               placeholder="Ej: Pedro Pérez"
@@ -107,9 +108,10 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
           </div>
 
           {/* Toggle Moneda */}
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-gray-100 dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
+          <div role="group" aria-label="Moneda del préstamo" className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-gray-100 dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
             <button
               type="button"
+              aria-pressed={moneda === 'USD'}
               onClick={() => setMoneda('USD')}
               className={`py-2 text-xs font-extrabold rounded-lg transition-all ${
                 moneda === 'USD'
@@ -121,10 +123,11 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
             </button>
             <button
               type="button"
+              aria-pressed={moneda === 'VES'}
               onClick={() => setMoneda('VES')}
               className={`py-2 text-xs font-extrabold rounded-lg transition-all ${
                 moneda === 'VES'
-                  ? 'bg-emerald-600 text-white shadow-md'
+                  ? 'bg-brand-700 text-white shadow-md'
                   : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -134,12 +137,13 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
 
           {/* Monto con Atajos de 1 toque */}
           <div>
-            <label className="label-base">Monto a Prestar</label>
+            <label htmlFor="quick-amount" className="label-base">Monto a Prestar</label>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
                 {moneda === 'USD' ? '$' : 'Bs.'}
               </span>
               <input
+                id="quick-amount"
                 type="number"
                 inputMode="decimal"
                 min="0.01"
@@ -160,7 +164,7 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
                   onClick={() => setMonto(val.toString())}
                   className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all ${
                     monto === val.toString()
-                      ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                      ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
                       : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-brand-500'
                   }`}
                 >
@@ -173,9 +177,10 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
           {/* Tasa % y Modalidad */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label-base">Tasa (%)</label>
+              <label htmlFor="quick-rate" className="label-base">Tasa (%)</label>
               <div className="relative">
                 <input
+                  id="quick-rate"
                   type="number"
                   inputMode="decimal"
                   min="0.000001"
@@ -189,8 +194,9 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               </div>
             </div>
             <div>
-              <label className="label-base">Modalidad Tasa</label>
+              <label htmlFor="quick-rate-modality" className="label-base">Modalidad Tasa</label>
               <select
+                id="quick-rate-modality"
                 value={modalidadTasa}
                 onChange={(e) => setModalidadTasa(e.target.value)}
                 className="input-base cursor-pointer font-semibold"
@@ -205,8 +211,9 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
           {/* Plazo en Días y Frecuencia de Cobro */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label-base">Plazo (Días)</label>
+              <label htmlFor="quick-duration" className="label-base">Plazo (Días)</label>
               <input
+                id="quick-duration"
                 type="number"
                 inputMode="numeric"
                 min="1"
@@ -234,8 +241,9 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
               </div>
             </div>
             <div>
-              <label className="label-base">Cobro</label>
+              <label htmlFor="quick-payment-frequency" className="label-base">Cobro</label>
               <select
+                id="quick-payment-frequency"
                 value={frecuenciaPago}
                 onChange={(e) => setFrecuenciaPago(e.target.value)}
                 className="input-base cursor-pointer font-semibold"
@@ -262,12 +270,12 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
             {resultado?.valido ? (
               <div className="space-y-4 mt-4">
                 {/* Total a cobrar gigante */}
-                <div className="rounded-xl bg-brand-600 text-white p-4 text-center shadow-md">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-blue-100 block">Total a Cobrar</span>
+                <div className="rounded-xl bg-brand-700 text-white p-4 text-center shadow-md">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-white block">Total a pagar</span>
                   <span className="font-mono text-3xl sm:text-4xl font-extrabold block mt-0.5">
                     {fmtP(resultado.totalPagar)}
                   </span>
-                  <span className="text-xs text-blue-100 font-mono mt-0.5 block">
+                  <span className="text-xs text-white font-mono mt-0.5 block">
                     ≈ {fmtA(convertirMoneda(resultado.totalPagar, tasaBCV, moneda, moneda === 'USD' ? 'VES' : 'USD'))}
                   </span>
                 </div>
@@ -275,7 +283,7 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
                 {/* Desglose de Ganancia y Cuotas */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/60 dark:bg-emerald-950/30 p-3">
-                    <span className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 block">Ganancia Interés</span>
+                    <span className="text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 block">Total de intereses</span>
                     <span className="font-mono text-xl font-extrabold text-emerald-600 dark:text-emerald-400 block mt-0.5">
                       {fmtP(resultado.interes)}
                     </span>

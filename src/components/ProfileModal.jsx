@@ -111,7 +111,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Encabezado */}
-        <header className="relative flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-brand-500 text-white shrink-0">
+        <header className="relative flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-brand-700 text-white shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 font-extrabold text-xl backdrop-blur">
               {user.name.charAt(0).toUpperCase()}
@@ -222,8 +222,9 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 )}
 
                 <div>
-                  <label className="label-base">Nuevo Nombre</label>
+                  <label htmlFor="profile-new-name" className="label-base">Nuevo Nombre</label>
                   <input
+                    id="profile-new-name"
                     type="text"
                     maxLength={MAX_PERSON_NAME_LENGTH}
                     placeholder="Tu nombre completo"
@@ -237,7 +238,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 <button
                   type="submit"
                   disabled={loadingName}
-                  className="w-full flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-xs font-bold text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
                 >
                   {loadingName ? 'Guardando…' : 'Guardar Nuevo Nombre'}
                 </button>
@@ -289,9 +290,10 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 )}
 
                 <div>
-                  <label className="label-base">Nueva Contraseña</label>
+                  <label htmlFor="profile-new-password" className="label-base">Nueva Contraseña</label>
                   <div className="relative">
                     <input
+                      id="profile-new-password"
                       type={showPass ? 'text' : 'password'}
                       placeholder="Mínimo 6 caracteres"
                       value={newPassword}
@@ -302,6 +304,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                     <button
                       type="button"
                       onClick={() => setShowPass(!showPass)}
+                      aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
                       {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -310,8 +313,9 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 </div>
 
                 <div>
-                  <label className="label-base">Confirmar Nueva Contraseña</label>
+                  <label htmlFor="profile-confirm-password" className="label-base">Confirmar Nueva Contraseña</label>
                   <input
+                    id="profile-confirm-password"
                     type={showPass ? 'text' : 'password'}
                     placeholder="Repite la contraseña"
                     value={confirmPassword}
@@ -324,7 +328,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 <button
                   type="submit"
                   disabled={loadingPass}
-                  className="w-full flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-xs font-bold text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
                 >
                   {loadingPass ? 'Guardando…' : 'Guardar Nueva Contraseña'}
                 </button>

@@ -27,6 +27,14 @@
   * {
     @apply border-slate-200 dark:border-slate-800;
   }
+  :focus-visible {
+    outline: 3px solid #047857 !important;
+    outline-offset: 2px !important;
+    transition: none !important;
+  }
+  .dark :focus-visible {
+    outline-color: #6ee7b7 !important;
+  }
 }
 
 @layer components {
@@ -51,7 +59,7 @@
   /* Clean Minimalist SaaS Buttons */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl
-           bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-bold text-sm
+           bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white font-bold text-sm
            shadow-sm hover:shadow-md hover:shadow-brand-500/20
            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900
            transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
@@ -104,5 +112,51 @@
   }
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  .text-gray-400,
+  .text-gray-500,
+  .text-slate-400,
+  .text-slate-500 {
+    color: #475569;
+  }
+
+  .text-brand-500,
+  .text-brand-600,
+  .text-emerald-600,
+  .text-gain-600 {
+    color: #047857;
+  }
+
+  .dark .text-gray-400,
+  .dark .text-gray-500,
+  .dark .text-gray-600,
+  .dark .text-slate-400,
+  .dark .text-slate-500,
+  .dark .text-slate-600,
+  .dark [class~="dark:text-gray-400"],
+  .dark [class~="dark:text-gray-500"],
+  .dark [class~="dark:text-gray-600"],
+  .dark [class~="dark:text-slate-400"],
+  .dark [class~="dark:text-slate-500"],
+  .dark [class~="dark:text-slate-600"] {
+    color: #cbd5e1;
+  }
+
+  .dark [class~="dark:text-brand-400"],
+  .dark [class~="dark:text-emerald-400"],
+  .dark [class~="dark:text-gain-500"] {
+    color: #6ee7b7;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #475569;
+    opacity: 1;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #cbd5e1;
   }
 }

@@ -4,8 +4,10 @@ import { formatearMoneda } from '../utils/calculator';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
+export function SavedQuotesView({ items = [], loading = false, error = '', onOpen, onDelete, onClear, onRetry }) {
   const [search, setSearch] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [pendingAction, setPendingAction] = useState('');
 
   const filteredItems = items.filter((item) => {
     const q = search.toLowerCase();
@@ -13,6 +15,30 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
     const monto = (item.values?.monto || '').toString();
     return nombre.includes(q) || monto.includes(q);
   });
+
+  const handleDelete = async (id) => {
+    setActionError('');
+    setPendingAction(`delete-${id}`);
+    try {
+      if (!await onDelete?.(id)) setActionError('No pudimos eliminar la cotización. Revisa tu conexión e inténtalo de nuevo.');
+    } catch {
+      setActionError('No pudimos eliminar la cotización. Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setPendingAction('');
+    }
+  };
+
+  const handleClear = async () => {
+    setActionError('');
+    setPendingAction('clear');
+    try {
+      if (!await onClear?.()) setActionError('No pudimos vaciar el historial. Revisa tu conexión e inténtalo de nuevo.');
+    } catch {
+      setActionError('No pudimos vaciar el historial. Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      setPendingAction('');
+    }
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -33,7 +59,8 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
         {items.length > 0 && (
           <button
             type="button"
-            onClick={onClear}
+            onClick={handleClear}
+            disabled={pendingAction !== ''}
             className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors"
           >
             <Trash2 size={14} /> Vaciar historial ({items.length})
@@ -45,7 +72,9 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
       {items.length > 0 && (
         <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <label htmlFor="saved-quotes-search" className="sr-only">Buscar cotizaciones por cliente o monto</label>
           <input
+            id="saved-quotes-search"
             type="text"
             placeholder="Buscar por cliente o monto..."
             value={search}
@@ -55,8 +84,20 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
         </div>
       )}
 
+      {actionError && <p className="text-sm text-red-800 dark:text-red-200" role="alert" aria-live="assertive">{actionError}</p>}
+
       {/* Grid de Cotizaciones */}
-      {filteredItems.length > 0 ? (
+      {loading ? (
+        <div className="flex min-h-40 items-center justify-center gap-3 text-sm text-slate-600 dark:text-slate-300" role="status" aria-live="polite">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-700 border-t-transparent" aria-hidden="true" />
+          Cargando tus cotizaciones guardadas…
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/30" role="alert">
+          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          <button type="button" onClick={onRetry} className="btn-secondary">Reintentar</button>
+        </div>
+      ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredItems.map((item) => {
             const { values, resultado, createdAt } = item;
@@ -122,14 +163,16 @@ export function SavedQuotesView({ items = [], onOpen, onDelete, onClear }) {
                   <button
                     type="button"
                     onClick={() => onOpen?.(item)}
-                    className="flex-1 flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white shadow-xs transition-all active:scale-95"
+                    className="flex-1 flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-xs font-bold text-white shadow-xs transition-all active:scale-95"
                   >
                     <ExternalLink size={14} /> Cargar en simulador
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => onDelete?.(item.id)}
+                    onClick={() => handleDelete(item.id)}
+                    disabled={pendingAction !== ''}
+                    aria-label={`Eliminar cotización de ${cliente}`}
                     className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-red-600 hover:border-red-300 dark:hover:border-red-900 transition-colors"
                     title="Eliminar de mi lista"
                   >
