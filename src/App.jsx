@@ -1,19 +1,20 @@
-import { useState, useMemo, useEffect } from 'react';
+import { lazy, Suspense, useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
-import { Header } from './components/Header';
-import { LoanForm } from './components/LoanForm';
-import { ResultPanel } from './components/ResultPanel';
-import { CronogramaTable } from './components/CronogramaTable';
 import { AuthModal } from './components/AuthModal';
-import { ProfileModal } from './components/ProfileModal';
 import { WelcomeLanding } from './components/WelcomeLanding';
-import { SavedQuotesView } from './components/SavedQuotesView';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { simularPrestamo, generarCronograma } from './utils/calculator';
 import { supabase } from './utils/supabase/client';
 import { getCachedBCV } from './services/bcvService';
 import { normalizePlainText } from './utils/inputValidation';
+
+const Header = lazy(() => import('./components/Header').then(module => ({ default: module.Header })));
+const LoanForm = lazy(() => import('./components/LoanForm').then(module => ({ default: module.LoanForm })));
+const ResultPanel = lazy(() => import('./components/ResultPanel').then(module => ({ default: module.ResultPanel })));
+const CronogramaTable = lazy(() => import('./components/CronogramaTable').then(module => ({ default: module.CronogramaTable })));
+const ProfileModal = lazy(() => import('./components/ProfileModal').then(module => ({ default: module.ProfileModal })));
+const SavedQuotesView = lazy(() => import('./components/SavedQuotesView').then(module => ({ default: module.SavedQuotesView })));
 
 const HOY = format(new Date(), 'yyyy-MM-dd');
 const DEFAULTS = {
@@ -78,6 +79,17 @@ function AppContent() {
   const [values, setValues] = useState(loadDraft);
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    const robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) return;
+
+    const originalContent = robotsMeta.content;
+    robotsMeta.content = user ? 'noindex,nofollow' : originalContent;
+    return () => {
+      robotsMeta.content = originalContent;
+    };
+  }, [user]);
 
   // Cargar historial de Supabase
   useEffect(() => {
@@ -263,10 +275,11 @@ function AppContent() {
   }
 
   return (
-    <div
-      className="currency-app app-canvas min-h-screen bg-surface-light dark:bg-surface-dark transition-colors duration-300"
-      style={currencyColors}
-    >
+    <Suspense fallback={<div className="min-h-screen" aria-label="Cargando calculadora" />}>
+      <div
+        className="currency-app app-canvas min-h-screen bg-surface-light dark:bg-surface-dark transition-colors duration-300"
+        style={currencyColors}
+      >
       <Header
         activeTab={activeTab}
         onChangeTab={setActiveTab}
@@ -368,7 +381,8 @@ function AppContent() {
         onClose={() => setShowProfile(false)}
         totalQuotes={history.length}
       />
-    </div>
+      </div>
+    </Suspense>
   );
 }
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-VE">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -11,9 +11,9 @@
     <meta name="theme-color" content="#10B981" />
     
     <!-- Primary SEO Meta Tags -->
-    <title>PRGARCÍA | Calculadora de Préstamos e Intereses en Dólares (USD) y Bolívares (VES)</title>
-    <meta name="title" content="PRGARCÍA | Calculadora de Préstamos e Intereses en Dólares (USD) y Bolívares (VES)" />
-    <meta name="description" content="Calculadora de préstamos e intereses. Simula cuotas en Dólares (USD) y Bolívares (VES) a la tasa oficial del Banco Central de Venezuela (BCV) en tiempo real." />
+    <title>PRGARCÍA | Calculadora de préstamos USD y bolívares</title>
+    <meta name="title" content="PRGARCÍA | Calculadora de préstamos USD y bolívares" />
+    <meta name="description" content="Simula préstamos en dólares y bolívares, consulta una referencia de tasa BCV y prepara cuotas para compartir por WhatsApp." />
     <meta name="keywords" content="calculadora de prestamos, calculo prestamos tasa bcv, cuotas dolares bolivares, prestamos e intereses, simulador de prestamo bcv, prgarcia" />
     <meta name="author" content="PRGARCÍA" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -43,6 +43,10 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://open.er-api.com">
+    <link rel="preconnect" href="https://api.exchangerate-api.com">
+    <link rel="preconnect" href="https://ve.dolarapi.com">
+    <link rel="preconnect" href="https://www.bcv.org.ve">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- PWA Web App Manifest -->
@@ -51,27 +55,124 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="PRGARCÍA" />
 
-    <!-- Google Structured Data (JSON-LD) for Search Engine Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "PRGARCÍA - Calculadora de Préstamos Dólares (USD) y Bolívares (VES)",
-      "url": "https://prgarcia.app",
-      "description": "Calculadora de préstamos e intereses con conversión automática USD/VES y actualización en tiempo real de la tasa oficial del Banco Central de Venezuela (BCV).",
-      "applicationCategory": "FinanceApplication",
-      "operatingSystem": "All",
-      "browserRequirements": "Requires JavaScript",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "name": "PRGARCÍA",
+          "url": "https://prgarcia.app/",
+          "image": "https://prgarcia.app/og-image.png",
+          "description": "Calculadora para simular préstamos en dólares y bolívares con referencia de tasa BCV.",
+          "applicationCategory": "FinanceApplication",
+          "inLanguage": "es",
+          "operatingSystem": "All"
+        },
+        {
+          "@type": "FAQPage",
+          "inLanguage": "es",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "¿PRGARCÍA otorga préstamos?",
+              "acceptedAnswer": { "@type": "Answer", "text": "No. PRGARCÍA es una herramienta para simular cuotas; no presta dinero ni aprueba solicitudes." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?",
+              "acceptedAnswer": { "@type": "Answer", "text": "La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. La simulación aplica interés simple según los días transcurridos." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿De dónde sale la tasa BCV?",
+              "acceptedAnswer": { "@type": "Answer", "text": "La aplicación consulta las fuentes de referencia configuradas y muestra el origen y la fecha disponibles. Puedes contrastar la publicación en bcv.org.ve." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Puedo simular en dólares y bolívares?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Sí. Puedes elegir USD o VES y consultar la equivalencia en la otra moneda usando la tasa indicada en la simulación." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Se guardan mis cotizaciones?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Las cotizaciones guardadas se asocian a tu cuenta cuando inicias sesión y eliges guardarlas." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿La calculadora envía el mensaje por WhatsApp automáticamente?",
+              "acceptedAnswer": { "@type": "Answer", "text": "No. Al elegir compartir, se prepara el texto y WhatsApp se abre para que revises y envíes el mensaje." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Cuánto cuesta usar PRGARCÍA?",
+              "acceptedAnswer": { "@type": "Answer", "text": "El precio todavía no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio." }
+            }
+          ]
+        }
+      ]
     }
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-4 lg:px-6">
+          <a href="/" class="flex items-center gap-2.5 text-slate-900 no-underline">
+            <img src="/logo-mark.svg" width="40" height="40" alt="" />
+            <span class="font-extrabold">PRGARCÍA</span>
+          </a>
+          <a href="/?auth=register" class="rounded-lg bg-brand-esmeralda px-4 py-2 text-sm font-bold text-white no-underline">Crear cuenta</a>
+        </div>
+      </header>
+      <main class="mx-auto max-w-4xl space-y-12 px-4 py-10 text-slate-800 lg:px-6">
+        <section class="space-y-4">
+          <p class="text-sm font-bold uppercase text-brand-profundo">Calculadora financiera para Venezuela</p>
+          <h1 class="text-3xl font-extrabold text-slate-950">Simula préstamos en dólares y bolívares</h1>
+          <p class="max-w-3xl text-lg leading-relaxed">PRGARCÍA es una calculadora para estimar cuotas de un préstamo con interés simple y consultar su equivalencia en USD y VES usando una referencia de tasa BCV. Tú decides las condiciones; la herramienta no otorga préstamos ni sustituye un acuerdo entre las partes.</p>
+          <p class="max-w-3xl text-sm leading-relaxed">PRGARCÍA es una herramienta informativa. No es una entidad financiera ni está afiliada al Banco Central de Venezuela.</p>
+          <a href="/?auth=register" class="inline-flex min-h-11 items-center rounded-lg bg-brand-esmeralda px-5 py-3 font-bold text-white no-underline">Crear una cuenta</a>
+        </section>
+
+        <section id="como-funciona" class="space-y-5">
+          <h2 class="text-2xl font-bold text-slate-950">Cómo funciona</h2>
+          <ol class="grid gap-5 md:grid-cols-3">
+            <li class="space-y-2"><h3 class="text-lg font-bold">1. Elige monto y tasa</h3><p>Indica el capital, la moneda, el porcentaje y el período de la tasa, junto con las fechas del préstamo.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">2. Revisa las cuotas</h3><p>Consulta el total y el cronograma en la moneda elegida, con equivalencia en dólares y bolívares.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">3. Guarda o comparte</h3><p>Con una cuenta puedes guardar cotizaciones. También puedes preparar una propuesta para revisar y compartir por WhatsApp.</p></li>
+          </ol>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-2xl font-bold text-slate-950">Por qué consultar una referencia BCV</h2>
+          <p>Una referencia común ayuda a expresar equivalencias entre USD y VES con una fecha y un origen visibles. Las tasas pueden cambiar; revisa el dato mostrado y contrástalo con la publicación del Banco Central de Venezuela antes de acordar un pago.</p>
+        </section>
+
+        <section class="space-y-3">
+          <h2 class="text-2xl font-bold text-slate-950">Para quién es</h2>
+          <p>Puede servir a prestamistas, comerciantes y personas que quieran explorar escenarios de pago antes de conversar las condiciones de un préstamo. El resultado es una simulación, no una oferta ni una aprobación de crédito.</p>
+        </section>
+
+        <section id="preguntas-frecuentes" class="space-y-4">
+          <h2 class="text-2xl font-bold text-slate-950">Preguntas frecuentes</h2>
+          <div class="divide-y divide-slate-200">
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿PRGARCÍA otorga préstamos?</summary><p class="mt-2">No. PRGARCÍA es una herramienta para simular cuotas; no presta dinero ni aprueba solicitudes.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?</summary><p class="mt-2">La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. La simulación aplica interés simple según los días transcurridos.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿De dónde sale la tasa BCV?</summary><p class="mt-2">La aplicación consulta las fuentes de referencia configuradas y muestra el origen y la fecha disponibles. Puedes contrastar la publicación en <a href="https://www.bcv.org.ve">bcv.org.ve</a>.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Puedo simular en dólares y bolívares?</summary><p class="mt-2">Sí. Puedes elegir USD o VES y consultar la equivalencia en la otra moneda usando la tasa indicada en la simulación.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Se guardan mis cotizaciones?</summary><p class="mt-2">Las cotizaciones guardadas se asocian a tu cuenta cuando inicias sesión y eliges guardarlas.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿La calculadora envía el mensaje por WhatsApp automáticamente?</summary><p class="mt-2">No. Al elegir compartir, se prepara el texto y WhatsApp se abre para que revises y envíes el mensaje.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Cuánto cuesta usar PRGARCÍA?</summary><p class="mt-2">El precio todavía no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio.</p></details>
+          </div>
+        </section>
+      </main>
+      <footer class="border-t border-slate-200 px-4 py-6 text-center text-sm text-slate-600">
+        <nav class="mb-2 flex flex-wrap justify-center gap-4" aria-label="Información legal">
+          <a href="/terminos">Términos</a><a href="/privacidad">Privacidad</a><a href="/aviso-legal">Aviso legal</a>
+        </nav>
+        <p>PRGARCÍA · Calculadora de préstamos en USD y VES.</p>
+      </footer>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

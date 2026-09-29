@@ -78,6 +78,37 @@ const ONBOARDING_STEPS = [
   },
 ];
 
+const PUBLIC_FAQS = [
+  {
+    question: '¿PRGARCÍA otorga préstamos?',
+    answer: 'No. PRGARCÍA es una herramienta para simular cuotas; no presta dinero ni aprueba solicitudes.',
+  },
+  {
+    question: '¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?',
+    answer: 'La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. La simulación aplica interés simple según los días transcurridos.',
+  },
+  {
+    question: '¿De dónde sale la tasa BCV?',
+    answer: 'La aplicación consulta las fuentes de referencia configuradas y muestra el origen y la fecha disponibles. Puedes contrastar la publicación en bcv.org.ve.',
+  },
+  {
+    question: '¿Puedo simular en dólares y bolívares?',
+    answer: 'Sí. Puedes elegir USD o VES y consultar la equivalencia en la otra moneda usando la tasa indicada en la simulación.',
+  },
+  {
+    question: '¿Se guardan mis cotizaciones?',
+    answer: 'Las cotizaciones guardadas se asocian a tu cuenta cuando inicias sesión y eliges guardarlas.',
+  },
+  {
+    question: '¿La calculadora envía el mensaje por WhatsApp automáticamente?',
+    answer: 'No. Al elegir compartir, se prepara el texto y WhatsApp se abre para que revises y envíes el mensaje.',
+  },
+  {
+    question: '¿Cuánto cuesta usar PRGARCÍA?',
+    answer: 'El precio todavía no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio.',
+  },
+];
+
 export function WelcomeLanding() {
   const { openAuthModal } = useAuth();
   const { dark, toggle } = useTheme();
@@ -128,6 +159,7 @@ export function WelcomeLanding() {
             <button
               type="button"
               onClick={() => openAuthModal('register')}
+              aria-label="Crear cuenta"
               className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 px-4 text-xs font-bold text-white shadow-sm hover:shadow-md hover:shadow-brand-500/20 transition-all active:scale-95"
             >
               <UserPlus size={15} />
@@ -139,6 +171,18 @@ export function WelcomeLanding() {
 
       {/* Onboarding & Presentation Main */}
       <main className="mx-auto max-w-4xl px-4 py-8 lg:py-12 flex-1 flex flex-col items-center justify-center text-center">
+        <section className="mb-8 max-w-3xl space-y-4">
+          <h1 className="text-3xl font-extrabold leading-tight text-slate-950 dark:text-white">
+            Simula préstamos en dólares y bolívares
+          </h1>
+          <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
+            PRGARCÍA es una calculadora para estimar cuotas de un préstamo con interés simple y consultar su equivalencia en USD y VES usando una referencia de tasa BCV. Tú decides las condiciones; la herramienta no otorga préstamos ni sustituye un acuerdo entre las partes.
+          </p>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">PRGARCÍA es una herramienta informativa. No es una entidad financiera ni está afiliada al Banco Central de Venezuela.</p>
+          <button type="button" onClick={() => openAuthModal('register')} className="btn-primary">
+            Crear una cuenta
+          </button>
+        </section>
 
         {/* Onboarding Visual Card Container */}
         <div className="w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-saas relative transition-all duration-300">
@@ -232,6 +276,32 @@ export function WelcomeLanding() {
           </div>
         </div>
 
+        <section className="mt-12 w-full max-w-3xl space-y-5 text-left">
+          <h2 className="text-2xl font-extrabold text-slate-950 dark:text-white">Cómo funciona</h2>
+          <ol className="grid gap-5 sm:grid-cols-3">
+            <li className="space-y-2"><h3 className="font-bold text-slate-900 dark:text-white">1. Elige monto y tasa</h3><p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">Indica el capital, la moneda, el porcentaje y el período de la tasa, junto con las fechas del préstamo.</p></li>
+            <li className="space-y-2"><h3 className="font-bold text-slate-900 dark:text-white">2. Revisa las cuotas</h3><p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">Consulta el total y el cronograma en la moneda elegida, con equivalencia en dólares y bolívares.</p></li>
+            <li className="space-y-2"><h3 className="font-bold text-slate-900 dark:text-white">3. Guarda o comparte</h3><p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">Con una cuenta puedes guardar cotizaciones. También puedes preparar una propuesta para revisar y compartir por WhatsApp.</p></li>
+          </ol>
+
+          <h2 className="pt-5 text-2xl font-extrabold text-slate-950 dark:text-white">Por qué consultar una referencia BCV</h2>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">Una referencia común ayuda a expresar equivalencias entre USD y VES con una fecha y un origen visibles. Las tasas pueden cambiar; revisa el dato mostrado y contrástalo con la publicación del Banco Central de Venezuela antes de acordar un pago.</p>
+
+          <h2 className="pt-5 text-2xl font-extrabold text-slate-950 dark:text-white">Para quién es</h2>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">Puede servir a prestamistas, comerciantes y personas que quieran explorar escenarios de pago antes de conversar las condiciones de un préstamo. El resultado es una simulación, no una oferta ni una aprobación de crédito.</p>
+
+          <h2 className="pt-5 text-2xl font-extrabold text-slate-950 dark:text-white">Preguntas frecuentes</h2>
+          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            {PUBLIC_FAQS.map((item) => (
+              <details key={item.question} className="py-4">
+                <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white">{item.question}</summary>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+          <button type="button" onClick={() => openAuthModal('register')} className="btn-primary">Crear una cuenta</button>
+        </section>
+
       </main>
 
       {/* SaaS Footer */}
@@ -241,6 +311,11 @@ export function WelcomeLanding() {
           <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer" className="underline hover:text-brand-profundo dark:hover:text-brand-menta">bcv.org.ve</a>.
         </p>
         <p className="mt-1">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
+        <nav className="mt-2 flex justify-center gap-4" aria-label="Información legal">
+          <a href="/terminos">Términos</a>
+          <a href="/privacidad">Privacidad</a>
+          <a href="/aviso-legal">Aviso legal</a>
+        </nav>
       </footer>
     </div>
   );

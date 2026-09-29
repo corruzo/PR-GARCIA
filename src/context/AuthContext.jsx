@@ -50,8 +50,8 @@ function mapSupabaseUser(sbUser) {
 export function AuthProvider({ children }) {
   const [user, setUser]                       = useState(null);
   const [loading, setLoading]                 = useState(true);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab]       = useState('login');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => new URLSearchParams(window.location.search).get('auth') === 'register');
+  const [authModalTab, setAuthModalTab]       = useState(() => new URLSearchParams(window.location.search).get('auth') === 'register' ? 'register' : 'login');
 
   // ── Inicialización de sesión ──────────────────────────────────────────────
 

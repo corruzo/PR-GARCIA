@@ -1,0 +1,24 @@
+Dónde	Texto
+Casilla del registro (obligatoria)	Acepto los [Términos y Condiciones](/terminos) y la [Política de Privacidad](/privacidad). (enlaces en pestaña nueva, rel="noopener")
+Error si no marca la casilla	Para crear tu cuenta, acepta los Términos y la Política de Privacidad.
+Debajo de los campos del registro	Tu contraseña se guarda protegida. Nunca te la pediremos por correo.
+Nota bajo el resultado de la calculadora (corta)	Resultado estimado con fines informativos. Verifica la tasa en bcv.org.ve.
+Ayuda del campo "Nombre del deudor / cliente"	Escribe solo lo necesario, por ejemplo un nombre o apodo. No ingreses cédula, cuentas bancarias ni datos sensibles.
+Aviso del pie de la calculadora (largo, en el ícono de ayuda "?")	PRGARCÍA es una herramienta informativa: no otorga préstamos ni es una entidad financiera. Los cálculos son estimaciones y pueden diferir de los de un banco o de tu contrato. La tasa proviene del BCV y puede tener retrasos. Confirma siempre los términos por escrito con la otra parte.
+Pie del mensaje de WhatsApp exportado	Cotización estimada con PRGARCÍA. Sujeta a verificación.
+Barra de tasa desactualizada	No pudimos consultar el BCV. Mostramos la última tasa guardada: Bs {tasa}, del {fecha}.
+Modal de nueva versión de términos — título	Actualizamos nuestros Términos y Política de Privacidad
+Modal de nueva versión — cuerpo	Cambiamos algunos puntos. Léelos y acéptalos para seguir usando PRGARCÍA. Puedes exportar tus datos o eliminar tu cuenta si no estás de acuerdo.
+Modal de nueva versión — botones	Leer cambios / Aceptar y continuar / Exportar mis datos / Eliminar mi cuenta
+Eliminar cuenta — título	¿Eliminar tu cuenta?
+Eliminar cuenta — cuerpo	Se borrarán tu cuenta y todas tus cotizaciones guardadas. Esta acción no se puede deshacer. Te recomendamos exportar tus datos antes.
+Eliminar cuenta — campo	Para confirmar, escribe ELIMINAR
+Eliminar cuenta — botones	Cancelar / Eliminar mi cuenta
+Eliminar cuenta — éxito	Tu cuenta y tus datos fueron eliminados. Gracias por haber usado PRGARCÍA.
+Exportar datos — descripción	Descarga un archivo con tus cotizaciones guardadas.
+Exportar datos — éxito	Listo. Se descargó tu archivo.
+Error genérico de red	No pudimos completar la acción. Revisa tu conexión e inténtalo de nuevo.
+Error de login	Correo o contraseña incorrectos.
+Pie de página (todas las pantallas)	© 2026 PRGARCÍA. Todos los derechos reservados. + enlaces Términos Privacidad Aviso legal Contacto (mailto:{{EMAIL_CONTACTO}})
+Línea de descargo del pie de la bienvenida	PRGARCÍA es una herramienta informativa. No otorga préstamos ni es una entidad financiera, y no está afiliada al Banco Central de Venezuela.
+Encabezado de la página de contacto por derechos de terceros (opcional, en /privacidad §3.3)	¿Tu nombre aparece en una cotización? Escríbenos a {{EMAIL_CONTACTO}}.
