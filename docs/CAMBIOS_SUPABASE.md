@@ -7,12 +7,16 @@ Proyecto actual: `muxxvbcxzqszstiotbwu` (el proyecto anterior quedó sin acceso)
 
 ## Instalar en un proyecto nuevo (una sola vez)
 
-1. Supabase → **SQL Editor** → *New query*.
-2. Pega el contenido completo de `supabase/instalar_todo.sql` y pulsa **Run**.
-   Corre dentro de una transacción: si algo falla, no queda nada a medias.
+El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 3 archivos en `supabase/instalar/`:
 
-`instalar_todo.sql` se genera con `npm run db:bundle` a partir de las migraciones;
-una prueba (`tests/migrationsBundle.test.js`) avisa si quedó desactualizado.
+1. Supabase → **SQL Editor** → *New query* → pega **todo** `parte-1.sql` → **Run**. Debe decir *Success*.
+2. Nueva consulta (o borra el contenido) → pega `parte-2.sql` → **Run**.
+3. Igual con `parte-3.sql`.
+
+Ejecútalas **en orden** y **una sola vez**. Cada parte corre en una transacción: si una falla, no deja nada a medias; corrige el problema y repite solo esa parte.
+
+Las partes se generan con `npm run db:bundle` a partir de `supabase/migrations/` (sin comentarios ni líneas vacías).
+`tests/migrationsBundle.test.js` avisa si quedaron desactualizadas, y `PGTEST_FROM=instalar npm run test:db` prueba la base instalada desde ellas.
 
 Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y `npx supabase db push`.
 

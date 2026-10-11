@@ -1,31 +1,60 @@
 /**
- * Une supabase/migrations/*.sql (en orden) en supabase/instalar_todo.sql,
- * para pegarlo de una sola vez en el SQL Editor de Supabase.
+ * Genera supabase/instalar/parte-N.sql a partir de supabase/migrations/*.sql
+ * para pegarlos en el SQL Editor de Supabase (que limita el tamaño de cada
+ * consulta). Cada parte agrupa migraciones completas, sin comentarios ni
+ * líneas vacías, y corre dentro de una transacción.
  * Uso: npm run db:bundle
  */
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('../', import.meta.url).pathname;
-const dir = join(root, 'supabase/migrations');
+const migrationsDir = join(root, 'supabase/migrations');
+export const OUTPUT_DIR = join(root, 'supabase/instalar');
 
-export function bundleMigrations() {
-  const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
-  const parts = files.map((f) => `-- ┏━━ ${f} ━━┓\n${readFileSync(join(dir, f), 'utf8').trim()}\n`);
-  return [
-    '-- PRGARCÍA · Instalación completa de la base de datos.',
-    '-- Archivo generado por `npm run db:bundle`; no lo edites a mano.',
-    '-- Pégalo completo en Supabase → SQL Editor → Run. Ejecútalo una sola vez en un proyecto nuevo.',
-    '',
-    'begin;',
-    '',
-    ...parts,
-    'commit;',
-    '',
-  ].join('\n');
+/** Migraciones de cada parte, por prefijo de nombre. */
+export const PARTS = [
+  ['20261011000000', '20261011000100'],
+  ['20261011000200'],
+  ['20261011000300', '20261011000400'],
+];
+
+/** Quita líneas vacías y comentarios de línea completa (no toca código). */
+export function compactSql(sql) {
+  return sql
+    .split('\n')
+    .filter((line) => line.trim() !== '' && !/^\s*--/.test(line))
+    .join('\n');
+}
+
+export function buildParts() {
+  const files = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
+  const assigned = PARTS.flat();
+  const missing = files.filter((f) => !assigned.some((prefix) => f.startsWith(prefix)));
+  if (missing.length) throw new Error(`Migraciones sin parte asignada: ${missing.join(', ')}`);
+
+  return PARTS.map((prefixes, index) => {
+    const names = prefixes.map((prefix) => files.find((f) => f.startsWith(prefix)));
+    const body = names.map((name) => `-- ${name}\n${compactSql(readFileSync(join(migrationsDir, name), 'utf8'))}`).join('\n');
+    return {
+      name: `parte-${index + 1}.sql`,
+      content: [
+        `-- PRGARCÍA · Instalación, parte ${index + 1} de ${PARTS.length}. Generado por npm run db:bundle.`,
+        `-- Ejecuta las partes en orden (1, 2, 3) en Supabase → SQL Editor, una sola vez.`,
+        'begin;',
+        body,
+        'commit;',
+        '',
+      ].join('\n'),
+    };
+  });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  writeFileSync(join(root, 'supabase/instalar_todo.sql'), bundleMigrations());
-  console.log('supabase/instalar_todo.sql actualizado');
+  rmSync(OUTPUT_DIR, { recursive: true, force: true });
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  for (const part of buildParts()) {
+    writeFileSync(join(OUTPUT_DIR, part.name), part.content);
+    console.log(`supabase/instalar/${part.name}: ${part.content.split('\n').length} líneas`);
+  }
 }

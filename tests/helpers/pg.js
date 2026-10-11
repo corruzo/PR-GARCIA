@@ -42,10 +42,12 @@ export function psql(database, sql, { json = false } = {}) {
 export function createTestDatabase() {
   const name = `prgarcia_test_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
   psql(new URL(PG_URL).pathname.slice(1) || 'postgres', `create database ${name};`);
+  // PGTEST_FROM=instalar prueba los archivos de supabase/instalar/ (los que se pegan en Supabase).
+  const source = process.env.PGTEST_FROM === 'instalar' ? 'supabase/instalar' : 'supabase/migrations';
   const files = [
     join(root, 'supabase/tests/bootstrap_local.sql'),
-    ...readdirSync(join(root, 'supabase/migrations')).filter((f) => f.endsWith('.sql')).sort()
-      .map((f) => join(root, 'supabase/migrations', f)),
+    ...readdirSync(join(root, source)).filter((f) => f.endsWith('.sql')).sort()
+      .map((f) => join(root, source, f)),
   ];
   for (const file of files) psql(name, `\\i ${file}`);
   return name;
