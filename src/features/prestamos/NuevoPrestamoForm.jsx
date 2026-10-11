@@ -18,8 +18,8 @@ const FRECUENCIAS = [
   { value: 'quincenal', label: 'Quincenal' }, { value: 'mensual', label: 'Mensual' },
 ];
 const METODOS = [
-  { value: 'interes_fijo', label: 'Interés fijo' },
-  { value: 'saldo_insoluto', label: 'Sobre saldo' },
+  { value: 'saldo_insoluto', label: 'Sobre saldo pendiente' },
+  { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
 ];
 
 function initialForm(clienteId, prefill) {
@@ -32,7 +32,7 @@ function initialForm(clienteId, prefill) {
     tasa: prefill?.tasa ? String(prefill.tasa) : '10',
     modalidadTasa: prefill?.modalidadTasa || 'quincenal',
     frecuenciaPago: prefill?.frecuenciaPago || 'quincenal',
-    metodoInteres: prefill?.metodoInteres || 'interes_fijo',
+    metodoInteres: prefill?.metodoInteres || 'saldo_insoluto',
     fechaInicio: prefill?.fechaInicio || hoy,
     fechaFin: prefill?.fechaFin || addDaysISO(hoy, 30),
     tasaCambio: prefill?.tasaBCV ? String(prefill.tasaBCV) : cached?.rate ? String(cached.rate) : '',
@@ -158,8 +158,8 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
             <SegmentedControl label="Cálculo del interés" value={form.metodoInteres} onChange={set('metodoInteres')} options={METODOS} />
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {form.metodoInteres === 'interes_fijo'
-                ? 'Interés sobre el capital inicial durante todo el plazo (lo habitual en préstamos personales).'
-                : 'Interés de cada período sobre el saldo pendiente; los abonos a capital reducen el interés futuro.'}
+                ? 'Interés sobre el capital inicial durante todo el plazo, aunque el cliente abone a capital.'
+                : 'El interés corre solo sobre el capital que falta por pagar: cada abono deja de generar interés desde el día en que se recibe.'}
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="prestamo-inicio" label="Fecha de desembolso">

@@ -20,7 +20,7 @@ Opción B — Panel de Supabase: *SQL Editor* → pegar y ejecutar cada archivo 
 | Migración | Contenido | Aplicada |
 | --- | --- | --- |
 | `20261011000100_nucleo_cartera.sql` | Clientes, préstamos, cuotas, libro contable, RLS, `emitir_prestamo`, `anular_prestamo`, `previsualizar_cronograma` | ☐ |
-| `20261011000200_pagos_mora.sql` | Pagos, aplicaciones, mora diaria, `registrar_pago`, `anular_pago`, vistas `v_cuotas_estado` y `v_prestamos_resumen` | ☐ |
+| `20261011000200_pagos_mora.sql` | Pagos, aplicaciones, mora diaria, `registrar_pago`, `anular_pago`, `monto_cancelacion`, vistas `v_cuotas_estado` y `v_prestamos_resumen` | ☐ |
 | `20261011000300_reportes_bimonetarios.sql` | `fin_tasa_actual`, antigüedad de cartera, cobranza mensual, libro mayor, `reporte_diferencial_cambiario` | ☐ |
 | `20261011000400_auditoria.sql` | Bitácora inmutable de clientes, préstamos y pagos | ☐ |
 

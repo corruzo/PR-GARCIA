@@ -10,6 +10,11 @@ const MODALIDADES = [
   { value: 'mensual', label: 'Mensual' },
 ];
 
+const METODOS = [
+  { value: 'saldo_insoluto', label: 'Sobre saldo pendiente' },
+  { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
+];
+
 const FRECUENCIAS = [
   { value: 'diario', label: 'Diario' },
   { value: 'semanal', label: 'Semanal' },
@@ -175,6 +180,36 @@ export function LoanForm({ values, onChange }) {
                 </svg>
               </div>
             </div>
+          </div>
+
+          {/* Método de interés */}
+          <div className="sm:col-span-2">
+            <span id="label-metodo-interes" className="label-base">Cálculo del Interés</span>
+            <div role="radiogroup" aria-labelledby="label-metodo-interes" className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+              {METODOS.map(m => (
+                <button
+                  key={m.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={values.metodoInteres === m.value}
+                  tabIndex={values.metodoInteres === m.value ? 0 : -1}
+                  onKeyDown={handleRadioKeyDown}
+                  onClick={() => onChange('metodoInteres', m.value)}
+                  className={`py-2 px-2 text-xs font-bold rounded-lg transition-all text-center ${
+                    values.metodoInteres === m.value
+                      ? 'bg-brand-700 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              {values.metodoInteres === 'saldo_insoluto'
+                ? 'El interés se calcula solo sobre el capital que falta por pagar: cada abono reduce los intereses.'
+                : 'El interés se calcula sobre el capital inicial durante todo el plazo, aunque haya abonos.'}
+            </p>
           </div>
         </div>
       </div>

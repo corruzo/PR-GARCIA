@@ -122,6 +122,45 @@ test('declining-balance loans discount future interest after a capital prepaymen
   assert.ok(cs[2].desc > 0);
 });
 
+test('declining-balance: a mid-period capital payment stops interest from that day on', { skip: skipDb }, () => {
+  const id = nuevoPrestamo({ metodo: 'saldo_insoluto' });
+  // Intereses pactados [10000, 6667, 1556]. Abono de 300,00 el 06/01 (faltan 10 de 15 días del período 1).
+  pagar(id, { fecha: '2026-01-06', monto: 30000, tipo: 'abono_capital', modo: 'reducir_plazo' });
+  const cs = cuotas(id);
+  assert.deepEqual(cs.map((c) => c.cap), [0, 0, 30000]);
+  // 300 × 10 % × 10/15 = 20,00 · 300 × 10 % × 15/15 = 30,00 · 300 × 10 % × 7/15 = 14,00
+  assert.deepEqual(cs.map((c) => c.desc), [2000, 3000, 1400]);
+});
+
+test('flat-interest loans keep the agreed interest after a capital payment', { skip: skipDb }, () => {
+  const id = nuevoPrestamo({ metodo: 'interes_fijo' });
+  pagar(id, { fecha: '2026-01-06', monto: 30000, tipo: 'abono_capital', modo: 'reducir_plazo' });
+  assert.deepEqual(cuotas(id).map((c) => c.desc), [0, 0, 0]);
+});
+
+test('payoff amount settles a declining-balance loan charging only interest earned to date', { skip: skipDb }, () => {
+  const id = nuevoPrestamo({ metodo: 'saldo_insoluto' });
+  pagar(id, { fecha: '2026-01-16', monto: 43334 }); // cuota 1 al día
+  const payoff = Number(psql(db, asUser(ANA, `select public.monto_cancelacion('${id}', '2026-01-21');`, { today: '2026-01-21' })));
+  // Capital 66 666 + interés del período 2 (6 667) menos los 10 días no transcurridos (4 444).
+  const ganado = 6667 - Math.round(66666 * 0.10 * 10 / 15);
+  assert.equal(payoff, 66666 + ganado);
+  assert.throws(() => pagar(id, { fecha: '2026-01-21', monto: payoff + 1, tipo: 'abono_capital' }), /excede/);
+  pagar(id, { fecha: '2026-01-21', monto: payoff, tipo: 'abono_capital' });
+  assert.equal(psql(db, `select estado from public.prestamos where id = '${id}';`), 'pagado');
+  const ledger = ledgerBalance(id);
+  assert.equal(ledger.cartera_capital, 0);
+  assert.equal(ledger.ingreso_interes, -(10000 + ganado));
+});
+
+test('payoff amount for flat-interest and overdue loans includes all interest and mora', { skip: skipDb }, () => {
+  const id = nuevoPrestamo({ metodo: 'interes_fijo' });
+  const payoff = Number(psql(db, asUser(ANA, `select public.monto_cancelacion('${id}', '2026-01-20');`, { today: '2026-01-20' })));
+  assert.equal(payoff, 124667 + Math.round(43334 * 0.01 * 4));
+  pagar(id, { fecha: '2026-01-20', monto: payoff, tipo: 'abono_capital' });
+  assert.equal(psql(db, `select estado from public.prestamos where id = '${id}';`), 'pagado');
+});
+
 test('payments must be chronological, not future, and are idempotent', { skip: skipDb }, () => {
   const id = nuevoPrestamo();
   pagar(id, { fecha: '2026-01-10', monto: 1000 });

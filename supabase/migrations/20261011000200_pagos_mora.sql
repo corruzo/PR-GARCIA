@@ -13,8 +13,11 @@
 --     moneda del préstamo y se guardan ambos montos.
 --   * Abono a capital: primero cubre lo vencido; el resto reduce capital
 --     ('reducir_plazo' = desde la última cuota; 'reducir_cuota' = proporcional).
---     En préstamos 'saldo_insoluto' se descuenta el interés futuro que ya no
---     corresponde al nuevo saldo.
+--   * Interés sobre saldo ('saldo_insoluto'): el capital cobrado por adelantado
+--     deja de generar interés desde el día del pago (prorrateo diario del
+--     período en curso y descuento completo de los períodos futuros).
+--   * monto_cancelacion(): cuánto salda el préstamo hoy (capital + interés
+--     ganado + mora); pagado como abono, cierra el préstamo.
 -- ════════════════════════════════════════════════════════════════════════════
 
 create table public.pagos (
@@ -265,27 +268,49 @@ begin
       end loop;
     end if;
 
-    -- En saldo insoluto, el interés de los períodos futuros se recalcula con el nuevo saldo.
-    if p.metodo_interes = 'saldo_insoluto' then
-      base := public.fin_dias_modalidad(p.modalidad_tasa);
-      for c in
-        select * from public.cuotas where prestamo_id = p.id and estado <> 'anulada' order by numero for update
-      loop
-        inicio_periodo := c.fecha_vencimiento - c.dias;
-        continue when inicio_periodo < p_fecha;
-        select coalesce(sum(capital_cents - capital_pagado_cents), 0) into saldo
-        from public.cuotas where prestamo_id = p.id and estado <> 'anulada' and numero >= c.numero;
-        nuevo_interes := public.fin_interes_simple(saldo, p.tasa_interes, c.dias, base);
-        descuento := least(
-          c.interes_cents - c.interes_descontado_cents - nuevo_interes,
-          c.interes_cents - c.interes_pagado_cents - c.interes_descontado_cents);
-        if descuento > 0 then
-          update public.cuotas set interes_descontado_cents = interes_descontado_cents + descuento where id = c.id;
-          insert into public.aplicaciones_pago (pago_id, user_id, cuota_id, concepto, monto_cents)
-          values (pago, uid, c.id, 'descuento_interes', descuento);
-        end if;
-      end loop;
-    end if;
+  end if;
+
+  -- 3) Saldo insoluto: todo capital cobrado por adelantado (abono o pago de
+  --    cuotas futuras) deja de generar interés desde la fecha del pago. Por cada
+  --    cuota aún no vencida se descuenta el interés de ese capital por los días
+  --    que faltan de su período (prorrateo diario del período en curso).
+  if p.metodo_interes = 'saldo_insoluto' then
+    base := public.fin_dias_modalidad(p.modalidad_tasa);
+    for c in
+      select * from public.cuotas
+      where prestamo_id = p.id and estado <> 'anulada' and fecha_vencimiento > p_fecha
+      order by numero for update
+    loop
+      inicio_periodo := c.fecha_vencimiento - c.dias;
+      select coalesce(sum(a.monto_cents), 0) into saldo
+      from public.aplicaciones_pago a join public.cuotas cc on cc.id = a.cuota_id
+      where a.pago_id = pago and a.concepto = 'capital' and cc.numero >= c.numero;
+      continue when saldo = 0;
+      nuevo_interes := public.fin_interes_simple(saldo, p.tasa_interes,
+        c.fecha_vencimiento - greatest(inicio_periodo, p_fecha), base);
+      descuento := least(nuevo_interes, c.interes_cents - c.interes_pagado_cents - c.interes_descontado_cents);
+      if descuento > 0 then
+        update public.cuotas set interes_descontado_cents = interes_descontado_cents + descuento where id = c.id;
+        insert into public.aplicaciones_pago (pago_id, user_id, cuota_id, concepto, monto_cents)
+        values (pago, uid, c.id, 'descuento_interes', descuento);
+      end if;
+    end loop;
+  end if;
+
+  -- 4) Lo que sobre de un abono cubre el interés ya ganado (permite cancelar el
+  --    préstamo completo pagando el monto de `monto_cancelacion`).
+  if p_tipo = 'abono_capital' and restante > 0 then
+    for c in
+      select * from public.cuotas where prestamo_id = p.id and estado <> 'anulada' order by numero for update
+    loop
+      exit when restante = 0;
+      aplicar := least(restante, c.interes_cents - c.interes_pagado_cents - c.interes_descontado_cents);
+      if aplicar > 0 then
+        update public.cuotas set interes_pagado_cents = interes_pagado_cents + aplicar where id = c.id;
+        insert into public.aplicaciones_pago (pago_id, user_id, cuota_id, concepto, monto_cents) values (pago, uid, c.id, 'interes', aplicar);
+        restante := restante - aplicar;
+      end if;
+    end loop;
   end if;
 
   if restante > 0 then
@@ -312,6 +337,43 @@ begin
   return pago;
 end;
 $$;
+
+-- ─── Monto para cancelar el préstamo completo en una fecha ──────────────────
+-- Capital pendiente + mora + interés exigible. En saldo insoluto, el interés de
+-- las cuotas no vencidas se cobra solo por los días ya transcurridos.
+-- Pagar este monto como 'abono_capital' en esa fecha deja el préstamo pagado.
+create or replace function public.monto_cancelacion(p_prestamo_id uuid, p_fecha date default null)
+returns bigint language plpgsql stable security invoker set search_path = '' as $$
+declare
+  f date := coalesce(p_fecha, public.fin_hoy());
+  p public.prestamos;
+  c public.cuotas;
+  total bigint := 0;
+  interes_pend bigint;
+  capital_desde bigint;
+  base integer;
+begin
+  select * into p from public.prestamos where id = p_prestamo_id;
+  if not found then raise exception 'Préstamo no encontrado' using errcode = 'P0002'; end if;
+  base := public.fin_dias_modalidad(p.modalidad_tasa);
+  for c in select * from public.cuotas where prestamo_id = p.id and estado <> 'anulada' order by numero loop
+    interes_pend := c.interes_cents - c.interes_pagado_cents - c.interes_descontado_cents;
+    total := total + (c.capital_cents - c.capital_pagado_cents)
+                   + (c.mora_devengada_cents - c.mora_pagada_cents)
+                   + public.fin_mora_adicional(c, p.tasa_mora_diaria, p.dias_gracia, f)
+                   + interes_pend;
+    if p.metodo_interes = 'saldo_insoluto' and c.fecha_vencimiento > f then
+      select coalesce(sum(capital_cents - capital_pagado_cents), 0) into capital_desde
+      from public.cuotas where prestamo_id = p.id and estado <> 'anulada' and numero >= c.numero;
+      total := total - least(interes_pend, public.fin_interes_simple(capital_desde, p.tasa_interes,
+        c.fecha_vencimiento - greatest(c.fecha_vencimiento - c.dias, f), base));
+    end if;
+  end loop;
+  return total;
+end;
+$$;
+revoke execute on function public.monto_cancelacion(uuid, date) from public, anon;
+grant execute on function public.monto_cancelacion(uuid, date) to authenticated;
 
 -- ─── RPC: anular pago (solo el último pago activo del préstamo) ─────────────
 

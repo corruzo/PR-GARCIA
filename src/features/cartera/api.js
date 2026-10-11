@@ -163,3 +163,8 @@ export function listAuditoria({ limit = 50 } = {}) {
   return run(client().from('auditoria').select('id,tabla,registro_id,accion,antes,despues,creado_en')
     .order('creado_en', { ascending: false }).limit(limit));
 }
+
+/** Monto que salda el préstamo completo en `fecha` (solo interés ganado en saldo insoluto). */
+export function montoCancelacion(prestamoId, fecha) {
+  return run(client().rpc('monto_cancelacion', { p_prestamo_id: prestamoId, p_fecha: fecha }));
+}

@@ -32,8 +32,11 @@ const DEFAULTS = {
   fechaInicio:   HOY,
   fechaFin:      '',
   frecuenciaPago:'quincenal',
+  metodoInteres: 'saldo_insoluto',
   tasaBCV:       '',
 };
+// Borradores y cotizaciones guardadas antes de existir el selector usaban interés fijo.
+const METODO_ANTERIOR = 'interes_fijo';
 const DRAFT_KEY = 'prgarcia.loan.draft.v1';
 const DRAFT_EXPIRATION_MS = 30 * 60 * 1000; // 30 minutos de inactividad
 const HISTORY_KEY = 'prgarcia.quotes.history.v1';
@@ -60,7 +63,7 @@ function loadDraft() {
       return DEFAULTS;
     }
 
-    const draft = { ...DEFAULTS, ...draftValues };
+    const draft = { ...DEFAULTS, metodoInteres: METODO_ANTERIOR, ...draftValues };
     if (draft.modalidadTasa === 'mensual') draft.modalidadTasa = 'quincenal';
     if (draft.frecuenciaPago === 'mensual') draft.frecuenciaPago = 'quincenal';
     return draft;
@@ -293,7 +296,7 @@ function AppContent() {
   };
 
   const abrirCotizacion = (item) => {
-    setValues({ ...DEFAULTS, ...item.values });
+    setValues({ ...DEFAULTS, metodoInteres: METODO_ANTERIOR, ...item.values });
     navigate('calculator');
   };
 

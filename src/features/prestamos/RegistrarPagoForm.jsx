@@ -36,13 +36,26 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
     return { errors, montoCents, tasaCambio, enMonedaPrestamo };
   }, [form, prestamo]);
 
-  const saldoTotal = prestamo.capital_pendiente_cents + prestamo.interes_pendiente_cents + prestamo.mora_pendiente_cents;
+  const [cancelacion, setCancelacion] = useState({ loading: false, error: '' });
   const showErrors = touched ? parsed.errors : {};
 
   const fill = (cents) => {
     const tasa = parseRateInput(form.tasaCambio) || prestamo.tasa_cambio;
     const value = convertCents(cents, tasa, prestamo.moneda, form.moneda);
     setForm((prev) => ({ ...prev, monto: (value / 100).toFixed(2) }));
+  };
+
+  // Cancelación total: el servidor calcula capital + interés ganado + mora a la fecha.
+  const cargarCancelacion = async () => {
+    setCancelacion({ loading: true, error: '' });
+    try {
+      const cents = await api.montoCancelacion(prestamo.id, form.fecha);
+      fill(cents);
+      setForm((prev) => ({ ...prev, tipo: 'abono_capital', modoAbono: 'reducir_plazo' }));
+      setCancelacion({ loading: false, error: '' });
+    } catch (error) {
+      setCancelacion({ loading: false, error: error.message });
+    }
   };
 
   const submit = async (event) => {
@@ -98,10 +111,16 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
             Exigible hoy (<Money cents={prestamo.exigible_hoy_cents} currency={prestamo.moneda} />)
           </button>
         )}
-        <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" onClick={() => fill(saldoTotal)}>
-          Saldo total (<Money cents={saldoTotal} currency={prestamo.moneda} />)
+        <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" disabled={cancelacion.loading} onClick={cargarCancelacion}>
+          {cancelacion.loading ? 'Calculando…' : 'Cancelación total'}
         </button>
       </div>
+      {cancelacion.error && <ErrorBox message={cancelacion.error} />}
+      {prestamo.metodo_interes === 'saldo_insoluto' && (
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Interés sobre saldo: lo que abone a capital deja de generar interés desde la fecha del pago. «Cancelación total» cobra solo el interés ganado hasta ese día.
+        </p>
+      )}
       {form.moneda !== prestamo.moneda && parsed.enMonedaPrestamo !== null && (
         <p className="text-sm text-slate-700 dark:text-slate-200">Se abonarán <strong><Money cents={parsed.enMonedaPrestamo} currency={prestamo.moneda} /></strong> al préstamo.</p>
       )}

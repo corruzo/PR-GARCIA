@@ -264,7 +264,21 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
           Desglose de Cuotas ({frecLabels[frecuenciaPago]})
         </span>
 
-        {resultado.tieneCuotaRemanente ? (
+        {resultado.metodoInteres === 'saldo_insoluto' && numeroCuotas > 1 ? (
+          <div className="space-y-1 mt-1">
+            <div className="flex items-baseline justify-between text-xs sm:text-sm">
+              <span className="text-gray-600 dark:text-gray-300">Primera cuota ({resultado.diasPrimeraCuota} días):</span>
+              <span className="font-mono font-bold text-brand-600 dark:text-brand-400">{fmtP(montoCuota)}</span>
+            </div>
+            <div className="flex items-baseline justify-between text-xs sm:text-sm">
+              <span className="text-gray-600 dark:text-gray-300">Última cuota ({resultado.diasUltimaCuota} días):</span>
+              <span className="font-mono font-bold text-brand-600 dark:text-brand-400">{fmtP(cuotaFinal)}</span>
+            </div>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 pt-1 border-t border-gray-100 dark:border-gray-800">
+              Las cuotas bajan porque el interés se calcula sobre el saldo pendiente. Ver el detalle en el cronograma.
+            </p>
+          </div>
+        ) : resultado.tieneCuotaRemanente ? (
           <div className="space-y-1 mt-1">
             <div className="flex items-baseline justify-between text-xs sm:text-sm">
               <span className="text-gray-600 dark:text-gray-300">
