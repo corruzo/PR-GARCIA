@@ -121,7 +121,8 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
     `• ${etiquetaTasa} usada: Bs. ${parseFloat(tasaBCV).toFixed(2)}\n` +
     (tasaBCVPersonalizada ? `• ⚠️ Nota: La tasa usada fue modificada manualmente, NO es la tasa oficial BCV del día.\n` : '') +
     `• Fecha de hoy: ${fechaHoyStr}\n\n` +
-    `${notaIndexacion}`;
+    `${notaIndexacion}\n\n` +
+    'Cotización estimada con PRGARCÍA. Sujeta a verificación.';
 
   const whatsappMessage = encodeURIComponent(rawTextoCotizacion);
 
@@ -252,6 +253,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
         <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Total a pagar</span>
         <span className="result-value text-brand-600 dark:text-brand-500 block">{fmtP(totalPagar)}</span>
         <span className="result-alt">≈ {fmtA(totalAlterna ?? totalPagar)}</span>
+        <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Resultado estimado con fines informativos. Verifica la tasa en bcv.org.ve.</p>
       </div>
 
       <Divider label="Por cuota" />

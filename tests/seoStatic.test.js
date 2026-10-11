@@ -11,7 +11,7 @@ const faqPage = schema['@graph'].find((item) => item['@type'] === 'FAQPage');
 
 test('the welcome page has server-delivered content and one H1', () => {
   assert.match(homepage, /<html lang="es-VE">/);
-  assert.match(homepage, /<h1[^>]*>Simula préstamos en dólares y bolívares<\/h1>/);
+  assert.match(homepage, /<h1[^>]*>Revisa cuánto pagarías antes de acordar un préstamo\.<\/h1>/);
   assert.equal([...homepage.matchAll(/<h1(?:\s|>)/g)].length, 1);
   assert.match(homepage, /Cómo funciona/);
   assert.match(homepage, /Por qué consultar una referencia BCV/);
@@ -78,4 +78,16 @@ test('public HTML pages have distinct titles, descriptions, and canonical URLs',
   assert.equal(new Set(titles).size, pages.length);
   assert.equal(new Set(canonicals).size, canonicals.length);
   assert.match(homepage, /<link rel="canonical" href="https:\/\/prgarcia\.app\/"/);
+});
+
+test('the interactive welcome uses approved informational copy and reserves TM for that page', () => {
+  const welcome = read('../src/components/WelcomeHome.jsx');
+  const app = read('../src/App.jsx');
+
+  assert.match(welcome, /PRGARCÍA™/);
+  assert.match(welcome, /no está afiliada al Banco Central de Venezuela/);
+  assert.match(welcome, /Revisa cuánto pagarías antes de acordar un préstamo/);
+  assert.doesNotMatch(welcome, /Protección cambiaria garantizada/);
+  assert.doesNotMatch(app, /PRGARCÍA™/);
+  assert.doesNotMatch(welcome, /PRGARCÍA®/);
 });

@@ -57,7 +57,8 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
       `• *Interés:* ${fmtP(resultado.interes)}\n` +
       `• *Total a Cobrar:* ${fmtP(resultado.totalPagar)} (≈ ${formatearMoneda(altTotal, altMoneda)})\n` +
       `• *Cuotas (${resultado.frecuenciaPago}):* ${resultado.numeroCuotas} cuota(s) de ${fmtP(resultado.montoCuota)}\n\n` +
-      `Tasa BCV referencia: Bs. ${parseFloat(tasaBCV).toFixed(2)} / USD.`
+      `Tasa BCV referencia: Bs. ${parseFloat(tasaBCV).toFixed(2)} / USD.\n\n` +
+      'Cotización estimada con PRGARCÍA. Sujeta a verificación.'
     );
   }, [resultado, nombreCliente, moneda, tasaBCV, fmtP]);
 
@@ -279,6 +280,7 @@ export function QuickCalculator({ tasaBCV = 36.5 }) {
                     ≈ {fmtA(convertirMoneda(resultado.totalPagar, tasaBCV, moneda, moneda === 'USD' ? 'VES' : 'USD'))}
                   </span>
                 </div>
+                <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Resultado estimado con fines informativos. Verifica la tasa en bcv.org.ve.</p>
 
                 {/* Desglose de Ganancia y Cuotas */}
                 <div className="grid grid-cols-2 gap-3">

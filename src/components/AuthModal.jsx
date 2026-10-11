@@ -371,6 +371,9 @@ export function AuthModal() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {tab === 'register' && (
+                <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Tu contraseña se guarda protegida. Nunca te la pediremos por correo.</p>
+              )}
             </div>
           )}
 

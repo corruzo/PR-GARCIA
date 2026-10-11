@@ -289,6 +289,9 @@ export function LoanForm({ values, onChange }) {
               className="input-base pl-10 font-medium"
             />
           </div>
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+            Escribe solo lo necesario, por ejemplo un nombre o apodo. No ingreses cédula, cuentas bancarias ni datos sensibles.
+          </p>
         </div>
       </div>
 

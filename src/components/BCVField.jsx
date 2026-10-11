@@ -95,9 +95,7 @@ export function BCVField({ value, onChange }) {
       <div className="flex flex-col gap-1 min-h-4">
         {cacheTimestamp && (error || !online) && (
           <p className="rounded-md bg-amber-50 px-2.5 py-2 text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-100" role="status" aria-live="polite">
-            {!online
-              ? `Sin conexión: mostrando la última tasa guardada (${format(cacheTimestamp, 'dd/MM/yyyy HH:mm', { locale: es })}).`
-              : `No pudimos consultar la fuente; mostramos la última tasa guardada (${format(cacheTimestamp, 'dd/MM/yyyy HH:mm', { locale: es })}).`}
+            No pudimos consultar el BCV. Mostramos la última tasa guardada: Bs. {tasa}, del {format(cacheTimestamp, 'dd/MM/yyyy HH:mm', { locale: es })}.
           </p>
         )}
         {error && !cacheTimestamp && (

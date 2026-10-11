@@ -94,7 +94,7 @@ export function InfoModal({ open, onClose }) {
           </article>
 
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
-            Los resultados son una estimación basada en los datos introducidos. La tasa BCV y las condiciones deben confirmarse antes de acordar el préstamo.
+            PRGARCÍA es una herramienta informativa: no otorga préstamos ni es una entidad financiera. Los cálculos son estimaciones y pueden diferir de los de un banco o de tu contrato. La tasa proviene del BCV y puede tener retrasos. Confirma siempre los términos por escrito con la otra parte.
           </div>
         </div>
 

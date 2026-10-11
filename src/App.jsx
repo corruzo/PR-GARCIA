@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { RotateCcw } from 'lucide-react';
 import { AuthModal } from './components/AuthModal';
-import { WelcomeLanding } from './components/WelcomeLanding';
+import { WelcomeHome } from './components/WelcomeHome';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { simularPrestamo, generarCronograma } from './utils/calculator';
 import { supabase } from './utils/supabase/client';
@@ -302,7 +302,7 @@ function AppContent() {
   if (!user) {
     return (
       <>
-        <WelcomeLanding />
+        <WelcomeHome />
         <AuthModal />
       </>
     );
@@ -408,6 +408,12 @@ function AppContent() {
                className="underline hover:text-brand-profundo dark:hover:text-brand-menta transition-colors">bcv.org.ve</a>.
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
+          <nav className="mt-2 flex flex-wrap justify-center gap-4 text-xs" aria-label="Información legal">
+            <a href="/terminos" className="underline">Términos</a>
+            <a href="/privacidad" className="underline">Privacidad</a>
+            <a href="/aviso-legal" className="underline">Aviso legal</a>
+            <a href="mailto:{{EMAIL_CONTACTO}}" className="underline">Contacto</a>
+          </nav>
         </footer>
 
       </main>
