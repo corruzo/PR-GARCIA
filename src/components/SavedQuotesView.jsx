@@ -185,7 +185,7 @@ export function SavedQuotesView({ items = [], loading = false, error = '', onOpe
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-800 bg-white/50 dark:bg-gray-900/40 p-6">
-          <Bookmark size={40} className="text-oro-500/50 dark:text-brand-200/50 mb-3" />
+          <Bookmark size={40} className="text-brand-300 dark:text-brand-400/60 mb-3" />
           <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">
             {search ? 'No se encontraron cotizaciones coincidentes' : 'No tienes cotizaciones guardadas aún'}
           </h3>

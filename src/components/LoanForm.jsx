@@ -47,7 +47,7 @@ export function LoanForm({ values, onChange }) {
             <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
               <DollarSign size={18} />
             </div>
-            <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            <h3 className="text-base font-semibold text-[#222222] dark:text-white">
               1. Capital y Moneda
             </h3>
           </div>
@@ -128,7 +128,7 @@ export function LoanForm({ values, onChange }) {
             <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
               <Percent size={18} />
             </div>
-            <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            <h3 className="text-base font-semibold text-[#222222] dark:text-white">
               2. Tasa e Interés
             </h3>
           </div>
@@ -221,7 +221,7 @@ export function LoanForm({ values, onChange }) {
             <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
               <Calendar size={18} />
             </div>
-            <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            <h3 className="text-base font-semibold text-[#222222] dark:text-white">
               3. Frecuencia y Fechas
             </h3>
           </div>
@@ -295,10 +295,10 @@ export function LoanForm({ values, onChange }) {
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-xs overflow-hidden transition-all duration-200">
         <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-oro-500/15 text-oro-700 dark:text-oro-300">
+            <div className="p-1.5 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
               <UserRound size={18} />
             </div>
-            <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            <h3 className="text-base font-semibold text-[#222222] dark:text-white">
               4. Cliente / Deudor
             </h3>
           </div>

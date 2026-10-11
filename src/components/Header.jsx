@@ -15,38 +15,62 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
   const [showSidebar, setShowSidebar] = useState(false);
 
   return (
-    <header className="app-header sticky top-0 z-30 shadow-xs">
-      <RateTicker />
+    <>
+      <header className="app-header sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 lg:h-20 lg:px-6">
+          <button
+            type="button"
+            onClick={() => onChangeTab?.('calculator')}
+            className="shrink-0 rounded-lg"
+            aria-label="PRGARCÍA, ir a la calculadora"
+          >
+            <BrandLogo />
+          </button>
 
-      {/* Barra de marca */}
-      <div className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-surface-cardDark">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setShowSidebar(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-brand-800 hover:bg-brand-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
-              aria-label="Abrir menú"
-            >
-              <Menu size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeTab?.('calculator')}
-              className="rounded-lg text-left focus-visible:outline-none"
-              aria-label="PRGARCÍA, ir al inicio"
-            >
-              <BrandLogo size={38} />
-            </button>
-          </div>
+          {/* Navegación de escritorio: íconos con etiqueta y subrayado activo (estilo categorías). */}
+          <nav aria-label="Módulos" className="hidden lg:block">
+            <div role="tablist" aria-label="Vistas de la cuenta" className="flex items-center gap-1">
+              {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => {
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    id={`tab-${id}`}
+                    role="tab"
+                    aria-selected={active}
+                    aria-controls="app-tab-panel"
+                    tabIndex={active ? 0 : -1}
+                    onKeyDown={handleTabKeyDown}
+                    onClick={() => onChangeTab?.(id)}
+                    className={`group relative flex flex-col items-center gap-1 px-3 pb-2 pt-1 text-xs font-semibold transition-colors ${
+                      active ? 'text-[#222222] dark:text-white' : 'text-slate-600 hover:text-[#222222] dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    <span className="relative">
+                      <Icon size={20} aria-hidden="true" className={active ? 'text-brand-700 dark:text-brand-400' : ''} />
+                      {countKey === 'history' && historyCount > 0 && (
+                        <span className="absolute -right-3 -top-1.5 rounded-full bg-brand-700 px-1.5 text-[10px] font-bold leading-4 text-white">{historyCount}</span>
+                      )}
+                    </span>
+                    <span>{label}</span>
+                    <span aria-hidden="true" className={`absolute inset-x-3 -bottom-px h-0.5 rounded-full transition-colors ${
+                      active ? 'bg-brand-700 dark:bg-brand-400' : 'bg-transparent group-hover:bg-slate-300 dark:group-hover:bg-slate-600'
+                    }`} />
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
 
-          <div className="hidden lg:flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            <RateTicker className="hidden sm:inline-flex" />
             <button
               type="button"
               onClick={() => setShowInfo(true)}
               aria-label="Cómo se calcula"
               title="Cómo se calcula"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-brand-50 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:flex"
             >
               <CircleHelp size={18} />
             </button>
@@ -55,48 +79,45 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
               onClick={toggle}
               aria-label="Cambiar tema"
               title="Cambiar tema"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-brand-50 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:flex"
             >
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-700" />
-            <UserMenu onOpenProfile={onOpenProfile} />
+            <div className="hidden lg:block"><UserMenu onOpenProfile={onOpenProfile} /></div>
+            <button
+              type="button"
+              onClick={() => setShowSidebar(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-[#222222] shadow-pill dark:border-slate-700 dark:text-white lg:hidden"
+              aria-label="Abrir menú"
+            >
+              <Menu size={18} />
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Barra de navegación institucional (escritorio) */}
-      <nav aria-label="Módulos" className="hidden bg-brand-800 dark:bg-brand-900 lg:block">
-        <div role="tablist" aria-label="Vistas de la cuenta" className="mx-auto flex max-w-6xl items-stretch px-2 lg:px-4">
-          {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => {
+      {/* Barra inferior en móvil, como en las apps nativas. */}
+      <nav aria-label="Módulos" className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95 lg:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-5">
+          {NAV_ITEMS.filter((item) => item.mobile).map(({ id, label, shortLabel, icon: Icon }) => {
             const active = activeTab === id;
             return (
               <button
                 key={id}
                 type="button"
-                id={`tab-${id}`}
-                role="tab"
-                aria-selected={active}
-                aria-controls="app-tab-panel"
-                tabIndex={active ? 0 : -1}
-                onKeyDown={handleTabKeyDown}
                 onClick={() => onChangeTab?.(id)}
-                className={`relative flex h-12 items-center gap-2 px-4 text-[13px] font-semibold transition-colors focus-visible:z-10 ${
-                  active ? 'bg-brand-900 text-white dark:bg-brand-950' : 'text-brand-100 hover:bg-brand-700 hover:text-white'
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold ${
+                  active ? 'text-brand-700 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'
                 }`}
               >
-                <Icon size={15} aria-hidden="true" className={active ? 'text-oro-400' : ''} />
-                <span>{label}</span>
-                {countKey === 'history' && historyCount > 0 && (
-                  <span className="rounded-full bg-oro-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-brand-950">{historyCount}</span>
-                )}
-                {active && <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[3px] bg-oro-500" />}
+                <Icon size={22} aria-hidden="true" strokeWidth={active ? 2.4 : 1.8} />
+                <span>{shortLabel ?? label}</span>
               </button>
             );
           })}
         </div>
       </nav>
-      <div className="gold-rule h-[3px] lg:hidden" aria-hidden="true" />
 
       <InfoModal open={showInfo} onClose={() => setShowInfo(false)} />
       <SidebarMobile
@@ -107,6 +128,6 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
         onOpenProfile={onOpenProfile}
         historyCount={historyCount}
       />
-    </header>
+    </>
   );
 }

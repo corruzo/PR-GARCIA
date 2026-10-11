@@ -334,7 +334,7 @@ function AppContent() {
         historyCount={currentHistory.length}
       />
 
-      <main id="app-tab-panel" role="tabpanel" aria-label={NAV_ITEMS.find((item) => item.id === activeTab)?.label} tabIndex={0} className="mx-auto max-w-6xl px-4 py-6 lg:px-6 lg:py-9">
+      <main id="app-tab-panel" role="tabpanel" aria-label={NAV_ITEMS.find((item) => item.id === activeTab)?.label} tabIndex={0} className="mx-auto max-w-6xl px-4 pt-6 pb-28 lg:px-6 lg:py-9">
 
         {/* 1. CALCULADORA UNIFICADA Y SIMPLIFICADA */}
         {activeTab === 'calculator' && (

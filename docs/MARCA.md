@@ -1,49 +1,59 @@
 # Identidad de marca PRGARCÍA
 
-Estilo institucional bancario: sobrio, confiable y legible. Azul marino como color de autoridad, oro como acento de valor y grises fríos para el contenido.
+Interfaz **blanca, limpia y espaciosa** (inspirada en el estilo de Airbnb): el contenido manda y el color de marca aparece solo en lo importante —botones principales, pestaña activa, íconos, enlaces y logo—. El modo oscuro usa **gris muy oscuro** (no negro ni azul) con el mismo acento.
 
-## Paleta
+## Color de marca: vinotinto
 
-| Color | Código | Uso |
+Definido como variables RGB en `src/index.css` (`:root`, `--brand-50` … `--brand-950`); Tailwind lo expone como `brand-*`. **Para cambiar el color de toda la app basta con editar esas variables.**
+
+| Token | Código | Uso |
 | --- | --- | --- |
-| Marino 900 | `#0B2140` | Fondo del emblema, portada, encabezados oscuros |
-| Marino 800 | `#112F5C` | Barra de navegación |
-| Marino 700 | `#163E78` | Botones principales, texto de marca |
-| Marino 600 | `#1F4F93` | Enlaces y contorno de foco |
-| Marino 950 | `#06142A` | Franja superior y pie |
-| Oro 500 | `#C9A227` | Acentos: pestaña activa, franja dorada, emblema, botón dorado |
-| Oro 300 | `#E9CF7A` | Oro sobre fondos marino |
-| Oro 700 | `#7F6413` | Oro como texto sobre blanco (lema del logo) |
-| Fondo claro | `#F3F5F8` | Fondo de la aplicación |
-| Fondo oscuro | `#071426` | Fondo en tema oscuro; tarjetas `#0D1E36` |
-| Verde estado | `#1F7A5C` | Solo para estados positivos (pagado) |
+| `brand-700` | `#9F1239` | Botón principal, logo, pestaña activa, íconos |
+| `brand-800` | `#84102F` | Botón al pasar el cursor |
+| `brand-50` | `#FFF1F3` | Fondos suaves de etiquetas y resaltes |
+| `brand-400` | `#FB7185` | Acento en modo oscuro (texto, íconos, pestaña activa) |
 
-El oro nunca se usa como texto pequeño sobre blanco salvo en su tono 700. Las combinaciones están verificadas en `tests/accessibilityContrast.test.js` (WCAG AA).
+## Neutros
 
-## Tipografía
+| Uso | Claro | Oscuro |
+| --- | --- | --- |
+| Fondo | `#FFFFFF` | `#1C1C1E` |
+| Tarjetas | `#FFFFFF` + borde `#EBEBEB` | `#262628` + borde `#3A3A3C` |
+| Fondo atenuado (pie, zonas) | `#F7F7F7` | `#262628` |
+| Texto principal | `#222222` | `#F5F5F7` |
+| Texto secundario | `#6A6A6A` | `#A1A1A6` |
 
-IBM Plex Sans (400–700) para toda la interfaz; IBM Plex Mono con cifras tabulares para montos. El nombre se escribe en mayúsculas con espaciado amplio (`tracking 0.12em`) y el lema «Préstamos y cartera» en versalitas doradas.
+Los grises no tienen tinte azul. Verde (`emerald`) solo para estados positivos (pagado, al día); rojo y ámbar solo para alertas.
+Todas las combinaciones cumplen WCAG AA y están verificadas en `tests/accessibilityContrast.test.js`.
 
-## Formas
+## Tipografía y formas
 
-Radios contenidos (6–10 px), bordes finos, sombras discretas. La navegación usa una barra marino con subrayado dorado en la pestaña activa y una franja dorada bajo el encabezado.
+- **Figtree** (400–800) para todo; los montos usan cifras tabulares (`.num`).
+- Títulos en minúscula y negrita, sin mayúsculas sostenidas.
+- Radios amplios (tarjetas 16 px, botones 8 px, chips redondos), sombras suaves solo al pasar el cursor o en tarjetas destacadas.
+- Foco visible en `#222222` (claro) / `#F5F5F7` (oscuro).
 
-## Emblema
+## Navegación
 
-Frontón y columnas (edificio institucional) en oro y blanco sobre un cuadrado marino con filete dorado. Representa solidez y custodia del dinero.
+- Escritorio: barra blanca con logo, módulos como íconos con etiqueta y subrayado vinotinto en el activo, chip con la tasa BCV y menú de usuario.
+- Teléfono: barra inferior fija con los 5 módulos principales (como una app nativa) y menú lateral para el resto.
+
+## Símbolo
+
+Una «P» blanca cuyo bucle es una moneda, sobre un cuadrado vinotinto redondeado: la P de PRGARCÍA y de préstamo.
 
 ## Archivos del kit (`public/`)
 
-- `logo-mark.svg` / `favicon.svg`: emblema principal; `logo-mark-navy.svg`: variante para fondos muy oscuros.
-- `logo-horizontal.svg` y `logo-horizontal-white.svg`: emblema + nombre para fondos claros y oscuros.
+- `logo-mark.svg` / `favicon.svg`: símbolo principal; `logo-mark-navy.svg`: variante sobre gris oscuro.
+- `logo-horizontal.svg` y `logo-horizontal-white.svg`: símbolo + nombre para fondos claros y oscuros.
 - `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`.
 - `icon-192.png`, `icon-512.png` (PWA) e `icon-maskable-512.png` (adaptable, fuente `icon-maskable.svg`).
 - `og-image.png`: vista previa al compartir (1200 × 630).
 
-En la aplicación el logo se compone con `src/components/BrandLogo.jsx` (emblema + texto real) para que sea nítido y accesible.
+En la aplicación el logo se compone con `src/components/BrandLogo.jsx` (símbolo + texto real).
 
 ## Uso
 
-- Deja alrededor del emblema un espacio libre igual a la altura del frontón.
-- No estires, recolorees ni agregues sombras al emblema.
-- Sobre fondos marino usa el logo en versión blanca (`inverse`).
+- Deja alrededor del símbolo un espacio libre igual a la mitad de su ancho.
+- No estires, recolorees ni agregues sombras al símbolo.
+- No uses el vinotinto para bloques grandes de fondo: es un acento.

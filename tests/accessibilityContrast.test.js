@@ -20,16 +20,17 @@ function contrastRatio(first, second) {
 
 test('brand colors for buttons, navigation and text meet WCAG AA contrast', () => {
   const pairs = [
-    ['#FFFFFF', '#163E78'], // botón principal
-    ['#475569', '#F3F5F8'], // texto secundario claro
-    ['#CBD5E1', '#071426'], // texto secundario oscuro
-    ['#163E78', '#F3F5F8'], // texto de marca
-    ['#8CB0DB', '#071426'], // texto de marca en tema oscuro
-    ['#FFFFFF', '#112F5C'], // pestañas de navegación
-    ['#DCE7F5', '#112F5C'], // pestañas inactivas
-    ['#06142A', '#C9A227'], // botón dorado
-    ['#E9CF7A', '#06142A'], // dorado sobre franja superior
-    ['#7F6413', '#FFFFFF'], // lema dorado del logo
+    ['#FFFFFF', '#9F1239'], // botón principal vinotinto
+    ['#FFFFFF', '#84102F'], // botón al pasar el cursor
+    ['#9F1239', '#FFFFFF'], // texto y enlaces de marca
+    ['#222222', '#FFFFFF'], // texto principal
+    ['#6A6A6A', '#FFFFFF'], // texto secundario
+    ['#F5F5F7', '#1C1C1E'], // texto principal modo oscuro
+    ['#A1A1A6', '#1C1C1E'], // texto secundario modo oscuro
+    ['#A1A1A6', '#262628'], // texto secundario en tarjetas oscuras
+    ['#FB7185', '#1C1C1E'], // acento de marca en modo oscuro
+    ['#FB7185', '#262628'], // acento sobre tarjetas oscuras
+    ['#84102F', '#FFF1F3'], // etiqueta de marca sobre fondo rosado
   ];
 
   for (const [foreground, background] of pairs) {
@@ -40,6 +41,6 @@ test('brand colors for buttons, navigation and text meet WCAG AA contrast', () =
   }
 });
 test('focus outlines meet the 3:1 non-text contrast minimum', () => {
-  assert.ok(contrastRatio('#1F4F93', '#F3F5F8') >= 3);
-  assert.ok(contrastRatio('#DDB94A', '#071426') >= 3);
+  assert.ok(contrastRatio('#222222', '#FFFFFF') >= 3);
+  assert.ok(contrastRatio('#F5F5F7', '#1C1C1E') >= 3);
 });

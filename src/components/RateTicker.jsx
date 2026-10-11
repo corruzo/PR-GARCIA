@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getCachedBCV } from '../services/bcvService';
 
-function formatFecha(iso) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime()) || date.getTime() === 0) return '';
-  return date.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-}
-
-/** Franja superior con la última tasa BCV conocida (estilo banca en línea). */
-export function RateTicker() {
+/** Chip con la última tasa BCV conocida. */
+export function RateTicker({ className = '' }) {
   const [rate, setRate] = useState(() => getCachedBCV());
 
   useEffect(() => {
@@ -23,22 +17,19 @@ export function RateTicker() {
     };
   }, []);
 
+  const fecha = rate ? new Date(rate.fetchedAt) : null;
+  const title = fecha && fecha.getTime() > 0
+    ? `Consultada ${fecha.toLocaleString('es-VE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}${rate.verifiedAgainstBCV ? '' : ' · referencial'}`
+    : 'Aún no se ha consultado la tasa';
+
   return (
-    <div className="bg-brand-950 text-[11px] text-brand-100">
-      <div className="mx-auto flex h-8 max-w-6xl items-center justify-between gap-3 px-4 lg:px-6">
-        <span className="truncate">Gestión de préstamos en USD y Bs.</span>
-        <span className="flex shrink-0 items-center gap-1.5" aria-live="polite">
-          <span className="font-semibold uppercase tracking-wider text-oro-300">Tasa BCV</span>
-          {rate ? (
-            <>
-              <span className="num font-semibold text-white">Bs. {Number(rate.rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
-              <span className="hidden sm:inline text-brand-200">· {formatFecha(rate.fetchedAt)}{rate.verifiedAgainstBCV ? '' : ' · referencial'}</span>
-            </>
-          ) : (
-            <span className="text-brand-200">sin consultar</span>
-          )}
-        </span>
-      </div>
-    </div>
+    <span title={title} aria-live="polite"
+      className={`inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs dark:border-slate-700 ${className}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-brand-700 dark:bg-brand-400" aria-hidden="true" />
+      <span className="font-medium text-slate-600 dark:text-slate-400">BCV</span>
+      <span className="num font-semibold text-[#222222] dark:text-white">
+        {rate ? `Bs. ${Number(rate.rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : '—'}
+      </span>
+    </span>
   );
 }

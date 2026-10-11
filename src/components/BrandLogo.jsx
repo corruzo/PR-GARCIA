@@ -1,16 +1,14 @@
-/** Logotipo PRGARCÍA: emblema + nombre (texto real, accesible y nítido). */
-export function BrandLogo({ inverse = false, size = 40, tagline = 'Préstamos y cartera' }) {
+/** Logotipo PRGARCÍA: símbolo + nombre en vinotinto (texto real, nítido y accesible). */
+export function BrandLogo({ inverse = false, size = 34, showName = true, tagline = '' }) {
   return (
-    <span className="flex items-center gap-3">
+    <span className="flex items-center gap-2.5">
       <img src="/logo-mark.svg" alt="" width={size} height={size} className="shrink-0" style={{ width: size, height: size }} />
-      <span className="leading-none">
-        <span className={`block text-[17px] font-bold tracking-[0.12em] ${inverse ? 'text-white' : 'text-brand-900 dark:text-white'}`}>PRGARCÍA</span>
-        {tagline && (
-          <span className={`mt-1 block text-[10px] font-semibold uppercase tracking-[0.22em] ${inverse ? 'text-oro-300' : 'text-oro-700 dark:text-oro-300'}`}>
-            {tagline}
-          </span>
-        )}
-      </span>
+      {showName && (
+        <span className="leading-none">
+          <span className={`block text-xl font-extrabold tracking-tight ${inverse ? 'text-white' : 'text-brand-700 dark:text-white'}`}>PRGARCÍA</span>
+          {tagline && <span className="mt-1 block text-[11px] font-medium text-slate-600 dark:text-slate-400">{tagline}</span>}
+        </span>
+      )}
     </span>
   );
 }

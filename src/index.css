@@ -1,14 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Identidad PRGARCÍA — azul marino institucional y oro. Ver docs/MARCA.md. */
+/*
+ * Identidad PRGARCÍA — blanco limpio + vinotinto. Ver docs/MARCA.md.
+ * Para cambiar el color de marca basta con editar estas variables (RGB).
+ */
+:root {
+  --brand-50: 255 241 243;   /* #FFF1F3 */
+  --brand-100: 255 225 230;  /* #FFE1E6 */
+  --brand-200: 251 197 207;  /* #FBC5CF */
+  --brand-300: 245 155 174;  /* #F59BAE */
+  --brand-400: 251 113 133;  /* #FB7185 — acento en modo oscuro */
+  --brand-500: 208 42 85;    /* #D02A55 */
+  --brand-600: 184 25 74;    /* #B8194A */
+  --brand-700: 159 18 57;    /* #9F1239 — vinotinto principal */
+  --brand-800: 132 16 47;    /* #84102F — hover */
+  --brand-900: 107 14 39;    /* #6B0E27 */
+  --brand-950: 63 7 22;      /* #3F0716 */
+}
 
 @layer base {
   html {
-    font-family: 'IBM Plex Sans', system-ui, Arial, sans-serif;
+    font-family: Figtree, system-ui, -apple-system, 'Segoe UI', sans-serif;
     scroll-behavior: smooth;
     touch-action: manipulation;
     overscroll-behavior: none;
@@ -20,71 +36,62 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-surface-light dark:bg-surface-dark text-slate-900 dark:text-slate-100 transition-colors duration-200;
+    @apply bg-white text-[#222222] dark:bg-surface-dark dark:text-[#F5F5F7] transition-colors duration-200;
   }
   * {
     @apply border-slate-200 dark:border-slate-800;
   }
-  h1, h2, h3 {
-    letter-spacing: -0.01em;
-  }
   :focus-visible {
-    outline: 3px solid #1F4F93 !important;
+    outline: 2px solid #222222 !important;
     outline-offset: 2px !important;
     transition: none !important;
   }
   .dark :focus-visible {
-    outline-color: #DDB94A !important;
+    outline-color: #F5F5F7 !important;
   }
 }
 
 @layer components {
   .num {
-    @apply font-mono tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
 
   .input-base {
-    @apply w-full rounded-lg border border-slate-300 dark:border-slate-700
-           bg-white dark:bg-surface-cardDark text-slate-900 dark:text-white
+    @apply w-full rounded-xl border border-slate-300 dark:border-slate-700
+           bg-white dark:bg-surface-cardDark text-[#222222] dark:text-white
            min-h-12 px-4 py-3 text-base font-medium
-           focus:outline-none focus:ring-2 focus:ring-brand-600/25 focus:border-brand-600
-           placeholder:text-slate-400 dark:placeholder:text-slate-500
+           focus:outline-none focus:border-[#222222] focus:ring-1 focus:ring-[#222222]
+           dark:focus:border-white dark:focus:ring-white
+           placeholder:text-slate-500 dark:placeholder:text-slate-400
            transition-colors duration-150;
   }
 
   .label-base {
-    @apply block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5 tracking-wide uppercase;
+    @apply block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg
-           bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white font-semibold text-sm
-           shadow-xs hover:shadow-saas-hover
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-surface-dark
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg
-           bg-oro-500 hover:bg-oro-400 text-brand-950 font-semibold text-sm shadow-xs
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg
+           bg-brand-700 hover:bg-brand-800 active:scale-[0.98] text-white font-semibold text-[15px]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#222222]
+           transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-           bg-white dark:bg-surface-cardDark text-brand-800 dark:text-slate-100 font-semibold text-sm
-           border border-brand-200 dark:border-slate-700 hover:bg-brand-50 dark:hover:bg-slate-800
-           shadow-xs transition-colors duration-150 disabled:opacity-50;
+           bg-white dark:bg-transparent text-[#222222] dark:text-white font-semibold text-sm
+           border border-[#222222] dark:border-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800
+           transition-colors duration-150 active:scale-[0.98] disabled:opacity-40;
   }
 
   .btn-ghost {
     @apply inline-flex min-h-11 items-center justify-center gap-2 px-3 py-2 rounded-lg
-           text-slate-700 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-800/80
-           text-sm font-semibold transition-colors duration-150;
+           text-[#222222] dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800
+           text-sm font-semibold underline-offset-2 transition-colors duration-150;
   }
 
   .result-card {
-    @apply rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-cardDark p-4 shadow-xs;
+    @apply rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-cardDark p-4;
   }
 
   .compact-result-card {
@@ -92,11 +99,11 @@
   }
 
   .result-value {
-    @apply font-mono text-2xl font-semibold tabular-nums text-brand-900 dark:text-white;
+    @apply font-mono text-2xl font-bold text-[#222222] dark:text-white;
   }
 
   .result-alt {
-    @apply font-mono text-xs text-slate-500 dark:text-slate-400 tabular-nums mt-0.5;
+    @apply font-mono text-xs text-slate-600 dark:text-slate-400 mt-0.5;
   }
 
   .modal-surface {
@@ -105,47 +112,40 @@
   }
 
   .history-currency {
-    @apply rounded px-2 py-0.5 text-[10px] font-bold tracking-wider;
+    @apply rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide;
   }
   .history-currency-usd {
-    @apply bg-brand-100 text-brand-800 dark:bg-brand-900 dark:text-brand-200;
+    @apply bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100;
   }
   .history-currency-ves {
-    @apply bg-oro-100 text-oro-800 dark:bg-oro-900 dark:text-oro-200;
-  }
-
-  /* Franja dorada característica bajo la barra de navegación. */
-  .gold-rule {
-    background: linear-gradient(90deg, #A8851A 0%, #DDB94A 50%, #A8851A 100%);
+    @apply bg-brand-50 text-brand-800 dark:bg-brand-950 dark:text-brand-200;
   }
 }
 
 @layer utilities {
   .app-canvas {
-    @apply bg-surface-light dark:bg-surface-dark;
+    @apply bg-white dark:bg-surface-dark;
   }
   .glass-card {
-    @apply bg-white dark:bg-surface-cardDark border border-slate-200 dark:border-slate-800 transition-all duration-150 shadow-xs;
+    @apply bg-white dark:bg-surface-cardDark border border-slate-200 dark:border-slate-800 transition-shadow duration-200;
   }
   .glass-card-hover {
-    @apply hover:shadow-saas hover:border-brand-400 dark:hover:border-brand-500;
+    @apply hover:shadow-card;
   }
-  .tabular-nums {
+  .tabular-nums,
+  .font-mono {
     font-variant-numeric: tabular-nums;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 
-  /* Ajustes de contraste (WCAG AA) para textos secundarios y de marca. */
+  /* Contraste mínimo (WCAG AA) para textos secundarios. */
   .text-gray-400,
   .text-gray-500,
   .text-slate-400,
   .text-slate-500 {
-    color: #475569;
-  }
-
-  .text-brand-500,
-  .text-brand-600,
-  .text-gain-600 {
-    color: #163E78;
+    color: #6A6A6A;
   }
 
   .dark .text-gray-400,
@@ -160,23 +160,27 @@
   .dark [class~="dark:text-slate-400"],
   .dark [class~="dark:text-slate-500"],
   .dark [class~="dark:text-slate-600"] {
-    color: #CBD5E1;
+    color: #A1A1A6;
   }
 
+  /* Acentos de marca: vinotinto en claro, rosa vino legible en oscuro. */
+  .dark .text-brand-500,
+  .dark .text-brand-600,
+  .dark .text-brand-700,
+  .dark [class~="dark:text-brand-300"],
   .dark [class~="dark:text-brand-400"],
-  .dark [class~="dark:text-brand-500"],
-  .dark [class~="dark:text-gain-500"] {
-    color: #8CB0DB;
+  .dark [class~="dark:text-brand-500"] {
+    color: #FB7185;
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: #475569;
+    color: #6A6A6A;
     opacity: 1;
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: #CBD5E1;
+    color: #A1A1A6;
   }
 }
