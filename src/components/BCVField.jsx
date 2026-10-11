@@ -46,7 +46,7 @@ export function BCVField({ value, onChange }) {
   const cacheTimestamp = cacheInfo?.fetchedAt ? new Date(cacheInfo.fetchedAt) : null;
   const valorManual = value !== '' && cacheInfo?.rate && Math.abs(Number(value) - Number(cacheInfo.rate)) > 0.01;
   const estado = valorManual
-    ? { texto: 'Tasa personalizada', detalle: 'No coincide con la tasa del BCV guardada', color: 'text-blue-600 dark:text-blue-400', icon: PencilLine }
+    ? { texto: 'Tasa personalizada', detalle: 'No coincide con la tasa del BCV guardada', color: 'text-brand-600 dark:text-brand-400', icon: PencilLine }
     : cambioBCV && verificadaBCV
       ? { texto: 'El BCV actualizó su tasa', detalle: 'La nueva tasa coincide con la publicada oficialmente', color: 'text-amber-600 dark:text-amber-400', icon: AlertCircle }
       : verificadaBCV

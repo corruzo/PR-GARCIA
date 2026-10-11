@@ -1,17 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <defs>
-    <linearGradient id="bg-grad-192" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="100%" stop-color="#1E293B"/>
-    </linearGradient>
-    <linearGradient id="brand-grad-192" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34D399"/>
-      <stop offset="50%" stop-color="#10B981"/>
-      <stop offset="100%" stop-color="#059669"/>
-    </linearGradient>
-  </defs>
-  <rect width="192" height="192" rx="44" fill="url(#bg-grad-192)"/>
-  <rect x="24" y="24" width="144" height="144" rx="36" fill="url(#brand-grad-192)" opacity="0.15"/>
-  <rect x="36" y="36" width="120" height="120" rx="28" fill="url(#brand-grad-192)"/>
-  <path d="M96 56c-22.1 0-40 17.9-40 40s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40zm4 58v6h-8v-6c-6.8-.8-12-5.2-12.8-11.2h8c.8 2.8 3.6 5.2 7.6 5.2 4.8 0 8-2.4 8-5.6 0-3.2-2-4.8-8.4-6.4-8.8-2.4-12.8-6-12.8-12 0-5.6 4.4-10 10.4-11.2v-6h8v6c5.6.8 10 4.8 11.2 10h-8c-.8-2.4-2.8-4.4-6.4-4.4-4 0-6.8 2-6.8 4.8 0 2.8 2 4.4 8.4 6 9.2 2.4 12.8 6.4 12.8 12.4 0 6.4-5.2 10.4-11.2 11.2z" fill="#FFFFFF"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="192" height="192"><title>PRGARCÍA</title><rect width="512" height="512" rx="96" fill="#0B2140"/><rect x="30" y="30" width="452" height="452" rx="74" fill="none" stroke="#C9A227" stroke-width="8" opacity="0.9"/><path d="M106 210 256 112 406 210Z" fill="#C9A227"/><rect x="116" y="220" width="280" height="20" fill="#C9A227"/><rect x="133" y="252" width="36" height="106" fill="#FFFFFF"/><rect x="202" y="252" width="36" height="106" fill="#FFFFFF"/><rect x="274" y="252" width="36" height="106" fill="#FFFFFF"/><rect x="343" y="252" width="36" height="106" fill="#FFFFFF"/><rect x="104" y="368" width="304" height="20" fill="#C9A227"/><rect x="84" y="396" width="344" height="18" fill="#C9A227"/></svg>

@@ -1,11 +1,12 @@
 import { createPortal } from 'react-dom';
-import { X, Calculator, User, LogOut, Sun, Moon, CircleHelp } from 'lucide-react';
+import { X, User, LogOut, Sun, Moon, CircleHelp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { InfoModal } from './InfoModal';
 import { useState } from 'react';
 import { handleTabKeyDown } from '../utils/keyboardTabs';
 import { NAV_ITEMS } from '../features/cartera/navigation';
+import { BrandLogo } from './BrandLogo';
 
 export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
   const { user, logout } = useAuth();
@@ -16,7 +17,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex bg-gray-950/50 backdrop-blur-sm animate-fade-in lg:hidden"
+      className="fixed inset-0 z-50 flex bg-brand-950/60 backdrop-blur-sm animate-fade-in lg:hidden"
       role="presentation"
       onClick={onClose}
     >
@@ -24,26 +25,18 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
         role="dialog"
         aria-modal="true"
         aria-label="Menú de navegación"
-        className="w-72 max-w-[80vw] h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col justify-between p-5 animate-slide-right overflow-y-auto"
+        className="w-72 max-w-[80vw] h-full bg-white dark:bg-surface-cardDark border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between p-5 animate-slide-right overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-6">
           {/* Encabezado Sidebar */}
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-lg">
-                <Calculator size={16} className="text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">PRGARCÍA</p>
-                <p className="text-[10px] text-gray-400">Menú Principal</p>
-              </div>
-            </div>
+          <div className="-mx-5 -mt-5 flex items-center justify-between border-b-[3px] border-oro-500 bg-brand-900 px-5 py-4">
+            <BrandLogo inverse size={34} />
             <button
               type="button"
               onClick={onClose}
               aria-label="Cerrar menú"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-brand-100 hover:bg-brand-800"
             >
               <X size={18} />
             </button>
@@ -79,8 +72,8 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === id
-                    ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'border-l-4 border-oro-500 bg-brand-800 text-white'
+                    : 'border-l-4 border-transparent text-slate-700 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -128,7 +121,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
             className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
           >
             <span className="flex items-center gap-2">
-              {dark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-600" />}
+              {dark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-brand-600" />}
               <span>{dark ? 'Modo Claro' : 'Modo Oscuro'}</span>
             </span>
           </button>

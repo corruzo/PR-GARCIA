@@ -18,13 +18,18 @@ function contrastRatio(first, second) {
     / (Math.min(firstLuminance, secondLuminance) + 0.05);
 }
 
-test('primary button, muted text, and focus colors meet WCAG AA contrast', () => {
+test('brand colors for buttons, navigation and text meet WCAG AA contrast', () => {
   const pairs = [
-    ['#FFFFFF', '#047857'],
-    ['#475569', '#F8FAFC'],
-    ['#CBD5E1', '#0F172A'],
-    ['#047857', '#F8FAFC'],
-    ['#6EE7B7', '#0F172A'],
+    ['#FFFFFF', '#163E78'], // botón principal
+    ['#475569', '#F3F5F8'], // texto secundario claro
+    ['#CBD5E1', '#071426'], // texto secundario oscuro
+    ['#163E78', '#F3F5F8'], // texto de marca
+    ['#8CB0DB', '#071426'], // texto de marca en tema oscuro
+    ['#FFFFFF', '#112F5C'], // pestañas de navegación
+    ['#DCE7F5', '#112F5C'], // pestañas inactivas
+    ['#06142A', '#C9A227'], // botón dorado
+    ['#E9CF7A', '#06142A'], // dorado sobre franja superior
+    ['#7F6413', '#FFFFFF'], // lema dorado del logo
   ];
 
   for (const [foreground, background] of pairs) {
@@ -33,4 +38,8 @@ test('primary button, muted text, and focus colors meet WCAG AA contrast', () =>
       `${foreground} on ${background} must meet 4.5:1 contrast`,
     );
   }
+});
+test('focus outlines meet the 3:1 non-text contrast minimum', () => {
+  assert.ok(contrastRatio('#1F4F93', '#F3F5F8') >= 3);
+  assert.ok(contrastRatio('#DDB94A', '#071426') >= 3);
 });

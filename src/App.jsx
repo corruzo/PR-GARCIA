@@ -152,19 +152,6 @@ function AppContent() {
     };
   }, [user, historyReloadKey]);
 
-  const currencyColors = values.moneda === 'USD'
-    ? {
-      '--currency-main': '#2563eb',
-      '--currency-dark-accent': '#93c5fd',
-      '--currency-soft': '#eff6ff',
-      '--currency-border': '#bfdbfe',
-    }
-    : {
-      '--currency-main': '#059669',
-      '--currency-dark-accent': '#6ee7b7',
-      '--currency-soft': '#ecfdf5',
-      '--currency-border': '#a7f3d0',
-    };
 
   const handleChange = (key, val) => {
     setValues(prev => ({ ...prev, [key]: val }));
@@ -339,7 +326,6 @@ function AppContent() {
     <Suspense fallback={<div className="min-h-screen" aria-label="Cargando calculadora" />}>
       <div
         className="currency-app app-canvas min-h-screen bg-surface-light dark:bg-surface-dark transition-colors duration-300"
-        style={currencyColors}
       >
       <Header
         activeTab={activeTab}
@@ -444,7 +430,7 @@ function AppContent() {
           <p className="text-xs text-gray-500 dark:text-gray-400">
             PRGARCÍA · Gestión de préstamos. Verifica la tasa en{' '}
             <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer"
-               className="underline hover:text-brand-profundo dark:hover:text-brand-menta transition-colors">bcv.org.ve</a>.
+               className="underline hover:text-brand-700 dark:hover:text-brand-200 transition-colors">bcv.org.ve</a>.
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
           <nav className="mt-2 flex flex-wrap justify-center gap-4 text-xs" aria-label="Información legal">

@@ -292,7 +292,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
               <span className="text-gray-600 dark:text-gray-300">
                 Cuota final ({resultado.diasUltimaCuota} días remanentes):
               </span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="font-mono font-bold text-brand-600 dark:text-brand-400">
                 {fmtP(cuotaFinal)}
               </span>
             </div>
@@ -351,7 +351,7 @@ export function ResultPanel({ resultado, nombreCliente = '', onSaveQuote, tasaBC
             className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-xs transition-all duration-200 hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95"
             title="Copiar propuesta en texto al portapapeles"
           >
-            {textoCopiado ? <Check size={16} className="text-emerald-500 shrink-0" /> : <Copy size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />}
+            {textoCopiado ? <Check size={16} className="text-brand-500 shrink-0" /> : <Copy size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />}
             <span className="truncate">{textoCopiado ? '¡Copiado!' : 'Copiar'}</span>
           </button>
         </div>

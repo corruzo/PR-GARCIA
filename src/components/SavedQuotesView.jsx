@@ -144,9 +144,9 @@ export function SavedQuotesView({ items = [], loading = false, error = '', onOpe
                       </span>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30">
-                      <span className="text-[10px] uppercase font-semibold text-emerald-700 dark:text-emerald-400 block">Total a Cobrar</span>
-                      <span className="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="p-2.5 rounded-xl bg-brand-50/60 dark:bg-brand-950/30">
+                      <span className="text-[10px] uppercase font-semibold text-brand-700 dark:text-brand-400 block">Total a Cobrar</span>
+                      <span className="font-mono text-sm font-bold text-brand-600 dark:text-brand-400">
                         {formatearMoneda(total, moneda)}
                       </span>
                     </div>
@@ -185,7 +185,7 @@ export function SavedQuotesView({ items = [], loading = false, error = '', onOpe
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-gray-300 dark:border-gray-800 bg-white/50 dark:bg-gray-900/40 p-6">
-          <Bookmark size={40} className="text-brand-esmeralda/50 dark:text-brand-menta/50 mb-3" />
+          <Bookmark size={40} className="text-oro-500/50 dark:text-brand-200/50 mb-3" />
           <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">
             {search ? 'No se encontraron cotizaciones coincidentes' : 'No tienes cotizaciones guardadas aún'}
           </h3>

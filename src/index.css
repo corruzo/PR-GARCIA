@@ -1,15 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Identidad PRGARCÍA — azul marino institucional y oro. Ver docs/MARCA.md. */
+
 @layer base {
-  :root {
-    --scroll-behavior: smooth;
-  }
   html {
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'IBM Plex Sans', system-ui, Arial, sans-serif;
     scroll-behavior: smooth;
     touch-action: manipulation;
     overscroll-behavior: none;
@@ -21,19 +20,21 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 transition-colors duration-200;
-    font-feature-settings: "cv02","cv03","cv04","cv11";
+    @apply bg-surface-light dark:bg-surface-dark text-slate-900 dark:text-slate-100 transition-colors duration-200;
   }
   * {
     @apply border-slate-200 dark:border-slate-800;
   }
+  h1, h2, h3 {
+    letter-spacing: -0.01em;
+  }
   :focus-visible {
-    outline: 3px solid #047857 !important;
+    outline: 3px solid #1F4F93 !important;
     outline-offset: 2px !important;
     transition: none !important;
   }
   .dark :focus-visible {
-    outline-color: #6ee7b7 !important;
+    outline-color: #DDB94A !important;
   }
 }
 
@@ -42,44 +43,48 @@
     @apply font-mono tabular-nums;
   }
 
-  /* Clean Minimalist SaaS Inputs */
   .input-base {
-    @apply w-full rounded-xl border border-slate-200 dark:border-slate-700/80
-           bg-white dark:bg-slate-900 text-slate-900 dark:text-white
+    @apply w-full rounded-lg border border-slate-300 dark:border-slate-700
+           bg-white dark:bg-surface-cardDark text-slate-900 dark:text-white
            min-h-12 px-4 py-3 text-base font-medium
-           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500
+           focus:outline-none focus:ring-2 focus:ring-brand-600/25 focus:border-brand-600
            placeholder:text-slate-400 dark:placeholder:text-slate-500
-           transition-all duration-200 shadow-xs;
+           transition-colors duration-150;
   }
 
   .label-base {
-    @apply block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 tracking-wider uppercase;
+    @apply block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5 tracking-wide uppercase;
   }
 
-  /* Clean Minimalist SaaS Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl
-           bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white font-bold text-sm
-           shadow-sm hover:shadow-md hover:shadow-brand-500/20
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900
-           transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg
+           bg-brand-700 hover:bg-brand-800 active:bg-brand-900 text-white font-semibold text-sm
+           shadow-xs hover:shadow-saas-hover
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-surface-dark
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg
+           bg-oro-500 hover:bg-oro-400 text-brand-950 font-semibold text-sm shadow-xs
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-           bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-sm
-           border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60
-           shadow-xs transition-all duration-200 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+           bg-white dark:bg-surface-cardDark text-brand-800 dark:text-slate-100 font-semibold text-sm
+           border border-brand-200 dark:border-slate-700 hover:bg-brand-50 dark:hover:bg-slate-800
+           shadow-xs transition-colors duration-150 disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 px-3 py-2 rounded-xl
-           text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80
-           text-sm font-semibold transition-all duration-150;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 px-3 py-2 rounded-lg
+           text-slate-700 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-slate-800/80
+           text-sm font-semibold transition-colors duration-150;
   }
 
   .result-card {
-    @apply rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/90 p-4 shadow-xs;
+    @apply rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-cardDark p-4 shadow-xs;
   }
 
   .compact-result-card {
@@ -87,33 +92,49 @@
   }
 
   .result-value {
-    @apply font-mono text-2xl font-bold tabular-nums text-slate-900 dark:text-white;
+    @apply font-mono text-2xl font-semibold tabular-nums text-brand-900 dark:text-white;
   }
 
   .result-alt {
-    @apply font-mono text-xs text-slate-400 dark:text-slate-500 tabular-nums mt-0.5;
+    @apply font-mono text-xs text-slate-500 dark:text-slate-400 tabular-nums mt-0.5;
   }
 
   .modal-surface {
     -webkit-overflow-scrolling: touch;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
   }
+
+  .history-currency {
+    @apply rounded px-2 py-0.5 text-[10px] font-bold tracking-wider;
+  }
+  .history-currency-usd {
+    @apply bg-brand-100 text-brand-800 dark:bg-brand-900 dark:text-brand-200;
+  }
+  .history-currency-ves {
+    @apply bg-oro-100 text-oro-800 dark:bg-oro-900 dark:text-oro-200;
+  }
+
+  /* Franja dorada característica bajo la barra de navegación. */
+  .gold-rule {
+    background: linear-gradient(90deg, #A8851A 0%, #DDB94A 50%, #A8851A 100%);
+  }
 }
 
 @layer utilities {
   .app-canvas {
-    @apply bg-[#F8FAFC] dark:bg-[#0F172A];
+    @apply bg-surface-light dark:bg-surface-dark;
   }
   .glass-card {
-    @apply bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 transition-all duration-200 shadow-xs;
+    @apply bg-white dark:bg-surface-cardDark border border-slate-200 dark:border-slate-800 transition-all duration-150 shadow-xs;
   }
   .glass-card-hover {
-    @apply hover:shadow-md hover:border-brand-500/40 dark:hover:border-brand-500/40 hover:-translate-y-0.5;
+    @apply hover:shadow-saas hover:border-brand-400 dark:hover:border-brand-500;
   }
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 
+  /* Ajustes de contraste (WCAG AA) para textos secundarios y de marca. */
   .text-gray-400,
   .text-gray-500,
   .text-slate-400,
@@ -123,9 +144,8 @@
 
   .text-brand-500,
   .text-brand-600,
-  .text-emerald-600,
   .text-gain-600 {
-    color: #047857;
+    color: #163E78;
   }
 
   .dark .text-gray-400,
@@ -140,13 +160,13 @@
   .dark [class~="dark:text-slate-400"],
   .dark [class~="dark:text-slate-500"],
   .dark [class~="dark:text-slate-600"] {
-    color: #cbd5e1;
+    color: #CBD5E1;
   }
 
   .dark [class~="dark:text-brand-400"],
-  .dark [class~="dark:text-emerald-400"],
+  .dark [class~="dark:text-brand-500"],
   .dark [class~="dark:text-gain-500"] {
-    color: #6ee7b7;
+    color: #8CB0DB;
   }
 
   input::placeholder,
@@ -157,6 +177,6 @@
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: #cbd5e1;
+    color: #CBD5E1;
   }
 }

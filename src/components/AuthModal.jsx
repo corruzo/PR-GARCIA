@@ -174,7 +174,7 @@ export function AuthModal() {
                 <ArrowLeft size={16} />
               </button>
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-esmeralda text-white shadow-sm shadow-brand-500/30">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white shadow-sm shadow-brand-500/30">
                 {tab === 'login' ? <LogIn size={18} /> : <UserPlus size={18} />}
               </div>
             )}
