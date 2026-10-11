@@ -20,6 +20,7 @@ Opción B — Panel de Supabase: *SQL Editor* → pegar y ejecutar cada archivo 
 | Migración | Contenido | Aplicada |
 | --- | --- | --- |
 | `20261011000100_nucleo_cartera.sql` | Clientes, préstamos, cuotas, libro contable, RLS, `emitir_prestamo`, `anular_prestamo`, `previsualizar_cronograma` | ☐ |
+| `20261011000200_pagos_mora.sql` | Pagos, aplicaciones, mora diaria, `registrar_pago`, `anular_pago`, vistas `v_cuotas_estado` y `v_prestamos_resumen` | ☐ |
 
 ## Pruebas locales
 
