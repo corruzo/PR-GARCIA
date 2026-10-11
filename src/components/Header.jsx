@@ -1,10 +1,11 @@
-import { Calculator, CircleHelp, Moon, Sun, Menu, Bookmark } from 'lucide-react';
+import { CircleHelp, Moon, Sun, Menu } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useState } from 'react';
 import { InfoModal } from './InfoModal';
 import { UserMenu } from './UserMenu';
 import { SidebarMobile } from './SidebarMobile';
 import { handleTabKeyDown } from '../utils/keyboardTabs';
+import { NAV_ITEMS } from '../features/cartera/navigation';
 
 export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
   const { dark, toggle } = useTheme();
@@ -34,55 +35,40 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
             <img src="/logo-mark.svg" alt="" width="36" height="36" className="h-9 w-9 shrink-0" />
             <div className="leading-tight">
               <p className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">PRGARCÍA</p>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Calculadora</p>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">Préstamos y cartera</p>
             </div>
           </button>
         </div>
 
         {/* NAVEGACIÓN TOPBAR - Solo visible en Laptops (lg:) */}
         <nav role="tablist" aria-label="Vistas de la cuenta" className="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
-          <button
-            type="button"
-            id="tab-calculator"
-            role="tab"
-            aria-selected={activeTab === 'calculator'}
-            aria-controls="app-tab-panel"
-            tabIndex={activeTab === 'calculator' ? 0 : -1}
-            onKeyDown={handleTabKeyDown}
-            onClick={() => onChangeTab?.('calculator')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'calculator'
-                ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-            }`}
-          >
-            <Calculator size={14} />
-            <span>Calculadora</span>
-          </button>
-
-          <button
-            type="button"
-            id="tab-saved"
-            role="tab"
-            aria-selected={activeTab === 'saved'}
-            aria-controls="app-tab-panel"
-            tabIndex={activeTab === 'saved' ? 0 : -1}
-            onKeyDown={handleTabKeyDown}
-            onClick={() => onChangeTab?.('saved')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'saved'
-                ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-white shadow-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-            }`}
-          >
-            <Bookmark size={14} />
-            <span>Cotizaciones Guardadas</span>
-            {historyCount > 0 && (
-              <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                {historyCount}
-              </span>
-            )}
-          </button>
+          {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => (
+            <button
+              key={id}
+              type="button"
+              id={`tab-${id}`}
+              role="tab"
+              aria-selected={activeTab === id}
+              aria-controls="app-tab-panel"
+              tabIndex={activeTab === id ? 0 : -1}
+              onKeyDown={handleTabKeyDown}
+              onClick={() => onChangeTab?.(id)}
+              title={label}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                activeTab === id
+                  ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+              }`}
+            >
+              <Icon size={14} aria-hidden="true" />
+              <span className="sr-only xl:not-sr-only">{label}</span>
+              {countKey === 'history' && historyCount > 0 && (
+                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+          ))}
         </nav>
 
         {/* Acciones del Sistema - Solo en Desktop */}

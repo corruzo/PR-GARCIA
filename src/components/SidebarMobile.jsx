@@ -1,10 +1,11 @@
 import { createPortal } from 'react-dom';
-import { X, Calculator, Bookmark, User, LogOut, Sun, Moon, CircleHelp } from 'lucide-react';
+import { X, Calculator, User, LogOut, Sun, Moon, CircleHelp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { InfoModal } from './InfoModal';
 import { useState } from 'react';
 import { handleTabKeyDown } from '../utils/keyboardTabs';
+import { NAV_ITEMS } from '../features/cartera/navigation';
 
 export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
   const { user, logout } = useAuth();
@@ -63,58 +64,38 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
 
           {/* Enlaces de Navegación */}
           <nav role="tablist" aria-label="Vistas de la cuenta" className="space-y-1.5">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'calculator'}
-              aria-controls="app-tab-panel"
-              tabIndex={activeTab === 'calculator' ? 0 : -1}
-              onKeyDown={handleTabKeyDown}
-              onClick={() => {
-                onChangeTab('calculator');
-                onClose();
-              }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'calculator'
-                  ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Calculator size={16} />
-                <span>Calculadora</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'saved'}
-              aria-controls="app-tab-panel"
-              tabIndex={activeTab === 'saved' ? 0 : -1}
-              onKeyDown={handleTabKeyDown}
-              onClick={() => {
-                onChangeTab('saved');
-                onClose();
-              }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'saved'
-                  ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Bookmark size={16} />
-                <span>Cotizaciones Guardadas</span>
-              </div>
-              {historyCount > 0 && (
-                <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full ${
-                  activeTab === 'saved' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                }`}>
-                  {historyCount}
-                </span>
-              )}
-            </button>
+            {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === id}
+                aria-controls="app-tab-panel"
+                tabIndex={activeTab === id ? 0 : -1}
+                onKeyDown={handleTabKeyDown}
+                onClick={() => {
+                  onChangeTab(id);
+                  onClose();
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === id
+                    ? 'bg-brand-700 text-white shadow-md shadow-brand-600/20'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </div>
+                {countKey === 'history' && historyCount > 0 && (
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full ${
+                    activeTab === id ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                  }`}>
+                    {historyCount}
+                  </span>
+                )}
+              </button>
+            ))}
 
             <button
               type="button"

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
-import { RotateCcw } from 'lucide-react';
+import { Landmark, RotateCcw } from 'lucide-react';
 import { AuthModal } from './components/AuthModal';
 import { WelcomeHome } from './components/WelcomeHome';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,6 +8,8 @@ import { simularPrestamo, generarCronograma } from './utils/calculator';
 import { supabase } from './utils/supabase/client';
 import { getCachedBCV } from './services/bcvService';
 import { normalizePlainText } from './utils/inputValidation';
+import { useHashRoute } from './features/cartera/router';
+import { NAV_ITEMS } from './features/cartera/navigation';
 
 const Header = lazy(() => import('./components/Header').then(module => ({ default: module.Header })));
 const LoanForm = lazy(() => import('./components/LoanForm').then(module => ({ default: module.LoanForm })));
@@ -15,6 +17,10 @@ const ResultPanel = lazy(() => import('./components/ResultPanel').then(module =>
 const CronogramaTable = lazy(() => import('./components/CronogramaTable').then(module => ({ default: module.CronogramaTable })));
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(module => ({ default: module.ProfileModal })));
 const SavedQuotesView = lazy(() => import('./components/SavedQuotesView').then(module => ({ default: module.SavedQuotesView })));
+const ClientesView = lazy(() => import('./features/clientes/ClientesView').then(module => ({ default: module.ClientesView })));
+const PrestamosView = lazy(() => import('./features/prestamos/PrestamosView').then(module => ({ default: module.PrestamosView })));
+const CobranzaView = lazy(() => import('./features/cobranza/CobranzaView').then(module => ({ default: module.CobranzaView })));
+const ReportesView = lazy(() => import('./features/reportes/ReportesView').then(module => ({ default: module.ReportesView })));
 
 const HOY = format(new Date(), 'yyyy-MM-dd');
 const DEFAULTS = {
@@ -74,7 +80,9 @@ function loadHistory() {
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('calculator'); // 'calculator' | 'saved'
+  const [route, navigate] = useHashRoute();
+  const activeTab = route.view;
+  const [prestamoPrefill, setPrestamoPrefill] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [values, setValues] = useState(loadDraft);
   const [history, setHistory] = useState([]);
@@ -286,7 +294,23 @@ function AppContent() {
 
   const abrirCotizacion = (item) => {
     setValues({ ...DEFAULTS, ...item.values });
-    setActiveTab('calculator');
+    navigate('calculator');
+  };
+
+  const convertirEnPrestamo = () => {
+    if (!resultado?.valido) return;
+    setPrestamoPrefill({
+      moneda: resultado.moneda,
+      monto: resultado.monto,
+      tasa: resultado.tasa,
+      modalidadTasa: resultado.modalidadTasa,
+      frecuenciaPago: resultado.frecuenciaPago,
+      metodoInteres: resultado.metodoInteres,
+      fechaInicio: resultado.fechaInicio,
+      fechaFin: resultado.fechaFin,
+      tasaBCV: resultado.tasaBCV,
+    });
+    navigate('prestamos', 'nuevo');
   };
 
   if (loading) {
@@ -316,12 +340,12 @@ function AppContent() {
       >
       <Header
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
+        onChangeTab={(view) => navigate(view)}
         onOpenProfile={() => setShowProfile(true)}
         historyCount={currentHistory.length}
       />
 
-      <main id="app-tab-panel" role="tabpanel" aria-label={activeTab === 'calculator' ? 'Calculadora' : 'Cotizaciones guardadas'} tabIndex={0} className="mx-auto max-w-6xl px-4 py-6 lg:px-6 lg:py-9">
+      <main id="app-tab-panel" role="tabpanel" aria-label={NAV_ITEMS.find((item) => item.id === activeTab)?.label} tabIndex={0} className="mx-auto max-w-6xl px-4 py-6 lg:px-6 lg:py-9">
 
         {/* 1. CALCULADORA UNIFICADA Y SIMPLIFICADA */}
         {activeTab === 'calculator' && (
@@ -370,6 +394,9 @@ function AppContent() {
                       </div>
                       <ResultPanel resultado={resultado} nombreCliente={values.nombreCliente} onSaveQuote={guardarCotizacion} tasaBCVPersonalizada={tasaBCVPersonalizada} />
                     </div>
+                    <button type="button" onClick={convertirEnPrestamo} className="btn-secondary mt-3 w-full">
+                      <Landmark size={16} aria-hidden="true" /> Convertir en préstamo
+                    </button>
                   </>
                 ) : (
                   <div className="hidden lg:flex flex-col items-center justify-center p-10 text-center text-gray-400 dark:text-gray-600 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl h-[400px]">
@@ -400,10 +427,19 @@ function AppContent() {
           />
         )}
 
+        <Suspense fallback={<div className="min-h-40" aria-label="Cargando módulo" />}>
+          {activeTab === 'clientes' && <ClientesView route={route} navigate={navigate} />}
+          {activeTab === 'prestamos' && (
+            <PrestamosView route={route} navigate={navigate} prefill={prestamoPrefill} onPrefillUsed={() => setPrestamoPrefill(null)} />
+          )}
+          {activeTab === 'cobranza' && <CobranzaView navigate={navigate} />}
+          {activeTab === 'reportes' && <ReportesView />}
+        </Suspense>
+
         {/* Footer */}
         <footer className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            PRGARCÍA · Calculadora de préstamos. Verifica la tasa en{' '}
+            PRGARCÍA · Gestión de préstamos. Verifica la tasa en{' '}
             <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer"
                className="underline hover:text-brand-profundo dark:hover:text-brand-menta transition-colors">bcv.org.ve</a>.
           </p>

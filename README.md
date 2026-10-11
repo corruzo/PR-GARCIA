@@ -1,10 +1,12 @@
-# Prestamo Calc
+# PRGARCÍA
 
-Calculadora de préstamos con tasa BCV y soporte PWA.
+Gestión de préstamos y cartera bimonetaria (USD/VES) con tasa BCV y soporte PWA: calculadora, clientes, préstamos con cronograma, pagos y abonos, mora, cobranza, contabilidad y reportes de diferencial cambiario.
+
+Antes de usar los módulos de cartera hay que aplicar las migraciones de `supabase/migrations/` (ver `docs/CAMBIOS_SUPABASE.md`).
 
 ## Requisitos
 
-- Node.js 18+
+- Node.js 22.5+
 - npm
 
 ## Scripts locales

@@ -4,7 +4,9 @@
 
 - `src/App.jsx`: estado principal, acceso autenticado, pestañas internas e historial de cotizaciones.
 - `src/components/`: formularios y vistas React; `src/context/` contiene autenticación y tema.
-- `shared/finance/`: núcleo financiero puro en centavos enteros (`money.js`, `dates.js`, `schedule.js`), compartido por cliente y servidor.
+- `shared/finance/`: núcleo financiero puro en centavos enteros (`money.js`, `dates.js`, `schedule.js`, `input.js`, `report.js`), compartido por cliente, servidor y pruebas.
+- `src/features/`: módulos de cartera — `clientes/`, `prestamos/`, `cobranza/`, `reportes/` y `cartera/` (API Supabase, enrutador por hash, navegación y componentes comunes).
+- `supabase/migrations/`: esquema, RLS, RPC y vistas; `supabase/tests/bootstrap_local.sql` emula Supabase para pruebas locales.
 - `src/utils/calculator.js`: adaptador de la calculadora sobre `shared/finance/`, sin acceso a red o base de datos.
 - `src/services/`: clientes HTTP y caché local de tasa.
 - `src/hooks/`: estado compartido de tasa BCV y preferencias.
@@ -14,13 +16,16 @@
 
 ## Navegación y módulos
 
-La app usa React en una sola ruta pública (`/`). Sin sesión muestra la bienvenida; con sesión, `App.jsx` presenta las vistas internas Calculadora y Cotizaciones mediante estado. `Header.jsx` y `SidebarMobile.jsx` comparten ese estado. No hay React Router instalado.
+La app es una SPA en la ruta pública `/`. Sin sesión muestra la bienvenida; con sesión, la vista activa se toma del hash (`#/clientes`, `#/prestamos/<id>`, `#/prestamos/nuevo?cliente=<id>`…) mediante `src/features/cartera/router.js`, que valida vista e identificadores. Los módulos se registran en `src/features/cartera/navigation.js`, que alimenta `Header.jsx` y `SidebarMobile.jsx`. Cada módulo se carga de forma diferida (`lazy`).
 
-Convención para extraer un módulo: crear `src/features/<modulo>/` con `index.js` (componente público), `components/`, `hooks/` y `services/`. La navegación debe referenciar el descriptor exportado por esa carpeta; no mezclar datos o llamadas de un módulo dentro de otro. Los módulos nuevos deben aparecer solo cuando implementen un flujo real; no añadir pantallas de “próximamente”. La migración desde las vistas actuales se hará gradualmente, conservando las rutas públicas existentes.
+Flujo principal: Cliente → Nuevo préstamo (o «Convertir en préstamo» desde la calculadora) → Detalle con cronograma → Registrar pago / abono → Cobranza (vencidas, hoy, próximos 7 días, recordatorio por WhatsApp) → Reportes.
 
 ## Acceso a datos
 
 - La calculadora importa funciones puras de `src/utils/calculator.js`.
+- Cartera: el navegador lee tablas y vistas (`v_prestamos_resumen`, `v_cuotas_estado`, …) con RLS. Préstamos, cuotas, pagos y asientos **solo** se escriben mediante RPC `SECURITY DEFINER` (`emitir_prestamo`, `registrar_pago`, `anular_pago`, `anular_prestamo`), que validan, recalculan en el servidor y son idempotentes. Todas las llamadas están en `src/features/cartera/api.js`.
+- Reglas de dinero: centavos `bigint` + moneda; tasas `numeric(20,8)`; redondeo mitad al par idéntico en JS y SQL (verificado por `tests/dbCartera.test.js`). La tasa de cambio se fija en cada préstamo y en cada pago.
+- Nada se borra: pagos y préstamos se anulan con motivo y asiento de reverso; `auditoria` guarda el antes/después.
 - El navegador usa Supabase Auth y consultas a `user_history` mediante la clave publicable; RLS limita las cotizaciones a `auth.uid()`.
 - Las funciones de `api/` acceden a Supabase desde servidor. La clave `SUPABASE_SERVICE_ROLE_KEY` nunca debe pasar a `src/`.
 - El servidor local usa SQLite en `server/` para la tasa BCV. No es un reemplazo de Supabase en producción.
