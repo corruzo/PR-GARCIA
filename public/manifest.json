@@ -1,12 +1,12 @@
 {
   "name": "PRGARCÍA",
   "short_name": "PRGARCÍA",
-  "description": "Calculadora de préstamos en dólares y bolívares con tasa oficial del BCV.",
+  "description": "Gestión de préstamos y cartera en dólares y bolívares con tasa oficial del BCV.",
   "lang": "es-VE",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8FAFC",
-  "theme_color": "#10B981",
+  "background_color": "#FFFFFF",
+  "theme_color": "#9F1239",
   "orientation": "portrait-primary",
   "icons": [
     {

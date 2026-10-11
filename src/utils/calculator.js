@@ -1,121 +1,61 @@
 /**
- * calculator.js — Utilidades matemáticas para cálculo de préstamos e intereses.
- * Contexto: Venezuela / Interés Simple con días reales.
+ * calculator.js — Adaptador de la calculadora sobre el núcleo financiero.
  *
- * EXPORTACIONES PRINCIPALES:
- *   calcularDiasExactos(inicio, fin)       → número de días entre dos fechas
- *   calcularInteresSimple(params)          → objeto con todos los resultados
- *   calcularCuotas(params)                 → array de cuotas detalladas
- *   convertirMoneda(monto, tasa, de, a)    → conversión USD ↔ VES
- *   formatearMoneda(monto, moneda)         → string formateado
+ * La lógica vive en `shared/finance/` y opera en centavos enteros; aquí se
+ * expone la API que usa la interfaz (montos en unidades para presentación).
  */
 
-import { differenceInDays, parseISO, isValid, addDays, format } from 'date-fns';
+import { convertCents, fromCents, simpleInterestCents, toCents } from '../../shared/finance/money.js';
+import { daysBetween, isISODate, toDisplayDate } from '../../shared/finance/dates.js';
+import {
+  FREQUENCY_DAYS,
+  LIMITS,
+  RATE_MODE_DAYS,
+  buildSchedule,
+  installmentCount,
+  normalizeLoanTerms,
+} from '../../shared/finance/schedule.js';
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
-
-/** Días equivalentes por modalidad de tasa */
-export const DIAS_POR_MODALIDAD = {
-  diaria:    1,
-  semanal:   7,
-  quincenal: 15,
-  mensual:   30,
-};
-
-/** Días entre pagos según frecuencia */
-export const DIAS_POR_FRECUENCIA = {
-  diario:    1,
-  semanal:   7,
-  quincenal: 15,
-  mensual:   30,
-};
+export const DIAS_POR_MODALIDAD = RATE_MODE_DAYS;
+export const DIAS_POR_FRECUENCIA = FREQUENCY_DAYS;
 
 export const MONEDAS = {
   USD: { simbolo: '$', nombre: 'USD ($ Divisas)', decimales: 2 },
   VES: { simbolo: 'Bs.', nombre: 'VES (Bs Digitales)', decimales: 2 },
 };
 
-// ─── Funciones base ───────────────────────────────────────────────────────────
+export const METODOS_INTERES = {
+  interes_fijo: 'Interés fijo sobre capital inicial',
+  saldo_insoluto: 'Interés sobre saldo pendiente',
+};
 
-/**
- * Calcula días exactos entre dos fechas usando date-fns.
- * @param {string|Date} fechaInicio
- * @param {string|Date} fechaFin
- * @returns {number} días exactos (mínimo 0)
- */
 export function calcularDiasExactos(fechaInicio, fechaFin) {
-  const inicio = typeof fechaInicio === 'string' ? parseISO(fechaInicio) : fechaInicio;
-  const fin    = typeof fechaFin    === 'string' ? parseISO(fechaFin)    : fechaFin;
-
-  if (!isValid(inicio) || !isValid(fin)) return 0;
-
-  const dias = differenceInDays(fin, inicio);
-  return Math.max(0, dias);
+  if (!isISODate(fechaInicio) || !isISODate(fechaFin)) return 0;
+  return Math.max(0, daysBetween(fechaInicio, fechaFin));
 }
 
-/**
- * Calcula el interés generado bajo la fórmula de Interés Simple.
- *
- * Fórmula:
- *   - Tasa Diaria:    I = P × (r/100) × d
- *   - Tasa Semanal:   I = P × (r/100) × (d / 7)
- *   - Tasa Quincenal: I = P × (r/100) × (d / 15)
- *   - Tasa Mensual:   I = P × (r/100) × (d / 30)
- *
- * @param {number}  monto        Capital principal
- * @param {number}  tasa         Tasa de interés en porcentaje (ej: 5 para 5%)
- * @param {string}  modalidad    'diaria' | 'semanal' | 'quincenal' | 'mensual'
- * @param {number}  dias         Días totales del préstamo
- * @returns {number}             Interés total generado
- */
 export function calcularInteresSimple(monto, tasa, modalidad, dias) {
   if (!monto || monto <= 0 || !tasa || tasa <= 0 || !dias || dias <= 0) return 0;
-
-  const tasaDecimal = tasa / 100;
-  const divisor     = DIAS_POR_MODALIDAD[modalidad] ?? 1;
-
-  return monto * tasaDecimal * (dias / divisor);
+  return fromCents(simpleInterestCents(toCents(monto), tasa, dias, RATE_MODE_DAYS[modalidad] ?? 1));
 }
 
-/**
- * Calcula el número de cuotas según la frecuencia y los días totales.
- * La última cuota cubre los días restantes si no es divisible exactamente.
- *
- * @param {number} diasTotales
- * @param {string} frecuencia  'diario' | 'semanal' | 'quincenal' | 'mensual'
- * @returns {number} número de cuotas (mínimo 1)
- */
 export function calcularNumeroCuotas(diasTotales, frecuencia) {
-  if (!diasTotales || diasTotales <= 0) return 0;
-  const intervalo = DIAS_POR_FRECUENCIA[frecuencia] ?? 1;
-  return Math.ceil(diasTotales / intervalo);
+  return installmentCount(diasTotales, frecuencia);
 }
 
-/**
- * Convierte entre USD y VES.
- * @param {number} monto
- * @param {number} tasaBCV   Tasa BCV (VES por 1 USD)
- * @param {'USD'|'VES'} de   Moneda origen
- * @param {'USD'|'VES'} a    Moneda destino
- * @returns {number}
- */
+/** Convierte entre USD y VES redondeando al centavo. Devuelve 0 si la tasa no es válida. */
 export function convertirMoneda(monto, tasaBCV, de, a) {
-  if (!tasaBCV || tasaBCV <= 0) return 0;
-  if (de === a) return monto;
-  if (de === 'USD' && a === 'VES') return monto * tasaBCV;
-  if (de === 'VES' && a === 'USD') return monto / tasaBCV;
-  return monto;
+  if (!Number.isFinite(tasaBCV) || tasaBCV <= 0 || !Number.isFinite(monto)) return 0;
+  try {
+    return fromCents(convertCents(toCents(monto), tasaBCV, de, a));
+  } catch {
+    return 0;
+  }
 }
 
-/**
- * Formatea un número como moneda según el tipo.
- * @param {number}        monto
- * @param {'USD'|'VES'}   moneda
- * @returns {string}
- */
 export function formatearMoneda(monto, moneda = 'USD') {
-  if (isNaN(monto) || monto === null) return '—';
-  const cfg = MONEDAS[moneda];
+  if (monto === null || monto === undefined || Number.isNaN(Number(monto))) return '—';
+  const cfg = MONEDAS[moneda] ?? MONEDAS.USD;
   const formatted = new Intl.NumberFormat('es-VE', {
     minimumFractionDigits: cfg.decimales,
     maximumFractionDigits: cfg.decimales,
@@ -123,217 +63,101 @@ export function formatearMoneda(monto, moneda = 'USD') {
   return `${cfg.simbolo} ${formatted}`;
 }
 
-// ─── Función principal de simulación ─────────────────────────────────────────
+function validarTasaCambio(tasaBCV) {
+  return Number.isFinite(tasaBCV) && tasaBCV >= 0.000001 && tasaBCV <= LIMITS.maxExchangeRate;
+}
 
 /**
  * Ejecuta la simulación completa del préstamo.
- *
- * @param {Object} params
- * @param {number}           params.monto         Capital principal
- * @param {'USD'|'VES'}      params.moneda        Moneda del préstamo
- * @param {number}           params.tasa          Tasa de interés (%)
- * @param {'diaria'|'semanal'|'quincenal'|'mensual'} params.modalidadTasa
- * @param {string}           params.fechaInicio   ISO date string 'YYYY-MM-DD'
- * @param {string}           params.fechaFin      ISO date string 'YYYY-MM-DD'
- * @param {string}           params.frecuenciaPago
- * @param {number}           params.tasaBCV       Tasa del día (VES por USD)
- *
- * @returns {Object} Resultado completo de la simulación
+ * Los montos devueltos están en unidades (no centavos) y cuadran al centavo.
  */
 export function simularPrestamo(params) {
   const {
-    monto, moneda, tasa, modalidadTasa,
-    fechaInicio, fechaFin, frecuenciaPago, tasaBCV,
+    monto, moneda, tasa, modalidadTasa, fechaInicio, fechaFin, frecuenciaPago, tasaBCV,
+    metodoInteres = 'interes_fijo',
   } = params;
 
-  // Validaciones
-  const errores = [];
-  if (!Number.isFinite(monto) || monto < 0.01 || monto > Number.MAX_SAFE_INTEGER) {
-    errores.push('Ingresa un monto mayor a 0 y dentro del rango permitido.');
-  }
-  if (!Number.isFinite(tasa) || tasa < 0.000001 || tasa > Number.MAX_SAFE_INTEGER) {
-    errores.push('Ingresa una tasa mayor a 0 y dentro del rango permitido.');
-  }
-  if (!fechaInicio)             errores.push('Ingresa la fecha de inicio.');
-  if (!fechaFin)                errores.push('Ingresa la fecha de fin.');
-  if (!Number.isFinite(tasaBCV) || tasaBCV < 0.000001 || tasaBCV > Number.MAX_SAFE_INTEGER) {
-    errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
-  }
+  const normalized = normalizeLoanTerms({
+    principal: Number.isFinite(monto) ? monto : NaN,
+    currency: moneda,
+    ratePercent: tasa,
+    rateMode: modalidadTasa,
+    startDate: fechaInicio,
+    endDate: fechaFin,
+    frequency: frecuenciaPago,
+    method: metodoInteres,
+  });
+  const errores = normalized.ok ? [] : [...normalized.errors];
+  if (!validarTasaCambio(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
+  if (errores.length) return { valido: false, errores };
 
-  if (errores.length > 0) return { valido: false, errores };
-
-  const diasTotales = calcularDiasExactos(fechaInicio, fechaFin);
-  if (diasTotales <= 0) return { valido: false, errores: ['La fecha de fin debe ser posterior a la fecha de inicio.'] };
-
-  // Cálculos principales
-  const interes       = calcularInteresSimple(monto, tasa, modalidadTasa, diasTotales);
-  const totalPagar    = monto + interes;
-  const numeroCuotas  = calcularNumeroCuotas(diasTotales, frecuenciaPago);
-  const capitalXCuota = numeroCuotas > 0 ? monto / numeroCuotas : monto;
-  const intervaloPago = DIAS_POR_FRECUENCIA[frecuenciaPago] ?? 1;
-
-  const diasPrimeraCuota = Math.min(intervaloPago, diasTotales);
-  const interesPrimeraCuota = interes * (diasPrimeraCuota / diasTotales);
-  const diasUltimaCuota = numeroCuotas > 1
-    ? (diasTotales - intervaloPago * (numeroCuotas - 1))
-    : diasPrimeraCuota;
-  const interesUltimaCuota = interes * (diasUltimaCuota / diasTotales);
-
-  const cuotaInicial = capitalXCuota + interesPrimeraCuota;
-  const cuotaFinal = numeroCuotas > 1 ? capitalXCuota + interesUltimaCuota : cuotaInicial;
-  const tieneCuotaRemanente = numeroCuotas > 1 && diasUltimaCuota !== intervaloPago;
-
-  const montoCuota = cuotaInicial;
-  const interesXCuota = interesPrimeraCuota;
-
-  // Moneda alterna
+  const { terms } = normalized;
+  const plan = buildSchedule(terms);
+  const cuotas = plan.installments;
+  const primera = cuotas[0];
+  const ultima = cuotas.at(-1);
+  const intervaloPago = FREQUENCY_DAYS[frecuenciaPago];
   const monedaAlterna = moneda === 'USD' ? 'VES' : 'USD';
-  const interesAlterna   = convertirMoneda(interes, tasaBCV, moneda, monedaAlterna);
-  const totalAlterna     = convertirMoneda(totalPagar, tasaBCV, moneda, monedaAlterna);
-  const cuotaAlterna     = convertirMoneda(montoCuota, tasaBCV, moneda, monedaAlterna);
-  const cuotaFinalAlterna = convertirMoneda(cuotaFinal, tasaBCV, moneda, monedaAlterna);
+  const alterna = (cents) => fromCents(convertCents(cents, tasaBCV, moneda, monedaAlterna));
 
-  // Rentabilidad
-  const tasaEfectivaDiaria   = diasTotales > 0 ? (interes / monto / diasTotales) * 100 : 0;
-  const rendimientoPorcentaje = monto > 0 ? (interes / monto) * 100 : 0;
+  const interes = fromCents(plan.interestCents);
+  const montoNormalizado = fromCents(terms.principalCents);
 
   return {
     valido: true,
     errores: [],
-    // Inputs normalizados
-    monto, moneda, tasa, modalidadTasa, fechaInicio, fechaFin,
-    frecuenciaPago, tasaBCV,
-    // Resultados
-    diasTotales,
+    monto: montoNormalizado, moneda, tasa: terms.ratePercent, modalidadTasa, fechaInicio, fechaFin,
+    frecuenciaPago, tasaBCV, metodoInteres,
+    diasTotales: plan.totalDays,
     interes,
-    totalPagar,
-    numeroCuotas,
+    totalPagar: fromCents(plan.totalCents),
+    numeroCuotas: cuotas.length,
     intervaloPago,
-    diasPrimeraCuota,
-    diasUltimaCuota,
-    tieneCuotaRemanente,
-    montoCuota,
-    interesXCuota,
-    cuotaInicial,
-    cuotaFinal,
-    // Moneda alterna
+    diasPrimeraCuota: primera.days,
+    diasUltimaCuota: ultima.days,
+    tieneCuotaRemanente: cuotas.length > 1 && ultima.days !== intervaloPago,
+    montoCuota: fromCents(primera.totalCents),
+    interesXCuota: fromCents(primera.interestCents),
+    cuotaInicial: fromCents(primera.totalCents),
+    cuotaFinal: fromCents(ultima.totalCents),
     monedaAlterna,
-    interesAlterna,
-    totalAlterna,
-    cuotaAlterna,
-    cuotaFinalAlterna,
-    // Métricas
-    tasaEfectivaDiaria,
-    rendimientoPorcentaje,
+    interesAlterna: alterna(plan.interestCents),
+    totalAlterna: alterna(plan.totalCents),
+    cuotaAlterna: alterna(primera.totalCents),
+    cuotaFinalAlterna: alterna(ultima.totalCents),
+    tasaEfectivaDiaria: (interes / montoNormalizado / plan.totalDays) * 100,
+    rendimientoPorcentaje: (interes / montoNormalizado) * 100,
   };
 }
 
 /**
- * Genera el cronograma de pagos detallado.
- * @param {Object} resultado  Salida de simularPrestamo()
- * @returns {Array<{cuota,fecha,diasPeriodo,capital,interes,total,saldo,totalAlterna}>}
+ * Genera el cronograma de pagos detallado a partir de `simularPrestamo()`.
+ * @returns {Array<{cuota,fecha,fechaISO,diasPeriodo,capital,interes,total,saldo,totalAlterna}>}
  */
 export function generarCronograma(resultado) {
   if (!resultado?.valido) return [];
-
-  const {
-    monto, interes, numeroCuotas, fechaInicio, fechaFin,
-    frecuenciaPago, tasaBCV, moneda, monedaAlterna,
-  } = resultado;
-
-  const intervalo = DIAS_POR_FRECUENCIA[frecuenciaPago] ?? 1;
-  const capitalBaseCuota = Number((monto / numeroCuotas).toFixed(2));
-  const inicio = parseISO(fechaInicio);
-
-  const cuotas = [];
-  let saldo = monto;
-  let capitalAcumulado = 0;
-  let fechaAnterior = inicio;
-
-  for (let i = 0; i < numeroCuotas; i++) {
-    const esUltima = i === numeroCuotas - 1;
-    // En la última cuota ajustamos centavos remanentes para que la suma del capital sea exacto
-    const cap = esUltima ? Number((monto - capitalAcumulado).toFixed(2)) : capitalBaseCuota;
-    capitalAcumulado += cap;
-
-    const fechaCuota = esUltima
-      ? parseISO(fechaFin)
-      : addDays(inicio, (i + 1) * intervalo);
-    const diasPeriodo = calcularDiasExactos(fechaAnterior, fechaCuota);
-    const int = interes * (diasPeriodo / resultado.diasTotales);
-    const tot = cap + int;
-    saldo = esUltima ? 0 : Math.max(0, Number((saldo - cap).toFixed(2)));
-    fechaAnterior = fechaCuota;
-
-    cuotas.push({
-      cuota:        i + 1,
-      fecha:        format(fechaCuota, 'dd/MM/yyyy'),
-      diasPeriodo:  diasPeriodo,
-      capital:      cap,
-      interes:      int,
-      total:        tot,
-      saldo:        saldo,
-      totalAlterna: convertirMoneda(tot, tasaBCV, moneda, monedaAlterna),
-    });
-  }
-
-  return cuotas;
-}
-
-// ─── Tests / Helpers de verificación ─────────────────────────────────────────
-
-/**
- * Ejecuta assertions básicas en consola (modo desarrollo).
- * Llamar con: import { runTests } from './utils/calculator.js'; runTests();
- */
-export function runTests() {
-  const assert = (condicion, msg) => {
-    if (!condicion) console.error(`❌ FAIL: ${msg}`);
-    else            console.log( `✅ OK:   ${msg}`);
-  };
-
-  // Test 1: Días exactos
-  assert(calcularDiasExactos('2024-01-01', '2024-01-31') === 30, 'Enero: 30 días');
-  assert(calcularDiasExactos('2024-01-01', '2024-02-01') === 31, 'Enero completo: 31 días');
-  assert(calcularDiasExactos('2024-01-15', '2024-01-15') === 0,  'Misma fecha: 0 días');
-
-  // Test 2: Interés Simple Diario
-  // 1000 USD × 5% diario × 30 días = 1500 USD interés
-  assert(Math.abs(calcularInteresSimple(1000, 5, 'diaria', 30) - 1500) < 0.01, 'IS Diario: 1000×5%×30=1500');
-
-  // Test 3: Interés Simple Semanal
-  // 1000 USD × 10% semanal × (14/7) semanas = 200 USD
-  assert(Math.abs(calcularInteresSimple(1000, 10, 'semanal', 14) - 200) < 0.01, 'IS Semanal: 1000×10%×2sem=200');
-
-  // Test 4: Interés Simple Quincenal con base de 15 días
-  // 1000 USD × 5% quincenal × (15/15) quincenas = 50 USD
-  assert(Math.abs(calcularInteresSimple(1000, 5, 'quincenal', 15) - 50) < 0.01, 'IS Quincenal: 1000×5%×1quincena=50');
-
-  // Test 5: Número de cuotas
-  assert(calcularNumeroCuotas(30, 'semanal')   === 5,  '30 días, pago semanal → 5 cuotas');
-  assert(calcularNumeroCuotas(30, 'quincenal') === 2,  '30 días, pago quincenal → 2 cuotas');
-  assert(calcularNumeroCuotas(31, 'quincenal') === 3,  '31 días, pago quincenal → 3 cuotas');
-
-  // Test 6: Conversión de moneda
-  assert(convertirMoneda(100, 36.5, 'USD', 'VES') === 3650, 'USD→VES: 100×36.5=3650');
-  assert(Math.abs(convertirMoneda(3650, 36.5, 'VES', 'USD') - 100) < 0.01, 'VES→USD: 3650/36.5=100');
-
-  // Test 8: Cuota remanente con días exactos (ej: 37 días con pago quincenal -> cuotas: 15d, 15d, 7d remanentes)
-  const simRemanente = simularPrestamo({
-    monto: 1000, moneda: 'USD', tasa: 10, modalidadTasa: 'quincenal',
-    fechaInicio: '2024-01-01', fechaFin: '2024-02-07', // 37 días
-    frecuenciaPago: 'quincenal', tasaBCV: 36.5,
+  const normalized = normalizeLoanTerms({
+    principal: resultado.monto,
+    currency: resultado.moneda,
+    ratePercent: resultado.tasa,
+    rateMode: resultado.modalidadTasa,
+    startDate: resultado.fechaInicio,
+    endDate: resultado.fechaFin,
+    frequency: resultado.frecuenciaPago,
+    method: resultado.metodoInteres ?? 'interes_fijo',
   });
-  assert(simRemanente.diasTotales === 37, 'Sim Remanente: 37 días totales');
-  assert(simRemanente.numeroCuotas === 3, 'Sim Remanente: 3 cuotas');
-  assert(simRemanente.tieneCuotaRemanente === true, 'Sim Remanente: detecta cuota remanente');
-  assert(simRemanente.diasUltimaCuota === 7, 'Sim Remanente: última cuota son 7 días exactos');
+  if (!normalized.ok || !validarTasaCambio(resultado.tasaBCV)) return [];
 
-  const crono = generarCronograma(simRemanente);
-  assert(crono[0].diasPeriodo === 15, 'Cronograma C1: 15 días');
-  assert(crono[1].diasPeriodo === 15, 'Cronograma C2: 15 días');
-  assert(crono[2].diasPeriodo === 7,  'Cronograma C3: 7 días exactos');
-  assert(Math.abs(crono[2].interes - 46.67) < 0.1, `Cronograma C3 Interés exacto (7d): got ${crono[2].interes.toFixed(2)}`);
-
-  console.log('— Tests completados —');
+  const { moneda, monedaAlterna, tasaBCV } = resultado;
+  return buildSchedule(normalized.terms).installments.map((cuota) => ({
+    cuota: cuota.number,
+    fecha: toDisplayDate(cuota.dueDate),
+    fechaISO: cuota.dueDate,
+    diasPeriodo: cuota.days,
+    capital: fromCents(cuota.principalCents),
+    interes: fromCents(cuota.interestCents),
+    total: fromCents(cuota.totalCents),
+    saldo: fromCents(cuota.balanceCents),
+    totalAlterna: fromCents(convertCents(cuota.totalCents, tasaBCV, moneda, monedaAlterna)),
+  }));
 }

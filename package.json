@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "license": "UNLICENSED",
-  "license": "UNLICENSED",
   "type": "module",
   "engines": {
     "node": ">=22.5.0"
@@ -15,7 +14,9 @@
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:db": "node --test tests/db*.test.js",
+    "db:bundle": "node scripts/bundle-migrations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

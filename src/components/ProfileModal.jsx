@@ -99,7 +99,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/60 p-4 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
       role="presentation"
       onClick={onClose}
     >
@@ -120,7 +120,7 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
               <h2 id="profile-title" className="text-base font-extrabold leading-tight">
                 {user.name}
               </h2>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-100">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-100">
                 <ShieldCheck size={12} /> Usuario Registrado
               </span>
             </div>

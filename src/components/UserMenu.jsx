@@ -59,7 +59,7 @@ export function UserMenu({ onOpenProfile }) {
           <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
             <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
             <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
-            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-brand-600 dark:text-brand-400">
               <ShieldCheck size={11} /> Usuario Registrado
             </span>
           </div>

@@ -39,7 +39,7 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
-        globIgnores: ['**/icon-192.svg', '**/icon-512.svg'],
+        globIgnores: ['**/icon-192.svg', '**/icon-512.svg', '**/icon-maskable.svg'],
         navigateFallback: '/index.html',
         runtimeCaching: [
           {

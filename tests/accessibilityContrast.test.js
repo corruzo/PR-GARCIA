@@ -18,13 +18,19 @@ function contrastRatio(first, second) {
     / (Math.min(firstLuminance, secondLuminance) + 0.05);
 }
 
-test('primary button, muted text, and focus colors meet WCAG AA contrast', () => {
+test('brand colors for buttons, navigation and text meet WCAG AA contrast', () => {
   const pairs = [
-    ['#FFFFFF', '#047857'],
-    ['#475569', '#F8FAFC'],
-    ['#CBD5E1', '#0F172A'],
-    ['#047857', '#F8FAFC'],
-    ['#6EE7B7', '#0F172A'],
+    ['#FFFFFF', '#9F1239'], // botón principal vinotinto
+    ['#FFFFFF', '#84102F'], // botón al pasar el cursor
+    ['#9F1239', '#FFFFFF'], // texto y enlaces de marca
+    ['#222222', '#FFFFFF'], // texto principal
+    ['#6A6A6A', '#FFFFFF'], // texto secundario
+    ['#F5F5F7', '#1C1C1E'], // texto principal modo oscuro
+    ['#A1A1A6', '#1C1C1E'], // texto secundario modo oscuro
+    ['#A1A1A6', '#262628'], // texto secundario en tarjetas oscuras
+    ['#FB7185', '#1C1C1E'], // acento de marca en modo oscuro
+    ['#FB7185', '#262628'], // acento sobre tarjetas oscuras
+    ['#84102F', '#FFF1F3'], // etiqueta de marca sobre fondo rosado
   ];
 
   for (const [foreground, background] of pairs) {
@@ -33,4 +39,8 @@ test('primary button, muted text, and focus colors meet WCAG AA contrast', () =>
       `${foreground} on ${background} must meet 4.5:1 contrast`,
     );
   }
+});
+test('focus outlines meet the 3:1 non-text contrast minimum', () => {
+  assert.ok(contrastRatio('#222222', '#FFFFFF') >= 3);
+  assert.ok(contrastRatio('#F5F5F7', '#1C1C1E') >= 3);
 });
