@@ -35,7 +35,7 @@ async function handleBCV(request, response) {
 
   try {
     const previous = getLatestBCVRate();
-    const { rate, source } = await fetchOfficialBCVRate();
+    const { rate, source, official } = await fetchOfficialBCVRate();
     if (!isReasonableBCVRate(rate, Number(previous?.value))) {
       if (previous) {
         sendJson(response, 200, {
@@ -64,7 +64,7 @@ async function handleBCV(request, response) {
       source,
       fetchedAt: saved.fetchedAt,
       storage: 'sqlite',
-      verifiedAgainstBCV: true,
+      verifiedAgainstBCV: official,
       changed,
     });
   } catch (error) {

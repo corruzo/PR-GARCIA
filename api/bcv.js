@@ -6,7 +6,7 @@ const RATE_LIMIT_HEADERS = 'no-store';
 const UPSTREAM_TIMEOUT_MS = 8000;
 const allowBCVRequest = createInMemoryRateLimiter();
 
-async function fetchRate(url, source, readValue, signal, accept = 'application/json') {
+async function fetchRate(url, source, readValue, signal, accept = 'application/json', official = false) {
   const response = await fetch(url, {
     headers: { Accept: accept },
     signal,
@@ -16,7 +16,7 @@ async function fetchRate(url, source, readValue, signal, accept = 'application/j
   const payload = accept === 'text/html' ? await response.text() : await response.json();
   const rate = Number(readValue(payload));
   if (!Number.isFinite(rate) || rate <= 0) throw new Error('upstream rate is invalid');
-  return { value: rate, source };
+  return { value: rate, source, official };
 }
 
 function extractBCVRate(html) {
@@ -28,10 +28,11 @@ function extractBCVRate(html) {
 
 async function fetchCurrentRate(signal) {
   const strategies = [
-    () => fetchRate('https://open.er-api.com/v6/latest/USD', 'open.er-api.com', data => data?.rates?.VES, signal),
-    () => fetchRate('https://api.exchangerate-api.com/v4/latest/USD', 'exchangerate-api.com', data => data?.rates?.VES, signal),
-    () => fetchRate('https://ve.dolarapi.com/v1/dolares/oficial', 'dolarapi.com (BCV Oficial)', data => data?.promedio, signal),
-    () => fetchRate('https://www.bcv.org.ve/', 'BCV oficial', extractBCVRate, signal, 'text/html'),
+    // Primero las fuentes que publican la tasa oficial del BCV; luego proveedores referenciales.
+    () => fetchRate('https://ve.dolarapi.com/v1/dolares/oficial', 'dolarapi.com (BCV Oficial)', data => data?.promedio, signal, 'application/json', true),
+    () => fetchRate('https://www.bcv.org.ve/', 'BCV oficial', extractBCVRate, signal, 'text/html', true),
+    () => fetchRate('https://open.er-api.com/v6/latest/USD', 'open.er-api.com (referencial)', data => data?.rates?.VES, signal),
+    () => fetchRate('https://api.exchangerate-api.com/v4/latest/USD', 'exchangerate-api.com (referencial)', data => data?.rates?.VES, signal),
   ];
 
   for (const strategy of strategies) {
@@ -156,6 +157,6 @@ export default async function handler(req, res) {
     value: current.value,
     source: current.source,
     fetchedAt: new Date().toISOString(),
-    verifiedAgainstBCV: true,
+    verifiedAgainstBCV: current.official,
   });
 }

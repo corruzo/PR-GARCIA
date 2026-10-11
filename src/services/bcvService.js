@@ -18,7 +18,7 @@ export const BCV_ENDPOINTS = [
     },
   },
   {
-    nombre: 'Open Exchange Rates (BCV)',
+    nombre: 'open.er-api.com (referencial)',
     url: 'https://open.er-api.com/v6/latest/USD',
     parsear: (payload) => {
       if (!payload) return 0;
