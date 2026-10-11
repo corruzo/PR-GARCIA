@@ -15,7 +15,8 @@
     "lint": "oxlint",
     "test": "node --test",
     "preview": "vite preview",
-    "test:db": "node --test tests/db*.test.js"
+    "test:db": "node --test tests/db*.test.js",
+    "db:bundle": "node scripts/bundle-migrations.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

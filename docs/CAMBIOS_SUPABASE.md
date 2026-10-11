@@ -1,28 +1,47 @@
-# Cambios pendientes en Supabase
+# Base de datos (Supabase)
 
 Las migraciones viven en `supabase/migrations/` y se aplican **en orden de nombre**.
 El código no las ejecuta: debe hacerlo una persona con acceso al proyecto.
 
-## Cómo aplicarlas
+Proyecto actual: `muxxvbcxzqszstiotbwu` (el proyecto anterior quedó sin acceso).
 
-Opción A — Supabase CLI (recomendada):
+## Instalar en un proyecto nuevo (una sola vez)
 
-```bash
-npx supabase login
-npx supabase link --project-ref <ref-del-proyecto>
-npx supabase db push
-```
+1. Supabase → **SQL Editor** → *New query*.
+2. Pega el contenido completo de `supabase/instalar_todo.sql` y pulsa **Run**.
+   Corre dentro de una transacción: si algo falla, no queda nada a medias.
 
-Opción B — Panel de Supabase: *SQL Editor* → pegar y ejecutar cada archivo en orden.
+`instalar_todo.sql` se genera con `npm run db:bundle` a partir de las migraciones;
+una prueba (`tests/migrationsBundle.test.js`) avisa si quedó desactualizado.
 
-## Estado
+Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y `npx supabase db push`.
 
-| Migración | Contenido | Aplicada |
+## Variables de entorno
+
+| Variable | Dónde | Valor |
 | --- | --- | --- |
-| `20261011000100_nucleo_cartera.sql` | Clientes, préstamos, cuotas, libro contable, RLS, `emitir_prestamo`, `anular_prestamo`, `previsualizar_cronograma` | ☐ |
-| `20261011000200_pagos_mora.sql` | Pagos, aplicaciones, mora diaria, `registrar_pago`, `anular_pago`, `monto_cancelacion`, vistas `v_cuotas_estado` y `v_prestamos_resumen` | ☐ |
-| `20261011000300_reportes_bimonetarios.sql` | `fin_tasa_actual`, antigüedad de cartera, cobranza mensual, libro mayor, `reporte_diferencial_cambiario` | ☐ |
-| `20261011000400_auditoria.sql` | Bitácora inmutable de clientes, préstamos y pagos | ☐ |
+| `VITE_SUPABASE_URL` | Vercel + `.env.local` | `https://muxxvbcxzqszstiotbwu.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Vercel + `.env.local` | Clave publicable (`sb_publishable_…`) |
+| `SUPABASE_URL` | Solo Vercel (funciones `api/`) | La misma URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Solo Vercel, como secreto | *Settings → API Keys → secret / service_role*. Nunca en el navegador, en el chat ni en Git |
+
+`.env.local` está ignorado por Git (`.env*` en `.gitignore`).
+
+## Autenticación (panel de Supabase)
+
+- *Authentication → URL Configuration*: **Site URL** = dominio de producción; en **Redirect URLs** agrega ese dominio y `http://localhost:5173`.
+- *Authentication → Providers*: activa Google y/o Apple si usarás esos botones (requieren sus credenciales OAuth).
+- *Authentication → Email Templates*: la recuperación de contraseña usa código de un solo uso; la plantilla debe incluir `{{ .Token }}`.
+
+## Migraciones
+
+| Migración | Contenido |
+| --- | --- |
+| `20261011000000_base.sql` | `user_history` (cotizaciones) y `tasa_bcv` con RLS |
+| `20261011000100_nucleo_cartera.sql` | Clientes, préstamos, cuotas, libro contable, RLS, `emitir_prestamo`, `anular_prestamo`, `previsualizar_cronograma` |
+| `20261011000200_pagos_mora.sql` | Pagos, aplicaciones, mora diaria, interés sobre saldo, `registrar_pago`, `anular_pago`, `monto_cancelacion`, vistas `v_cuotas_estado` y `v_prestamos_resumen` |
+| `20261011000300_reportes_bimonetarios.sql` | `fin_tasa_actual`, antigüedad de cartera, cobranza mensual, libro mayor, `reporte_diferencial_cambiario` |
+| `20261011000400_auditoria.sql` | Bitácora inmutable de clientes, préstamos y pagos |
 
 ## Pruebas locales
 

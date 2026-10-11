@@ -134,3 +134,14 @@ test('anular_prestamo reverses an unpaid loan with a balanced entry', { skip: sk
   const saldo = psql(db, `select sum(debe_cents) - sum(haber_cents) from public.asiento_lineas l join public.asientos a on a.id = l.asiento_id where a.prestamo_id = '${id}' and l.cuenta = 'cartera_capital';`);
   assert.equal(saldo, '0');
 });
+
+test('base tables: quotes are private per user and the BCV rate is public read-only', { skip: skipDb }, () => {
+  psql(db, asUser(ANA, `insert into public.user_history (prestamo_data) values ('{"values":{},"resultado":{}}');`));
+  assert.equal(psql(db, asUser(ANA, 'select count(*) from public.user_history;')), '1');
+  assert.equal(psql(db, asUser(BETO, 'select count(*) from public.user_history;')), '0');
+  assert.throws(() => psql(db, asUser(BETO, `insert into public.user_history (user_id, prestamo_data) values ('${ANA}', '{}');`)), /row-level security/);
+  psql(db, `insert into public.tasa_bcv (tasa, fuente) values (40, 'BCV');`);
+  assert.equal(psql(db, `set role anon; select count(*) from public.tasa_bcv;`), '1');
+  assert.throws(() => psql(db, `set role anon; insert into public.tasa_bcv (tasa, fuente) values (1, 'x');`), /permission denied/);
+  assert.throws(() => psql(db, asUser(ANA, `insert into public.tasa_bcv (tasa, fuente) values (1, 'x');`)), /permission denied/);
+});
