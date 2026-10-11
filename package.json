@@ -14,7 +14,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "test": "node --test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:db": "node --test tests/db*.test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
