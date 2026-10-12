@@ -64,18 +64,41 @@ export function deleteCliente(id) {
 
 // ─── Préstamos ──────────────────────────────────────────────────────────────
 
+/**
+ * Genera en el servidor los períodos de interés ya iniciados de los préstamos
+ * abiertos, para que saldos, mora y cobranza estén al día. Se ejecuta como
+ * máximo una vez cada 30 s y nunca bloquea la lectura si falla.
+ */
+let ultimaSincronizacion = { at: 0, promise: null };
+export function sincronizarAbiertos({ force = false } = {}) {
+  const now = Date.now();
+  if (!force && ultimaSincronizacion.promise && now - ultimaSincronizacion.at < 30_000) return ultimaSincronizacion.promise;
+  const promise = supabase
+    ? Promise.resolve(supabase.rpc('sincronizar_prestamos_abiertos')).then(() => undefined, () => undefined)
+    : Promise.resolve();
+  ultimaSincronizacion = { at: now, promise };
+  return promise;
+}
+
+async function synced(query) {
+  await sincronizarAbiertos();
+  return run(query());
+}
+
 export function listPrestamos({ clienteId } = {}) {
-  let query = client().from('v_prestamos_resumen').select('*').order('numero', { ascending: false });
-  if (clienteId) query = query.eq('cliente_id', clienteId);
-  return run(query);
+  return synced(() => {
+    let query = client().from('v_prestamos_resumen').select('*').order('numero', { ascending: false });
+    if (clienteId) query = query.eq('cliente_id', clienteId);
+    return query;
+  });
 }
 
 export function getPrestamo(id) {
-  return run(client().from('v_prestamos_resumen').select('*').eq('id', id).single());
+  return synced(() => client().from('v_prestamos_resumen').select('*').eq('id', id).single());
 }
 
 export function listCuotas(prestamoId) {
-  return run(client().from('v_cuotas_estado').select('*').eq('prestamo_id', prestamoId).order('numero'));
+  return synced(() => client().from('v_cuotas_estado').select('*').eq('prestamo_id', prestamoId).order('numero'));
 }
 
 export function emitirPrestamo(params) {
@@ -88,7 +111,7 @@ export function emitirPrestamo(params) {
     p_frecuencia_pago: params.frecuenciaPago,
     p_metodo_interes: params.metodoInteres,
     p_fecha_inicio: params.fechaInicio,
-    p_fecha_fin: params.fechaFin,
+    p_fecha_fin: params.tipoPlazo === 'abierto' ? null : params.fechaFin,
     p_tasa_cambio: params.tasaCambio,
     p_fuente_tasa_cambio: params.fuenteTasaCambio,
     p_tasa_mora_diaria: params.tasaMoraDiaria,
@@ -96,6 +119,7 @@ export function emitirPrestamo(params) {
     p_notas: params.notas || null,
     p_cotizacion_origen: params.cotizacionOrigen || null,
     p_idempotency_key: params.idempotencyKey,
+    p_tipo_plazo: params.tipoPlazo ?? 'fijo',
   }));
 }
 
@@ -114,6 +138,7 @@ export function listPagos(prestamoId) {
 }
 
 export function registrarPago(params) {
+  ultimaSincronizacion = { at: 0, promise: null };
   return run(client().rpc('registrar_pago', {
     p_prestamo_id: params.prestamoId,
     p_fecha: params.fecha,
@@ -136,7 +161,7 @@ export function anularPago(id, motivo) {
 // ─── Cobranza y reportes ────────────────────────────────────────────────────
 
 export function listCuotasPendientes({ hasta }) {
-  return run(client().from('v_cuotas_estado')
+  return synced(() => client().from('v_cuotas_estado')
     .select('id,prestamo_id,numero,fecha_vencimiento,capital_pendiente_cents,interes_pendiente_cents,mora_pendiente_cents,dias_atraso,situacion')
     .in('situacion', ['vencida', 'vence_hoy', 'por_vencer', 'al_dia'])
     .lte('fecha_vencimiento', hasta)
@@ -144,7 +169,7 @@ export function listCuotasPendientes({ hasta }) {
 }
 
 export function getAntiguedad() {
-  return run(client().from('v_cartera_antiguedad').select('*'));
+  return synced(() => client().from('v_cartera_antiguedad').select('*'));
 }
 
 export function getCobranzaMensual() {

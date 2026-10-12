@@ -37,6 +37,7 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
   }, [form, prestamo]);
 
   const [cancelacion, setCancelacion] = useState({ loading: false, error: '' });
+  const abierto = prestamo.tipo_plazo === 'abierto';
   const showErrors = touched ? parsed.errors : {};
 
   const fill = (cents) => {
@@ -83,17 +84,26 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
 
   return (
     <form onSubmit={submit} noValidate className="space-y-4">
-      <SegmentedControl label="Tipo" value={form.tipo} onChange={set('tipo')}
-        options={[{ value: 'cuota', label: 'Pago de cuotas' }, { value: 'abono_capital', label: 'Abono a capital' }]} />
-      {form.tipo === 'abono_capital' && (
-        <SegmentedControl label="El abono reduce" value={form.modoAbono} onChange={set('modoAbono')}
-          options={[{ value: 'reducir_plazo', label: 'El plazo' }, { value: 'reducir_cuota', label: 'Cada cuota' }]} />
+      {abierto ? (
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Préstamo sin fecha de fin: el pago cubre primero la mora y los intereses vencidos; lo que sobre se abona al capital
+          y deja de generar interés desde la fecha del pago.
+        </p>
+      ) : (
+        <>
+          <SegmentedControl label="Tipo" value={form.tipo} onChange={set('tipo')}
+            options={[{ value: 'cuota', label: 'Pago de cuotas' }, { value: 'abono_capital', label: 'Abono a capital' }]} />
+          {form.tipo === 'abono_capital' && (
+            <SegmentedControl label="El abono reduce" value={form.modoAbono} onChange={set('modoAbono')}
+              options={[{ value: 'reducir_plazo', label: 'El plazo' }, { value: 'reducir_cuota', label: 'Cada cuota' }]} />
+          )}
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {form.tipo === 'cuota'
+              ? 'Se aplica a la cuota más antigua: primero mora, luego interés y por último capital.'
+              : 'Primero se cubre lo vencido; el resto se descuenta del capital pendiente.'}
+          </p>
+        </>
       )}
-      <p className="text-xs text-slate-500 dark:text-slate-400">
-        {form.tipo === 'cuota'
-          ? 'Se aplica a la cuota más antigua: primero mora, luego interés y por último capital.'
-          : 'Primero se cubre lo vencido; el resto se descuenta del capital pendiente.'}
-      </p>
 
       <SegmentedControl label="Moneda recibida" value={form.moneda} onChange={set('moneda')}
         options={[{ value: 'USD', label: '$ USD' }, { value: 'VES', label: 'Bs. VES' }]} />
@@ -116,7 +126,12 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
         </button>
       </div>
       {cancelacion.error && <ErrorBox message={cancelacion.error} />}
-      {prestamo.metodo_interes === 'saldo_insoluto' && (
+      {prestamo.moneda === 'USD' && form.moneda === 'VES' && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200" role="note">
+          Préstamo en dólares: en bolívares solo se reciben intereses y mora. El capital debe pagarse en dólares.
+        </p>
+      )}
+      {prestamo.metodo_interes === 'saldo_insoluto' && !abierto && (
         <p className="text-xs text-slate-500 dark:text-slate-400">
           Interés sobre saldo: lo que abone a capital deja de generar interés desde la fecha del pago. «Cancelación total» cobra solo el interés ganado hasta ese día.
         </p>

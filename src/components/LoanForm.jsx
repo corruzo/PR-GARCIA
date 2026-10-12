@@ -15,6 +15,11 @@ const METODOS = [
   { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
 ];
 
+const PLAZOS = [
+  { value: 'abierto', label: 'Sin fecha de fin' },
+  { value: 'fijo', label: 'Con fecha de fin' },
+];
+
 const FRECUENCIAS = [
   { value: 'diario', label: 'Diario' },
   { value: 'semanal', label: 'Semanal' },
@@ -34,7 +39,9 @@ export function LoanForm({ values, onChange }) {
 
   const hasCapital = parseFloat(values.monto) > 0;
   const hasCondiciones = hasCapital && parseFloat(values.tasa) > 0;
-  const hasFechas = hasCondiciones && values.fechaInicio && values.fechaFin && new Date(values.fechaFin) >= new Date(values.fechaInicio);
+  const esAbierto = values.tipoPlazo === 'abierto';
+  const hasFechas = hasCondiciones && values.fechaInicio
+    && (esAbierto || (values.fechaFin && new Date(values.fechaFin) >= new Date(values.fechaInicio)));
   const isClienteFilled = Boolean(values.nombreCliente?.trim());
 
   return (
@@ -182,8 +189,8 @@ export function LoanForm({ values, onChange }) {
             </div>
           </div>
 
-          {/* Método de interés */}
-          <div className="sm:col-span-2">
+          {/* Método de interés (los préstamos abiertos siempre cobran sobre el saldo) */}
+          {!esAbierto && <div className="sm:col-span-2">
             <span id="label-metodo-interes" className="label-base">Cálculo del Interés</span>
             <div role="radiogroup" aria-labelledby="label-metodo-interes" className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
               {METODOS.map(m => (
@@ -210,7 +217,7 @@ export function LoanForm({ values, onChange }) {
                 ? 'El interés se calcula solo sobre el capital que falta por pagar: cada abono reduce los intereses.'
                 : 'El interés se calcula sobre el capital inicial durante todo el plazo, aunque haya abonos.'}
             </p>
-          </div>
+          </div>}
         </div>
       </div>
 
@@ -222,7 +229,7 @@ export function LoanForm({ values, onChange }) {
               <Calendar size={18} />
             </div>
             <h3 className="text-base font-semibold text-[#222222] dark:text-white">
-              3. Frecuencia y Fechas
+              3. Plazo y Frecuencia
             </h3>
           </div>
           {hasFechas && (
@@ -234,9 +241,39 @@ export function LoanForm({ values, onChange }) {
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Tipo de plazo */}
+          <div>
+            <span id="label-tipo-plazo" className="label-base">Plazo</span>
+            <div role="radiogroup" aria-labelledby="label-tipo-plazo" className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+              {PLAZOS.map(p => (
+                <button
+                  key={p.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={values.tipoPlazo === p.value}
+                  tabIndex={values.tipoPlazo === p.value ? 0 : -1}
+                  onKeyDown={handleRadioKeyDown}
+                  onClick={() => onChange('tipoPlazo', p.value)}
+                  className={`py-2 px-2 text-xs font-bold rounded-lg transition-all text-center ${
+                    values.tipoPlazo === p.value
+                      ? 'bg-brand-700 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              {esAbierto
+                ? 'El cliente paga cuando pueda: cada período genera interés sobre el capital que aún debe, hasta que lo pague completo.'
+                : 'El capital y los intereses se reparten en cuotas hasta la fecha de vencimiento.'}
+            </p>
+          </div>
+
           {/* Frecuencia de Cobro */}
           <div>
-            <span id="label-frecuencia-cuotas" className="label-base">Frecuencia de Cuotas</span>
+            <span id="label-frecuencia-cuotas" className="label-base">{esAbierto ? 'Cobro de intereses' : 'Frecuencia de Cuotas'}</span>
             <div role="radiogroup" aria-labelledby="label-frecuencia-cuotas" className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
               {FRECUENCIAS.map(f => (
                 <button
@@ -274,19 +311,21 @@ export function LoanForm({ values, onChange }) {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="input-fecha-fin" className="label-base">Fecha de Vencimiento</label>
-              <div className="relative flex items-center">
-                <input
-                  id="input-fecha-fin"
-                  type="date"
-                  value={values.fechaFin}
-                  onChange={set('fechaFin')}
-                  min={values.fechaInicio}
-                  className="input-base cursor-pointer font-medium"
-                />
+            {!esAbierto && (
+              <div>
+                <label htmlFor="input-fecha-fin" className="label-base">Fecha de Vencimiento</label>
+                <div className="relative flex items-center">
+                  <input
+                    id="input-fecha-fin"
+                    type="date"
+                    value={values.fechaFin}
+                    onChange={set('fechaFin')}
+                    min={values.fechaInicio}
+                    className="input-base cursor-pointer font-medium"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

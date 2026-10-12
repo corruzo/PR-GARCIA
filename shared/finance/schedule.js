@@ -126,3 +126,11 @@ export function buildSchedule(terms) {
   const interestCents = interest.reduce((a, b) => a + b, 0);
   return { totalDays, interestCents, totalCents: principalCents + interestCents, installments };
 }
+
+/**
+ * Préstamo abierto (sin fecha de fin): interés de un período completo sobre
+ * un capital, con el mismo redondeo que `fin_sincronizar_abierto` en SQL.
+ */
+export function openLoanPeriodInterestCents({ principalCents, ratePercent, rateMode, frequency }) {
+  return simpleInterestCents(principalCents, ratePercent, FREQUENCY_DAYS[frequency], RATE_MODE_DAYS[rateMode]);
+}

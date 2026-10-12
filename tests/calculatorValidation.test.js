@@ -158,3 +158,15 @@ test('weekly schedule dates start after the issue date and end on the due date',
     '08/01/2026', '15/01/2026', '22/01/2026', '29/01/2026', '01/02/2026',
   ]);
 });
+test('open loans (no end date) quote the interest of each period on the principal', () => {
+  const r = simularPrestamo({
+    monto: 1000, moneda: 'USD', tasa: 8, modalidadTasa: 'semanal', fechaInicio: '2026-01-05',
+    fechaFin: '', frecuenciaPago: 'semanal', tasaBCV: 40, tipoPlazo: 'abierto',
+  });
+  assert.equal(r.valido, true);
+  assert.equal(r.abierto, true);
+  assert.equal(r.interesPeriodo, 80);
+  assert.equal(r.primerVencimiento, '2026-01-12');
+  assert.deepEqual(generarCronograma(r), []);
+  assert.equal(simularPrestamo({ ...r, monto: 0, tipoPlazo: 'abierto' }).valido, false);
+});

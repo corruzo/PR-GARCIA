@@ -41,6 +41,18 @@ export function toWhatsAppNumber(phone) {
   return digits.length >= 8 ? digits : null;
 }
 
+/**
+ * Condiciones de pago para los mensajes al cliente.
+ * Los montos se expresan en la moneda del préstamo; los pagos usan la tasa
+ * oficial del dólar (BCV) vigente el día en que se pagan.
+ */
+export function paymentTermsNote(currency) {
+  const base = 'Los pagos se calculan con la tasa oficial del dólar (BCV) vigente el día del pago.';
+  return currency === 'USD'
+    ? `${base} Los intereses puedes pagarlos en bolívares a esa tasa; el capital se paga únicamente en dólares.`
+    : `${base} Puedes pagar en bolívares o en dólares.`;
+}
+
 /** Mensaje de recordatorio de cobro (texto plano para compartir). */
 export function buildPaymentReminder({ clienteNombre, numero, moneda, exigibleCents, moraCents = 0, proximoVencimiento, diasAtraso = 0 }) {
   const lines = [`Hola ${clienteNombre || ''}`.trim() + ',', ''];
@@ -51,7 +63,7 @@ export function buildPaymentReminder({ clienteNombre, numero, moneda, exigibleCe
     lines.push(`Te recordamos que tu préstamo #${numero} tiene una cuota con vencimiento el ${toDisplayDate(proximoVencimiento)}.`);
     if (exigibleCents > 0) lines.push(`Monto: ${formatCents(exigibleCents, moneda)}.`);
   }
-  lines.push('', 'Gracias. — PRGARCÍA');
+  lines.push('', paymentTermsNote(moneda), '', 'Gracias. — PRGARCÍA');
   return lines.join('\n');
 }
 

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseAmountInput, parseRateInput, validateCliente } from '../shared/finance/input.js';
-import { agingBucket, buildPaymentReminder, centsToCSV, formatCents, toCSV, toWhatsAppNumber } from '../shared/finance/report.js';
+import { agingBucket, buildPaymentReminder, centsToCSV, formatCents, paymentTermsNote, toCSV, toWhatsAppNumber } from '../shared/finance/report.js';
+import { openLoanPeriodInterestCents } from '../shared/finance/schedule.js';
 
 test('amount input accepts common Venezuelan and international formats', () => {
   assert.equal(parseAmountInput('1234.56'), 123456);
@@ -57,4 +58,19 @@ test('payment reminder mentions arrears and default interest', () => {
   assert.match(text, /incluye \$ 2,00 de mora/);
   const upcoming = buildPaymentReminder({ clienteNombre: 'Ana', numero: 7, moneda: 'VES', exigibleCents: 0, proximoVencimiento: '2026-02-01' });
   assert.match(upcoming, /01\/02\/2026/);
+});
+
+test('payment terms explain the BCV rate and which currency can pay what', () => {
+  assert.match(paymentTermsNote('USD'), /tasa oficial del dólar \(BCV\) vigente el día del pago/);
+  assert.match(paymentTermsNote('USD'), /intereses puedes pagarlos en bolívares.*capital se paga únicamente en dólares/);
+  assert.match(paymentTermsNote('VES'), /Puedes pagar en bolívares o en dólares/);
+  const reminder = buildPaymentReminder({ clienteNombre: 'Ana', numero: 1, moneda: 'USD', exigibleCents: 800, diasAtraso: 2 });
+  assert.match(reminder, /capital se paga únicamente en dólares/);
+  assert.doesNotMatch(reminder, /Bs\./);
+});
+
+test('open-loan period interest matches the SQL rounding', () => {
+  assert.equal(openLoanPeriodInterestCents({ principalCents: 100000, ratePercent: 8, rateMode: 'semanal', frequency: 'semanal' }), 8000);
+  assert.equal(openLoanPeriodInterestCents({ principalCents: 70000, ratePercent: 8, rateMode: 'semanal', frequency: 'semanal' }), 5600);
+  assert.equal(openLoanPeriodInterestCents({ principalCents: 100000, ratePercent: 10, rateMode: 'mensual', frequency: 'semanal' }), 2333);
 });

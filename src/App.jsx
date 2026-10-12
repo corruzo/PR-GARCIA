@@ -27,16 +27,19 @@ const DEFAULTS = {
   nombreCliente:  '',
   monto:         '',
   moneda:        'USD',
-  tasa:          '7',
-  modalidadTasa: 'quincenal',
+  tasa:          '8',
+  modalidadTasa: 'semanal',
   fechaInicio:   HOY,
   fechaFin:      '',
-  frecuenciaPago:'quincenal',
+  frecuenciaPago:'semanal',
   metodoInteres: 'saldo_insoluto',
+  tipoPlazo:     'abierto',
   tasaBCV:       '',
 };
 // Borradores y cotizaciones guardadas antes de existir el selector usaban interés fijo.
 const METODO_ANTERIOR = 'interes_fijo';
+// …y siempre tenían fecha de fin.
+const ANTERIORES = { metodoInteres: METODO_ANTERIOR, tipoPlazo: 'fijo' };
 const DRAFT_KEY = 'prgarcia.loan.draft.v1';
 const DRAFT_EXPIRATION_MS = 30 * 60 * 1000; // 30 minutos de inactividad
 const HISTORY_KEY = 'prgarcia.quotes.history.v1';
@@ -63,7 +66,7 @@ function loadDraft() {
       return DEFAULTS;
     }
 
-    const draft = { ...DEFAULTS, metodoInteres: METODO_ANTERIOR, ...draftValues };
+    const draft = { ...DEFAULTS, ...ANTERIORES, ...draftValues };
     if (draft.modalidadTasa === 'mensual') draft.modalidadTasa = 'quincenal';
     if (draft.frecuenciaPago === 'mensual') draft.frecuenciaPago = 'quincenal';
     return draft;
@@ -210,7 +213,7 @@ function AppContent() {
 
   const resultado = useMemo(() => {
     const { monto, tasa, fechaFin, tasaBCV } = values;
-    if (!monto || !tasa || !fechaFin || !tasaBCV) return null;
+    if (!monto || !tasa || !tasaBCV || (values.tipoPlazo !== 'abierto' && !fechaFin)) return null;
     return simularPrestamo({
       ...values,
       monto:   parseFloat(monto)   || 0,
@@ -283,7 +286,7 @@ function AppContent() {
   };
 
   const abrirCotizacion = (item) => {
-    setValues({ ...DEFAULTS, metodoInteres: METODO_ANTERIOR, ...item.values });
+    setValues({ ...DEFAULTS, ...ANTERIORES, ...item.values });
     navigate('calculator');
   };
 
@@ -296,6 +299,7 @@ function AppContent() {
       modalidadTasa: resultado.modalidadTasa,
       frecuenciaPago: resultado.frecuenciaPago,
       metodoInteres: resultado.metodoInteres,
+      tipoPlazo: resultado.tipoPlazo,
       fechaInicio: resultado.fechaInicio,
       fechaFin: resultado.fechaFin,
       tasaBCV: resultado.tasaBCV,
@@ -428,9 +432,7 @@ function AppContent() {
         {/* Footer */}
         <footer className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            PRGARCÍA · Gestión de préstamos. Verifica la tasa en{' '}
-            <a href="https://www.bcv.org.ve" target="_blank" rel="noopener noreferrer"
-               className="underline hover:text-brand-700 dark:hover:text-brand-200 transition-colors">bcv.org.ve</a>.
+            PRGARCÍA · Gestión de préstamos.
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">© 2026 PRGARCÍA. Todos los derechos reservados.</p>
           <nav className="mt-2 flex flex-wrap justify-center gap-4 text-xs" aria-label="Información legal">

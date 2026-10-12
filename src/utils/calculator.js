@@ -14,7 +14,9 @@ import {
   buildSchedule,
   installmentCount,
   normalizeLoanTerms,
+  openLoanPeriodInterestCents,
 } from '../../shared/finance/schedule.js';
+import { addDaysISO } from '../../shared/finance/dates.js';
 
 export const DIAS_POR_MODALIDAD = RATE_MODE_DAYS;
 export const DIAS_POR_FRECUENCIA = FREQUENCY_DAYS;
@@ -74,8 +76,10 @@ function validarTasaCambio(tasaBCV) {
 export function simularPrestamo(params) {
   const {
     monto, moneda, tasa, modalidadTasa, fechaInicio, fechaFin, frecuenciaPago, tasaBCV,
-    metodoInteres = 'interes_fijo',
+    metodoInteres = 'interes_fijo', tipoPlazo = 'fijo',
   } = params;
+
+  if (tipoPlazo === 'abierto') return simularPrestamoAbierto(params);
 
   const normalized = normalizeLoanTerms({
     principal: Number.isFinite(monto) ? monto : NaN,
@@ -107,7 +111,7 @@ export function simularPrestamo(params) {
     valido: true,
     errores: [],
     monto: montoNormalizado, moneda, tasa: terms.ratePercent, modalidadTasa, fechaInicio, fechaFin,
-    frecuenciaPago, tasaBCV, metodoInteres,
+    frecuenciaPago, tasaBCV, metodoInteres, tipoPlazo: 'fijo',
     diasTotales: plan.totalDays,
     interes,
     totalPagar: fromCents(plan.totalCents),
@@ -131,11 +135,57 @@ export function simularPrestamo(params) {
 }
 
 /**
+ * Préstamo abierto (sin fecha de fin): el capital se paga cuando el cliente
+ * pueda y cada período genera interés sobre el capital pendiente.
+ */
+function simularPrestamoAbierto({ monto, moneda, tasa, modalidadTasa, fechaInicio, frecuenciaPago, tasaBCV }) {
+  const intervalo = FREQUENCY_DAYS[frecuenciaPago];
+  // Se validan monto, tasa y modalidades con un período de referencia.
+  const normalized = normalizeLoanTerms({
+    principal: Number.isFinite(monto) ? monto : NaN,
+    currency: moneda,
+    ratePercent: tasa,
+    rateMode: modalidadTasa,
+    startDate: fechaInicio,
+    endDate: intervalo && fechaInicio ? addDaysISO(fechaInicio, intervalo) : fechaInicio,
+    frequency: frecuenciaPago,
+    method: 'saldo_insoluto',
+  });
+  const errores = normalized.ok ? [] : [...normalized.errors];
+  if (!validarTasaCambio(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
+  if (errores.length) return { valido: false, errores };
+
+  const { terms } = normalized;
+  const interesCents = openLoanPeriodInterestCents({
+    principalCents: terms.principalCents, ratePercent: terms.ratePercent, rateMode: modalidadTasa, frequency: frecuenciaPago,
+  });
+  const montoNormalizado = fromCents(terms.principalCents);
+  const interesPeriodo = fromCents(interesCents);
+  return {
+    valido: true,
+    errores: [],
+    abierto: true,
+    tipoPlazo: 'abierto',
+    metodoInteres: 'saldo_insoluto',
+    monto: montoNormalizado, moneda, tasa: terms.ratePercent, modalidadTasa, fechaInicio, frecuenciaPago, tasaBCV,
+    fechaFin: null,
+    diasPeriodo: intervalo,
+    interesPeriodo,
+    primerVencimiento: addDaysISO(fechaInicio, intervalo),
+    // Campos compatibles con el historial de cotizaciones.
+    interes: interesPeriodo,
+    totalPagar: montoNormalizado,
+    rendimientoPorcentaje: (interesPeriodo / montoNormalizado) * 100,
+    monedaAlterna: moneda === 'USD' ? 'VES' : 'USD',
+  };
+}
+
+/**
  * Genera el cronograma de pagos detallado a partir de `simularPrestamo()`.
  * @returns {Array<{cuota,fecha,fechaISO,diasPeriodo,capital,interes,total,saldo,totalAlterna}>}
  */
 export function generarCronograma(resultado) {
-  if (!resultado?.valido) return [];
+  if (!resultado?.valido || resultado.abierto) return [];
   const normalized = normalizeLoanTerms({
     principal: resultado.monto,
     currency: resultado.moneda,

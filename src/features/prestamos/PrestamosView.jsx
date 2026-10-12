@@ -16,7 +16,7 @@ export function PrestamosView({ route, navigate, prefill, onPrefillUsed }) {
   if (route.id === 'nuevo') {
     return (
       <div className="animate-fade-in">
-        <PageHeader title="Nuevo préstamo" subtitle="Los datos se validan y el cronograma se guarda en el servidor." />
+        <PageHeader title="Nuevo préstamo" subtitle="Los datos se validan y se guardan en el servidor." />
         <NuevoPrestamoForm
           clienteId={route.params.cliente}
           prefill={prefill}
@@ -78,7 +78,7 @@ function PrestamosLista({ navigate }) {
                 <span className="flex w-full items-start justify-between gap-2">
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">#{p.numero} · {p.cliente_nombre}</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Capital <Money cents={p.capital_cents} currency={p.moneda} /> · {FRECUENCIA[p.frecuencia_pago]}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Capital <Money cents={p.capital_cents} currency={p.moneda} /> · {p.tipo_plazo === 'abierto' ? `sin fecha de fin · interés ${FRECUENCIA[p.frecuencia_pago]}` : FRECUENCIA[p.frecuencia_pago]}</span>
                   </span>
                   <PrestamoBadge prestamo={p} />
                 </span>
@@ -118,6 +118,7 @@ function PrestamoDetalle({ id, navigate }) {
   if (prestamo.loading) return <Loading label="Cargando préstamo…" />;
   if (prestamo.error) return <ErrorBox message={prestamo.error} onRetry={prestamo.reload} />;
   const p = prestamo.data;
+  const abierto = p.tipo_plazo === 'abierto';
   const pendiente = p.capital_pendiente_cents + p.interes_pendiente_cents + p.mora_pendiente_cents;
   const pagosAplicados = (pagos.data ?? []).filter((pg) => pg.estado === 'aplicado');
   const ultimoPago = pagosAplicados[0];
@@ -193,9 +194,13 @@ function PrestamoDetalle({ id, navigate }) {
       <Card title="Condiciones">
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
           <div><dt className="text-xs text-slate-500 dark:text-slate-400">Capital</dt><dd><Money cents={p.capital_cents} currency={p.moneda} /></dd></div>
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Interés pactado</dt><dd><Money cents={p.interes_total_cents} currency={p.moneda} /></dd></div>
+          {abierto ? (
+            <div><dt className="text-xs text-slate-500 dark:text-slate-400">Interés generado</dt><dd><Money cents={p.interes_generado_cents} currency={p.moneda} /></dd></div>
+          ) : (
+            <div><dt className="text-xs text-slate-500 dark:text-slate-400">Interés pactado</dt><dd><Money cents={p.interes_total_cents} currency={p.moneda} /></dd></div>
+          )}
           <div><dt className="text-xs text-slate-500 dark:text-slate-400">Tasa</dt><dd>{Number(p.tasa_interes).toLocaleString('es-VE')} % {p.modalidad_tasa} · {p.metodo_interes === 'saldo_insoluto' ? 'sobre saldo' : 'fijo'}</dd></div>
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Vigencia</dt><dd>{toDisplayDate(p.fecha_inicio)} → {toDisplayDate(p.fecha_fin)}</dd></div>
+          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Vigencia</dt><dd>{abierto ? `Desde ${toDisplayDate(p.fecha_inicio)} · sin fecha de fin` : `${toDisplayDate(p.fecha_inicio)} → ${toDisplayDate(p.fecha_fin)}`}</dd></div>
           <div><dt className="text-xs text-slate-500 dark:text-slate-400">Tasa de cambio al desembolso</dt><dd className="num">{Number(p.tasa_cambio).toLocaleString('es-VE')} Bs/USD ({p.fuente_tasa_cambio})</dd></div>
           <div><dt className="text-xs text-slate-500 dark:text-slate-400">Mora</dt><dd>{Number(p.tasa_mora_diaria) > 0 ? `${Number(p.tasa_mora_diaria).toLocaleString('es-VE')} % diario · ${p.dias_gracia} días de gracia` : 'Sin mora'}</dd></div>
         </dl>
@@ -205,7 +210,13 @@ function PrestamoDetalle({ id, navigate }) {
       <ErrorBox message={actionError} />
 
       <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
-        <Card title="Cronograma" className="mb-5 lg:mb-0">
+        <Card title={abierto ? 'Intereses por período' : 'Cronograma'} className="mb-5 lg:mb-0">
+          {abierto && (
+            <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+              Capital pendiente: <Money className="font-semibold" cents={p.capital_pendiente_cents} currency={p.moneda} />.
+              Cada período cobra interés sobre lo que se debe al empezar; los abonos lo reducen desde el día del pago.
+            </p>
+          )}
           {cuotas.loading ? <Loading /> : cuotas.error ? <ErrorBox message={cuotas.error} onRetry={cuotas.reload} /> : (
             <div className="-mx-5 overflow-x-auto">
               <table className="w-full text-xs">
@@ -214,7 +225,7 @@ function PrestamoDetalle({ id, navigate }) {
                   <tr className="border-b border-slate-200 text-left text-[10px] uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
                     <th scope="col" className="px-3 py-2">#</th>
                     <th scope="col" className="px-3 py-2">Vence</th>
-                    <th scope="col" className="px-3 py-2 text-right">Cuota</th>
+                    <th scope="col" className="px-3 py-2 text-right">{abierto ? 'Interés' : 'Cuota'}</th>
                     <th scope="col" className="px-3 py-2 text-right">Pendiente</th>
                     <th scope="col" className="px-3 py-2">Estado</th>
                   </tr>

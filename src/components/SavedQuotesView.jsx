@@ -145,7 +145,7 @@ export function SavedQuotesView({ items = [], loading = false, error = '', onOpe
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-brand-50/60 dark:bg-brand-950/30">
-                      <span className="text-[10px] uppercase font-semibold text-brand-700 dark:text-brand-400 block">Total a Cobrar</span>
+                      <span className="text-[10px] uppercase font-semibold text-brand-700 dark:text-brand-400 block">{resultado?.abierto ? 'Capital prestado' : 'Total a Cobrar'}</span>
                       <span className="font-mono text-sm font-bold text-brand-600 dark:text-brand-400">
                         {formatearMoneda(total, moneda)}
                       </span>
@@ -153,8 +153,10 @@ export function SavedQuotesView({ items = [], loading = false, error = '', onOpe
                   </div>
 
                   <div className="text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5">
-                    <p>• <strong>Interés:</strong> {values?.tasa}% ({values?.modalidadTasa}) = {formatearMoneda(interes, moneda)}</p>
-                    <p>• <strong>Plazo:</strong> {resultado?.diasTotales || 0} días ({resultado?.numeroCuotas || 1} cuotas {values?.frecuenciaPago})</p>
+                    <p>• <strong>Interés:</strong> {values?.tasa}% ({values?.modalidadTasa}) = {formatearMoneda(interes, moneda)}{resultado?.abierto ? ' por período' : ''}</p>
+                    {resultado?.abierto
+                      ? <p>• <strong>Plazo:</strong> sin fecha de fin (intereses {{ diario: 'diarios', semanal: 'semanales', quincenal: 'quincenales', mensual: 'mensuales' }[values?.frecuenciaPago] ?? ''})</p>
+                      : <p>• <strong>Plazo:</strong> {resultado?.diasTotales || 0} días ({resultado?.numeroCuotas || 1} cuotas {values?.frecuenciaPago})</p>}
                   </div>
                 </div>
 

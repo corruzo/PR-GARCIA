@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { buildSchedule, normalizeLoanTerms } from '../../../shared/finance/schedule.js';
+import { FREQUENCY_DAYS, buildSchedule, normalizeLoanTerms, openLoanPeriodInterestCents } from '../../../shared/finance/schedule.js';
 import { parseAmountInput, parseRateInput } from '../../../shared/finance/input.js';
-import { addDaysISO, todayCaracas, toDisplayDate } from '../../../shared/finance/dates.js';
+import { addDaysISO, isISODate, todayCaracas, toDisplayDate } from '../../../shared/finance/dates.js';
 import { convertCents } from '../../../shared/finance/money.js';
 import { getCachedBCV } from '../../services/bcvService';
 import * as api from '../cartera/api';
@@ -17,6 +17,11 @@ const FRECUENCIAS = [
   { value: 'diario', label: 'Diario' }, { value: 'semanal', label: 'Semanal' },
   { value: 'quincenal', label: 'Quincenal' }, { value: 'mensual', label: 'Mensual' },
 ];
+const PLAZOS = [
+  { value: 'abierto', label: 'Sin fecha de fin' },
+  { value: 'fijo', label: 'Con fecha de fin' },
+];
+const PERIODO = { diario: 'día', semanal: 'semana', quincenal: 'quincena', mensual: 'mes' };
 const METODOS = [
   { value: 'saldo_insoluto', label: 'Sobre saldo pendiente' },
   { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
@@ -29,10 +34,11 @@ function initialForm(clienteId, prefill) {
     clienteId: clienteId || '',
     moneda: prefill?.moneda === 'VES' ? 'VES' : 'USD',
     monto: prefill?.monto ? String(prefill.monto) : '',
-    tasa: prefill?.tasa ? String(prefill.tasa) : '10',
-    modalidadTasa: prefill?.modalidadTasa || 'quincenal',
-    frecuenciaPago: prefill?.frecuenciaPago || 'quincenal',
+    tasa: prefill?.tasa ? String(prefill.tasa) : '8',
+    modalidadTasa: prefill?.modalidadTasa || 'semanal',
+    frecuenciaPago: prefill?.frecuenciaPago || 'semanal',
     metodoInteres: prefill?.metodoInteres || 'saldo_insoluto',
+    tipoPlazo: prefill?.tipoPlazo || 'abierto',
     fechaInicio: prefill?.fechaInicio || hoy,
     fechaFin: prefill?.fechaFin || addDaysISO(hoy, 30),
     tasaCambio: prefill?.tasaBCV ? String(prefill.tasaBCV) : cached?.rate ? String(cached.rate) : '',
@@ -66,14 +72,25 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
     if (!Number.isInteger(diasGracia) || diasGracia < 0 || diasGracia > 60) errors.diasGracia = 'Entre 0 y 60 días.';
     if (!form.clienteId) errors.clienteId = 'Selecciona un cliente.';
 
+    const abierto = form.tipoPlazo === 'abierto';
+    const intervalo = FREQUENCY_DAYS[form.frecuenciaPago];
     const terms = normalizeLoanTerms({
       principalCents: capitalCents ?? undefined, principal: capitalCents ? undefined : NaN, currency: form.moneda,
       ratePercent: tasa ?? NaN, rateMode: form.modalidadTasa, startDate: form.fechaInicio,
-      endDate: form.fechaFin, frequency: form.frecuenciaPago, method: form.metodoInteres,
+      // Un préstamo abierto se valida sobre su primer período.
+      endDate: abierto && isISODate(form.fechaInicio) ? addDaysISO(form.fechaInicio, intervalo) : form.fechaFin,
+      frequency: form.frecuenciaPago, method: abierto ? 'saldo_insoluto' : form.metodoInteres,
     });
     if (!terms.ok && !errors.monto && !errors.tasa) errors.terminos = terms.errors.join(' ');
-    const plan = terms.ok ? buildSchedule(terms.terms) : null;
-    return { errors, capitalCents, tasa, tasaCambio, tasaMora, diasGracia, plan };
+    const plan = terms.ok && !abierto ? buildSchedule(terms.terms) : null;
+    const periodo = terms.ok && abierto ? {
+      interesCents: openLoanPeriodInterestCents({
+        principalCents: terms.terms.principalCents, ratePercent: terms.terms.ratePercent,
+        rateMode: form.modalidadTasa, frequency: form.frecuenciaPago,
+      }),
+      primerVencimiento: addDaysISO(form.fechaInicio, intervalo),
+    } : null;
+    return { errors, capitalCents, tasa, tasaCambio, tasaMora, diasGracia, plan, periodo };
   }, [form]);
 
   const activos = (clientes.data ?? []).filter((c) => c.estado === 'activo');
@@ -83,7 +100,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
   const submit = async (event) => {
     event.preventDefault();
     setTouched(true);
-    if (Object.keys(parsed.errors).length || !parsed.plan) return;
+    if (Object.keys(parsed.errors).length || !(parsed.plan || parsed.periodo)) return;
     setSaving(true);
     setSubmitError('');
     try {
@@ -92,7 +109,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
         modalidadTasa: form.modalidadTasa, frecuenciaPago: form.frecuenciaPago, metodoInteres: form.metodoInteres,
         fechaInicio: form.fechaInicio, fechaFin: form.fechaFin, tasaCambio: parsed.tasaCambio,
         fuenteTasaCambio: form.fuenteTasa, tasaMoraDiaria: parsed.tasaMora, diasGracia: parsed.diasGracia,
-        notas: form.notas.trim(), idempotencyKey,
+        notas: form.notas.trim(), idempotencyKey, tipoPlazo: form.tipoPlazo,
       });
       onCreated(id);
     } catch (error) {
@@ -154,29 +171,43 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
                 )}
               </Field>
             </div>
-            <SegmentedControl label="Frecuencia de pago" value={form.frecuenciaPago} onChange={set('frecuenciaPago')} options={FRECUENCIAS} />
-            <SegmentedControl label="Cálculo del interés" value={form.metodoInteres} onChange={set('metodoInteres')} options={METODOS} />
+            <SegmentedControl label="Plazo" value={form.tipoPlazo} onChange={set('tipoPlazo')} options={PLAZOS} />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {form.metodoInteres === 'interes_fijo'
-                ? 'Interés sobre el capital inicial durante todo el plazo, aunque el cliente abone a capital.'
-                : 'El interés corre solo sobre el capital que falta por pagar: cada abono deja de generar interés desde el día en que se recibe.'}
+              {form.tipoPlazo === 'abierto'
+                ? 'Sin fecha de fin: cada período genera interés sobre el capital que aún se debe. Los pagos cubren primero los intereses y lo demás se abona al capital, hasta pagarlo completo.'
+                : 'Con fecha de fin: el capital y los intereses se reparten en cuotas hasta la última fecha.'}
             </p>
+            <SegmentedControl label={form.tipoPlazo === 'abierto' ? 'Cobro de intereses' : 'Frecuencia de pago'} value={form.frecuenciaPago} onChange={set('frecuenciaPago')} options={FRECUENCIAS} />
+            {form.tipoPlazo === 'fijo' && (
+              <>
+                <SegmentedControl label="Cálculo del interés" value={form.metodoInteres} onChange={set('metodoInteres')} options={METODOS} />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {form.metodoInteres === 'interes_fijo'
+                    ? 'Interés sobre el capital inicial durante todo el plazo, aunque el cliente abone a capital.'
+                    : 'El interés corre solo sobre el capital que falta por pagar: cada abono deja de generar interés desde el día en que se recibe.'}
+                </p>
+              </>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="prestamo-inicio" label="Fecha de desembolso">
                 {(a11y) => <input {...a11y} type="date" className="input-base" value={form.fechaInicio} onChange={set('fechaInicio')} />}
               </Field>
-              <Field id="prestamo-fin" label="Fecha de la última cuota">
-                {(a11y) => <input {...a11y} type="date" className="input-base" min={form.fechaInicio} value={form.fechaFin} onChange={set('fechaFin')} />}
-              </Field>
+              {form.tipoPlazo === 'fijo' && (
+                <Field id="prestamo-fin" label="Fecha de la última cuota">
+                  {(a11y) => <input {...a11y} type="date" className="input-base" min={form.fechaInicio} value={form.fechaFin} onChange={set('fechaFin')} />}
+                </Field>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2" aria-label="Plazos rápidos">
-              {[15, 30, 45, 60, 90].map((dias) => (
-                <button key={dias} type="button" className="btn-ghost border border-slate-200 dark:border-slate-700"
-                  onClick={() => setForm((prev) => ({ ...prev, fechaFin: addDaysISO(prev.fechaInicio, dias) }))}>
-                  {dias} días
-                </button>
-              ))}
-            </div>
+            {form.tipoPlazo === 'fijo' && (
+              <div className="flex flex-wrap gap-2" aria-label="Plazos rápidos">
+                {[15, 30, 45, 60, 90].map((dias) => (
+                  <button key={dias} type="button" className="btn-ghost border border-slate-200 dark:border-slate-700"
+                    onClick={() => setForm((prev) => ({ ...prev, fechaFin: addDaysISO(prev.fechaInicio, dias) }))}>
+                    {dias} días
+                  </button>
+                ))}
+              </div>
+            )}
             {showErrors.terminos && <ErrorBox message={showErrors.terminos} />}
           </div>
         </Card>
@@ -201,7 +232,15 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
 
       <aside className="space-y-4 lg:sticky lg:top-20">
         <Card title="Resumen">
-          {parsed.plan ? (
+          {parsed.periodo ? (
+            <dl className="grid grid-cols-2 gap-2 text-sm">
+              <dt className="text-slate-500 dark:text-slate-400">Capital</dt><dd className="text-right"><Money cents={parsed.capitalCents} currency={form.moneda} /></dd>
+              <dt className="font-bold">Interés por {PERIODO[form.frecuenciaPago]}</dt><dd className="text-right font-bold"><Money cents={parsed.periodo.interesCents} currency={form.moneda} /></dd>
+              <dt className="text-slate-500 dark:text-slate-400">Primer cobro</dt><dd className="text-right">{toDisplayDate(parsed.periodo.primerVencimiento)}</dd>
+              <dt className="text-slate-500 dark:text-slate-400">Fecha de fin</dt><dd className="text-right">Abierta</dd>
+              <dd className="col-span-2 text-xs text-slate-500 dark:text-slate-400">El interés baja a medida que el cliente abona al capital.</dd>
+            </dl>
+          ) : parsed.plan ? (
             <div className="space-y-3 text-sm">
               <dl className="grid grid-cols-2 gap-2">
                 <dt className="text-slate-500 dark:text-slate-400">Capital</dt><dd className="text-right"><Money cents={parsed.capitalCents} currency={form.moneda} /></dd>
@@ -236,7 +275,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
           <button type="submit" className="btn-primary flex-1" disabled={saving || activos.length === 0}>{saving ? 'Emitiendo…' : 'Emitir préstamo'}</button>
           {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">El servidor recalcula y guarda el cronograma; la tasa de cambio queda registrada en el préstamo.</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">El servidor recalcula y guarda las condiciones; la tasa de cambio queda registrada en el préstamo.</p>
       </aside>
     </form>
   );
