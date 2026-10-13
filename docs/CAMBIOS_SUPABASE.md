@@ -7,13 +7,13 @@ Proyecto actual: `muxxvbcxzqszstiotbwu` (el proyecto anterior quedó sin acceso)
 
 ## Instalar en un proyecto nuevo (una sola vez)
 
-El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 5 archivos en `supabase/instalar/`:
+El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 6 archivos en `supabase/instalar/`:
 
 1. Supabase → **SQL Editor** → *New query* → pega **todo** `parte-1.sql` → **Run**. Debe decir *Success*.
 2. Nueva consulta (o borra el contenido) → pega `parte-2.sql` → **Run**.
-3. Igual con `parte-3.sql`, `parte-4.sql` y `parte-5.sql`, en ese orden.
+3. Igual con `parte-3.sql` a `parte-6.sql`, en ese orden.
 
-**Si ya habías instalado las partes 1 a 3**, ejecuta solo `parte-4.sql` y `parte-5.sql`.
+**Si ya instalaste algunas partes**, ejecuta solo las siguientes (por ejemplo, si llegaste a la 5, ejecuta la `parte-6.sql`).
 
 Ejecútalas **en orden** y **una sola vez**. Cada parte corre en una transacción: si una falla, no deja nada a medias; corrige el problema y repite solo esa parte.
 
@@ -49,6 +49,7 @@ Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y
 | `20261011000300_reportes_bimonetarios.sql` | `fin_tasa_actual`, antigüedad de cartera, cobranza mensual, libro mayor, `reporte_diferencial_cambiario` |
 | `20261011000400_auditoria.sql` | Bitácora inmutable de clientes, préstamos y pagos |
 | `20261012000100_prestamos_abiertos.sql` | Préstamos sin fecha de fin: columnas, generación de períodos de interés, `emitir_prestamo` con `p_tipo_plazo` |
+| `20261013000100_cliente_rapido.sql` | Clientes con solo el nombre (documento opcional) |
 | `20261012000200_prestamos_abiertos_pagos.sql` | Pagos, anulación, resumen y cancelación para préstamos abiertos; `sincronizar_prestamos_abiertos` |
 
 ## Pruebas locales

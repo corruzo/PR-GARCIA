@@ -1,5 +1,5 @@
--- PRGARCÍA · Instalación, parte 4 de 5. Generado por npm run db:bundle.
--- Ejecuta las partes en orden (1 a 5) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 4 de 6. Generado por npm run db:bundle.
+-- Ejecuta las partes en orden (1 a 6) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261012000100_prestamos_abiertos.sql
 alter table public.prestamos

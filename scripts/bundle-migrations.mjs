@@ -19,6 +19,7 @@ export const PARTS = [
   ['20261011000300', '20261011000400'],
   ['20261012000100'],
   ['20261012000200'],
+  ['20261013000100'],
 ];
 
 /** Quita líneas vacías y comentarios de línea completa (no toca código). */
@@ -42,7 +43,7 @@ export function buildParts() {
       name: `parte-${index + 1}.sql`,
       content: [
         `-- PRGARCÍA · Instalación, parte ${index + 1} de ${PARTS.length}. Generado por npm run db:bundle.`,
-        `-- Ejecuta las partes en orden (1 a 5) en Supabase → SQL Editor, una sola vez cada una.`,
+        `-- Ejecuta las partes en orden (1 a 6) en Supabase → SQL Editor, una sola vez cada una.`,
         'begin;',
         body,
         'commit;',

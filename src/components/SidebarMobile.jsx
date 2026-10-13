@@ -8,7 +8,7 @@ import { handleTabKeyDown } from '../utils/keyboardTabs';
 import { NAV_ITEMS } from '../features/cartera/navigation';
 import { BrandLogo } from './BrandLogo';
 
-export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
+export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenProfile }) {
   const { user, logout } = useAuth();
   const { dark, toggle } = useTheme();
   const [showInfo, setShowInfo] = useState(false);
@@ -57,7 +57,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
 
           {/* Enlaces de Navegación */}
           <nav role="tablist" aria-label="Vistas de la cuenta" className="space-y-1.5">
-            {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => (
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -80,13 +80,6 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
                   <Icon size={16} />
                   <span>{label}</span>
                 </div>
-                {countKey === 'history' && historyCount > 0 && (
-                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full ${
-                    activeTab === id ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                  }`}>
-                    {historyCount}
-                  </span>
-                )}
               </button>
             ))}
 

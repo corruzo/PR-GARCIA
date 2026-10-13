@@ -6,15 +6,11 @@ Este inventario refleja las llamadas presentes en `src/` y `api/`. `server/` no 
 
 | Archivo | Tabla | Operación | Columnas o datos usados | Filtros y orden |
 | --- | --- | --- | --- | --- |
-| `src/App.jsx` | `user_history` | `select` | `id`, `created_at`, `prestamo_data` | `user_id = user.id`; `created_at` descendente |
-| `src/App.jsx` | `user_history` | `insert` | Escribe `user_id`, `prestamo_data`; devuelve `id`, `created_at`, `prestamo_data` | Ninguno |
-| `src/App.jsx` | `user_history` | `delete` | Sin columnas de retorno | `id = id` y `user_id = user.id` |
-| `src/App.jsx` | `user_history` | `delete` | Sin columnas de retorno | `user_id = user.id` |
 | `api/bcv.js` | `tasa_bcv` | `select` | `tasa`, `fuente`, `fecha_hora` | `fecha_hora` descendente; primera fila |
 | `api/bcv.js` | `tasa_bcv` | `insert` | Escribe `tasa`, `fuente`, `estado`; devuelve `tasa`, `fuente`, `fecha_hora` | Ninguno; `fecha_hora` usa el valor predeterminado de la tabla |
 | `api/bcv/latest.js` | `tasa_bcv` | `select` | `tasa`, `fuente`, `fecha_hora` | `fecha_hora` descendente; primera fila |
 
-`prestamo_data` guarda el borrador y el resultado de la cotización como JSON. El código lee `values` y `resultado` dentro de ese dato.
+`user_history` (cotizaciones guardadas) ya no se usa desde la interfaz: la calculadora solo estima y comparte. La tabla se conserva por compatibilidad.
 
 ## Autenticación
 

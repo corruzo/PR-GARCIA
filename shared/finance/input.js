@@ -76,7 +76,7 @@ export function validateCliente(input) {
   const email = String(input?.email ?? '').trim();
 
   if (!(tipo in DOCUMENT_TYPES)) errors.tipo_documento = 'Selecciona el tipo de documento.';
-  if (!/^[0-9A-Z]{4,20}$/.test(numero)) errors.numero_documento = 'Entre 4 y 20 dígitos o letras.';
+  if (numero && !/^[0-9A-Z]{4,20}$/.test(numero)) errors.numero_documento = 'Entre 4 y 20 dígitos o letras.';
   if (nombre.length < 2 || nombre.length > 120 || UNSAFE.test(nombre)) errors.nombre = 'Entre 2 y 120 caracteres, sin < ni >.';
   if (telefono && !/^\+?[0-9 ()-]{7,20}$/.test(telefono)) errors.telefono = 'Usa solo dígitos, espacios, guiones o paréntesis.';
   if (email && (email.length > 254 || !/^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/.test(email))) errors.email = 'Correo no válido.';
@@ -89,7 +89,7 @@ export function validateCliente(input) {
 
   const value = {
     tipo_documento: tipo,
-    numero_documento: numero,
+    numero_documento: numero || null,
     nombre,
     telefono: telefono || null,
     email: email || null,

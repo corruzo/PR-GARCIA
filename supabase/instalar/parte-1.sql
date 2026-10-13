@@ -1,5 +1,5 @@
--- PRGARCÍA · Instalación, parte 1 de 5. Generado por npm run db:bundle.
--- Ejecuta las partes en orden (1 a 5) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 1 de 6. Generado por npm run db:bundle.
+-- Ejecuta las partes en orden (1 a 6) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261011000000_base.sql
 create extension if not exists pgcrypto;

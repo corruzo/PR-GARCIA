@@ -145,3 +145,13 @@ test('base tables: quotes are private per user and the BCV rate is public read-o
   assert.throws(() => psql(db, `set role anon; insert into public.tasa_bcv (tasa, fuente) values (1, 'x');`), /permission denied/);
   assert.throws(() => psql(db, asUser(ANA, `insert into public.tasa_bcv (tasa, fuente) values (1, 'x');`)), /permission denied/);
 });
+
+test('clients can be created with just a name and completed later', { skip: skipDb }, () => {
+  const a = psql(db, asUser(ANA, `insert into public.clientes (nombre) values ('Rápido Uno') returning id;`));
+  psql(db, asUser(ANA, `insert into public.clientes (nombre) values ('Rápido Dos');`));
+  assert.equal(psql(db, `select tipo_documento || coalesce(numero_documento, '-') from public.clientes where id = '${a}';`), 'V-');
+  psql(db, asUser(ANA, `update public.clientes set numero_documento = '30111222', telefono = '04120000000' where id = '${a}';`));
+  assert.throws(() => psql(db, asUser(ANA, `insert into public.clientes (nombre, numero_documento) values ('Duplicado', '30111222');`)), /duplicate key/);
+  const prestamo = psql(db, asUser(ANA, `select public.emitir_prestamo('${a}', 'USD', 10000, 8, 'semanal', 'semanal', 'saldo_insoluto', '2026-01-05', null, 40, 'BCV', 0, 0, null, null, null, 'abierto');`, { today: '2026-01-05' }));
+  assert.ok(prestamo);
+});

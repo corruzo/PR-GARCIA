@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export const VIEWS = ['calculator', 'saved', 'clientes', 'prestamos', 'cobranza', 'reportes'];
+export const VIEWS = ['calculator', 'clientes', 'prestamos', 'cobranza', 'reportes'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** "#/prestamos/<id>?cliente=<id>" → { view, id, params } (validado). */

@@ -170,3 +170,11 @@ test('open loans (no end date) quote the interest of each period on the principa
   assert.deepEqual(generarCronograma(r), []);
   assert.equal(simularPrestamo({ ...r, monto: 0, tipoPlazo: 'abierto' }).valido, false);
 });
+
+test('the calculator works without an exchange rate (no equivalences)', () => {
+  const r = simularPrestamo({ ...validLoan, tasaBCV: undefined });
+  assert.equal(r.valido, true);
+  assert.equal(r.totalAlterna, null);
+  assert.equal(generarCronograma(r)[0].totalAlterna, null);
+  assert.equal(simularPrestamo({ ...validLoan, tasaBCV: -1 }).valido, false);
+});

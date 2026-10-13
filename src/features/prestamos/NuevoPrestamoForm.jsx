@@ -8,6 +8,7 @@ import * as api from '../cartera/api';
 import { useRemote } from '../cartera/useRemote';
 import { newIdempotencyKey } from '../cartera/helpers';
 import { Card, ErrorBox, Field, Loading, Money, SegmentedControl } from '../cartera/ui';
+import { ClientePicker } from '../clientes/ClientePicker';
 
 const MODALIDADES = [
   { value: 'diaria', label: 'Diaria' }, { value: 'semanal', label: 'Semanal' },
@@ -51,6 +52,8 @@ function initialForm(clienteId, prefill) {
 
 export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
   const clientes = useRemote(() => api.listClientes(), []);
+  const [nuevos, setNuevos] = useState([]);
+  const [editarCondiciones, setEditarCondiciones] = useState(!prefill);
   const [form, setForm] = useState(() => initialForm(clienteId, prefill));
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [touched, setTouched] = useState(false);
@@ -93,7 +96,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
     return { errors, capitalCents, tasa, tasaCambio, tasaMora, diasGracia, plan, periodo };
   }, [form]);
 
-  const activos = (clientes.data ?? []).filter((c) => c.estado === 'activo');
+  const listaClientes = [...(clientes.data ?? []), ...nuevos.filter((n) => !(clientes.data ?? []).some((c) => c.id === n.id))];
   const showErrors = touched ? parsed.errors : {};
   const otraMoneda = form.moneda === 'USD' ? 'VES' : 'USD';
 
@@ -126,20 +129,43 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
     <form onSubmit={submit} noValidate className="space-y-5 lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6 lg:space-y-0">
       <div className="space-y-5">
         <Card title="1. Cliente">
-          {activos.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-300">No tienes clientes activos. Registra uno en la sección Clientes.</p>
-          ) : (
-            <Field id="prestamo-cliente" label="Cliente" error={showErrors.clienteId}>
-              {(a11y) => (
-                <select {...a11y} className="input-base" value={form.clienteId} onChange={set('clienteId')}>
-                  <option value="">Selecciona…</option>
-                  {activos.map((c) => <option key={c.id} value={c.id}>{c.nombre} · {c.tipo_documento}-{c.numero_documento}</option>)}
-                </select>
-              )}
-            </Field>
-          )}
+          <ClientePicker
+            clientes={listaClientes}
+            value={form.clienteId}
+            onChange={(id) => setForm((prev) => ({ ...prev, clienteId: id }))}
+            onCreated={(nuevo) => setNuevos((prev) => [...prev, nuevo])}
+            error={showErrors.clienteId}
+          />
         </Card>
 
+        {!editarCondiciones && (
+          <Card title="2. Condiciones de la cotización" actions={
+            <button type="button" className="btn-ghost" onClick={() => setEditarCondiciones(true)}>Editar</button>
+          }>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt className="text-slate-600 dark:text-slate-400">Monto</dt>
+              <dd className="text-right font-semibold">{parsed.capitalCents ? <Money cents={parsed.capitalCents} currency={form.moneda} /> : '—'}</dd>
+              <dt className="text-slate-600 dark:text-slate-400">Tasa</dt>
+              <dd className="text-right">{form.tasa} % {form.modalidadTasa}</dd>
+              <dt className="text-slate-600 dark:text-slate-400">Plazo</dt>
+              <dd className="text-right">{form.tipoPlazo === 'abierto' ? 'Sin fecha de fin' : `Hasta ${toDisplayDate(form.fechaFin)}`}</dd>
+              <dt className="text-slate-600 dark:text-slate-400">{form.tipoPlazo === 'abierto' ? 'Cobro de intereses' : 'Cuotas'}</dt>
+              <dd className="text-right capitalize">{form.frecuenciaPago}</dd>
+            </dl>
+            <div className="mt-4">
+              <Field id="prestamo-tasa-cambio-resumen" label="Tasa del día (Bs/USD)" error={showErrors.tasaCambio}
+                hint="Queda registrada en el préstamo.">
+                {(a11y) => <input {...a11y} className="input-base num" inputMode="decimal" value={form.tasaCambio}
+                  onChange={(e) => setForm((prev) => ({ ...prev, tasaCambio: e.target.value, fuenteTasa: 'manual' }))} />}
+              </Field>
+            </div>
+            {(showErrors.monto || showErrors.tasa || showErrors.terminos) && (
+              <div className="mt-3"><ErrorBox message="Revisa las condiciones: pulsa «Editar» para corregirlas." /></div>
+            )}
+          </Card>
+        )}
+
+        {editarCondiciones && (<>
         <Card title="2. Capital y tasa de cambio">
           <div className="space-y-4">
             <SegmentedControl label="Moneda del préstamo" value={form.moneda} onChange={set('moneda')}
@@ -212,7 +238,9 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
           </div>
         </Card>
 
-        <Card title="4. Mora y notas">
+        </>)}
+
+        <Card title={editarCondiciones ? '4. Mora y notas' : '3. Mora y notas'}>
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="prestamo-mora" label="Mora diaria (%)" error={showErrors.tasaMora}
@@ -272,7 +300,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
         </Card>
         <ErrorBox message={submitError} />
         <div className="flex flex-wrap gap-2">
-          <button type="submit" className="btn-primary flex-1" disabled={saving || activos.length === 0}>{saving ? 'Emitiendo…' : 'Emitir préstamo'}</button>
+          <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? 'Emitiendo…' : 'Emitir préstamo'}</button>
           {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>}
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400">El servidor recalcula y guarda las condiciones; la tasa de cambio queda registrada en el préstamo.</p>

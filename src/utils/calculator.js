@@ -69,6 +69,11 @@ function validarTasaCambio(tasaBCV) {
   return Number.isFinite(tasaBCV) && tasaBCV >= 0.000001 && tasaBCV <= LIMITS.maxExchangeRate;
 }
 
+/** La tasa de cambio es opcional: sin ella no se calculan equivalencias. */
+function tasaCambioInvalida(tasaBCV) {
+  return tasaBCV !== undefined && tasaBCV !== null && tasaBCV !== '' && !validarTasaCambio(tasaBCV);
+}
+
 /**
  * Ejecuta la simulación completa del préstamo.
  * Los montos devueltos están en unidades (no centavos) y cuadran al centavo.
@@ -92,7 +97,7 @@ export function simularPrestamo(params) {
     method: metodoInteres,
   });
   const errores = normalized.ok ? [] : [...normalized.errors];
-  if (!validarTasaCambio(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
+  if (tasaCambioInvalida(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
   if (errores.length) return { valido: false, errores };
 
   const { terms } = normalized;
@@ -102,7 +107,7 @@ export function simularPrestamo(params) {
   const ultima = cuotas.at(-1);
   const intervaloPago = FREQUENCY_DAYS[frecuenciaPago];
   const monedaAlterna = moneda === 'USD' ? 'VES' : 'USD';
-  const alterna = (cents) => fromCents(convertCents(cents, tasaBCV, moneda, monedaAlterna));
+  const alterna = (cents) => (validarTasaCambio(tasaBCV) ? fromCents(convertCents(cents, tasaBCV, moneda, monedaAlterna)) : null);
 
   const interes = fromCents(plan.interestCents);
   const montoNormalizado = fromCents(terms.principalCents);
@@ -152,7 +157,7 @@ function simularPrestamoAbierto({ monto, moneda, tasa, modalidadTasa, fechaInici
     method: 'saldo_insoluto',
   });
   const errores = normalized.ok ? [] : [...normalized.errors];
-  if (!validarTasaCambio(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
+  if (tasaCambioInvalida(tasaBCV)) errores.push('La tasa BCV debe ser mayor a 0 y dentro del rango permitido.');
   if (errores.length) return { valido: false, errores };
 
   const { terms } = normalized;
@@ -196,7 +201,7 @@ export function generarCronograma(resultado) {
     frequency: resultado.frecuenciaPago,
     method: resultado.metodoInteres ?? 'interes_fijo',
   });
-  if (!normalized.ok || !validarTasaCambio(resultado.tasaBCV)) return [];
+  if (!normalized.ok || tasaCambioInvalida(resultado.tasaBCV)) return [];
 
   const { moneda, monedaAlterna, tasaBCV } = resultado;
   return buildSchedule(normalized.terms).installments.map((cuota) => ({
@@ -208,6 +213,6 @@ export function generarCronograma(resultado) {
     interes: fromCents(cuota.interestCents),
     total: fromCents(cuota.totalCents),
     saldo: fromCents(cuota.balanceCents),
-    totalAlterna: fromCents(convertCents(cuota.totalCents, tasaBCV, moneda, monedaAlterna)),
+    totalAlterna: validarTasaCambio(tasaBCV) ? fromCents(convertCents(cuota.totalCents, tasaBCV, moneda, monedaAlterna)) : null,
   }));
 }

@@ -109,6 +109,50 @@ function ClienteForm({ cliente, onSaved, onCancel }) {
   );
 }
 
+/** Alta rápida: solo el nombre (y teléfono si lo tienes a mano). */
+function ClienteRapido({ onSaved, onCancel }) {
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const result = validateCliente({ nombre, telefono });
+    setErrors(result.errors);
+    if (!result.ok) return;
+    setSaving(true);
+    setSubmitError('');
+    try {
+      onSaved(await api.createCliente({ nombre: result.value.nombre, telefono: result.value.telefono }));
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="rapido-nombre" label="Nombre" error={errors.nombre}>
+          {(a11y) => <input {...a11y} className="input-base" maxLength={120} autoComplete="off" value={nombre} onChange={(e) => setNombre(e.target.value)} autoFocus />}
+        </Field>
+        <Field id="rapido-telefono" label="Teléfono (opcional)" error={errors.telefono}>
+          {(a11y) => <input {...a11y} className="input-base" type="tel" inputMode="tel" maxLength={20} value={telefono} onChange={(e) => setTelefono(e.target.value)} />}
+        </Field>
+      </div>
+      <p className="text-xs text-slate-600 dark:text-slate-400">La cédula, dirección y referencias se completan después en la ficha del cliente.</p>
+      <ErrorBox message={submitError} />
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Creando…' : 'Crear cliente'}</button>
+        <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>
+      </div>
+    </form>
+  );
+}
+
 function ClienteDetalle({ id, navigate }) {
   const cliente = useRemote(() => api.getCliente(id), [id]);
   const prestamos = useRemote(() => api.listPrestamos({ clienteId: id }), [id]);
@@ -134,7 +178,7 @@ function ClienteDetalle({ id, navigate }) {
       <button type="button" className="btn-ghost -ml-3" onClick={() => navigate('clientes')}><ArrowLeft size={16} /> Clientes</button>
       <PageHeader
         title={c.nombre}
-        subtitle={`${c.tipo_documento}-${c.numero_documento}${c.telefono ? ` · ${c.telefono}` : ''}`}
+        subtitle={`${c.numero_documento ? `${c.tipo_documento}-${c.numero_documento}` : 'Sin documento'}${c.telefono ? ` · ${c.telefono}` : ''}`}
         actions={(
           <>
             <button type="button" className="btn-primary" disabled={c.estado !== 'activo'} onClick={() => navigate('prestamos', 'nuevo', { cliente: c.id })}>
@@ -145,6 +189,13 @@ function ClienteDetalle({ id, navigate }) {
         )}
       />
       {c.estado !== 'activo' && <Badge tone="amber">Cliente {c.estado}: no puede recibir préstamos nuevos</Badge>}
+
+      {!editing && (!c.numero_documento || !c.telefono) && (
+        <div className="flex flex-col gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900 dark:border-brand-900 dark:bg-brand-950/40 dark:text-brand-100 sm:flex-row sm:items-center sm:justify-between">
+          <span>Completa la ficha: {[!c.numero_documento && 'cédula o RIF', !c.telefono && 'teléfono'].filter(Boolean).join(' y ')}.</span>
+          <button type="button" className="btn-secondary" onClick={() => setEditing(true)}>Completar ficha</button>
+        </div>
+      )}
 
       {editing && (
         <Card title="Editar cliente">
@@ -209,7 +260,7 @@ function ClientesLista({ creating, navigate }) {
 
       {creating && (
         <Card title="Nuevo cliente">
-          <ClienteForm onSaved={(saved) => navigate('clientes', saved.id)} onCancel={() => navigate('clientes')} />
+          <ClienteRapido onSaved={(saved) => navigate('clientes', saved.id)} onCancel={() => navigate('clientes')} />
         </Card>
       )}
 
@@ -232,7 +283,7 @@ function ClientesLista({ creating, navigate }) {
               <button type="button" onClick={() => navigate('clientes', c.id)} className="glass-card glass-card-hover flex w-full items-start justify-between gap-3 rounded-2xl p-4 text-left">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{c.nombre}</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{c.tipo_documento}-{c.numero_documento}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{c.numero_documento ? `${c.tipo_documento}-${c.numero_documento}` : 'Sin documento'}</span>
                   {c.telefono && <span className="mt-1 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400"><Phone size={12} aria-hidden="true" />{c.telefono}</span>}
                 </span>
                 {c.estado !== 'activo' && <Badge tone={c.estado === 'bloqueado' ? 'red' : 'gray'}>{c.estado}</Badge>}

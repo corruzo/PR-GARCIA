@@ -6,7 +6,6 @@
 import { paymentTermsNote } from '../../shared/finance/report.js';
 import { toDisplayDate } from '../../shared/finance/dates.js';
 import { formatearMoneda } from './calculator.js';
-import { normalizePlainText } from './inputValidation.js';
 
 const MODALIDAD = { diaria: 'diaria', semanal: 'semanal', quincenal: 'quincenal', mensual: 'mensual' };
 const PERIODO = { diario: 'día', semanal: 'semana', quincenal: 'quincena', mensual: 'mes' };
@@ -20,15 +19,13 @@ function formatPercent(value) {
  * @param {object} params
  * @param {object} params.resultado   Salida de simularPrestamo()
  * @param {Array}  params.cronograma  Salida de generarCronograma() (préstamos con fecha)
- * @param {string} params.nombreCliente
  * @param {string} params.fechaHoy    'dd/MM/yyyy'
  */
-export function buildQuoteMessage({ resultado, cronograma = [], nombreCliente = '', fechaHoy }) {
+export function buildQuoteMessage({ resultado, cronograma = [], fechaHoy }) {
   const { moneda } = resultado;
   const fmt = (v) => formatearMoneda(v, moneda);
-  const nombre = normalizePlainText(nombreCliente).trim() || 'estimado cliente';
   const tasa = `${formatPercent(resultado.tasa)} ${MODALIDAD[resultado.modalidadTasa] ?? ''}`.trim();
-  const lines = [`Hola ${nombre}, estas son las condiciones de tu préstamo:`, ''];
+  const lines = ['Hola, estas son las condiciones del préstamo:', ''];
 
   if (resultado.abierto) {
     const periodo = PERIODO[resultado.frecuenciaPago] ?? 'período';

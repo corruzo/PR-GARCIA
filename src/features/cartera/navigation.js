@@ -1,4 +1,4 @@
-import { Bookmark, Calculator, ChartColumn, HandCoins, Landmark, Users } from 'lucide-react';
+import { Calculator, ChartColumn, HandCoins, Landmark, Users } from 'lucide-react';
 
 /**
  * Módulos de la navegación principal (orden = orden en pantalla).
@@ -10,5 +10,4 @@ export const NAV_ITEMS = [
   { id: 'prestamos', label: 'Préstamos', icon: Landmark, mobile: true },
   { id: 'cobranza', label: 'Cobranza', shortLabel: 'Cobrar', icon: HandCoins, mobile: true },
   { id: 'reportes', label: 'Reportes', icon: ChartColumn, mobile: true },
-  { id: 'saved', label: 'Cotizaciones', icon: Bookmark, countKey: 'history' },
 ];

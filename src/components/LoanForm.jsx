@@ -1,6 +1,4 @@
-import { UserRound, DollarSign, Calendar, Percent, CheckCircle2 } from 'lucide-react';
-import { BCVField } from './BCVField';
-import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
+import { DollarSign, Calendar, Percent, CheckCircle2 } from 'lucide-react';
 import { handleRadioKeyDown } from '../utils/keyboardTabs';
 
 const MODALIDADES = [
@@ -33,7 +31,6 @@ export function LoanForm({ values, onChange }) {
     if (typeof val === 'string') {
       val = val.replace(',', '.');
     }
-    if (key === 'nombreCliente') val = normalizePlainText(val);
     onChange(key, val);
   };
 
@@ -42,7 +39,6 @@ export function LoanForm({ values, onChange }) {
   const esAbierto = values.tipoPlazo === 'abierto';
   const hasFechas = hasCondiciones && values.fechaInicio
     && (esAbierto || (values.fechaFin && new Date(values.fechaFin) >= new Date(values.fechaInicio)));
-  const isClienteFilled = Boolean(values.nombreCliente?.trim());
 
   return (
     <div className="space-y-5">
@@ -55,7 +51,7 @@ export function LoanForm({ values, onChange }) {
               <DollarSign size={18} />
             </div>
             <h3 className="text-base font-semibold text-[#222222] dark:text-white">
-              1. Capital y Moneda
+              1. Monto
             </h3>
           </div>
           {hasCapital && (
@@ -120,11 +116,6 @@ export function LoanForm({ values, onChange }) {
               />
             </div>
           </div>
-
-          {/* Campo de Tasa BCV */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-            <BCVField value={values.tasaBCV} onChange={(v) => onChange('tasaBCV', v)} />
-          </div>
         </div>
       </div>
 
@@ -136,7 +127,7 @@ export function LoanForm({ values, onChange }) {
               <Percent size={18} />
             </div>
             <h3 className="text-base font-semibold text-[#222222] dark:text-white">
-              2. Tasa e Interés
+              2. Tasa
             </h3>
           </div>
           {hasCondiciones && (
@@ -229,7 +220,7 @@ export function LoanForm({ values, onChange }) {
               <Calendar size={18} />
             </div>
             <h3 className="text-base font-semibold text-[#222222] dark:text-white">
-              3. Plazo y Frecuencia
+              3. Plazo
             </h3>
           </div>
           {hasFechas && (
@@ -327,45 +318,6 @@ export function LoanForm({ values, onChange }) {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* ── SECCIÓN 4: DATOS DEL CLIENTE ── */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-xs overflow-hidden transition-all duration-200">
-        <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-              <UserRound size={18} />
-            </div>
-            <h3 className="text-base font-semibold text-[#222222] dark:text-white">
-              4. Cliente / Deudor
-            </h3>
-          </div>
-          {isClienteFilled && (
-            <span className="flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/40 px-2.5 py-1 rounded-full border border-brand-200/60 dark:border-brand-800/60">
-              <CheckCircle2 size={14} />
-              <span>Completo</span>
-            </span>
-          )}
-        </div>
-
-        <div className="p-5">
-          <label htmlFor="input-cliente" className="label-base">Nombre del Deudor / Cliente</label>
-          <div className="relative flex items-center">
-            <UserRound className="absolute left-3.5 text-slate-400 pointer-events-none" size={18} />
-            <input
-              id="input-cliente"
-              type="text"
-              maxLength={MAX_PERSON_NAME_LENGTH}
-              placeholder="Ej. Carlos Mendoza"
-              value={values.nombreCliente}
-              onChange={set('nombreCliente')}
-              className="input-base pl-10 font-medium"
-            />
-          </div>
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            Escribe solo lo necesario, por ejemplo un nombre o apodo. No ingreses cédula, cuentas bancarias ni datos sensibles.
-          </p>
         </div>
       </div>
 

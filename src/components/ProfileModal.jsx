@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Mail, Calendar, ShieldCheck, LogOut, X, Bookmark, Smartphone, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
+import { Mail, Calendar, ShieldCheck, LogOut, X, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
+export function ProfileModal({ open, onClose }) {
   const { user, logout, updatePassword, updateProfile } = useAuth();
   
   const [showNameForm, setShowNameForm]         = useState(false);
@@ -152,29 +152,6 @@ export function ProfileModal({ open, onClose, totalQuotes = 0 }) {
                 <span className="block text-[10px] text-slate-400 uppercase font-semibold">Miembro desde</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{fechaRegistro}</span>
               </div>
-            </div>
-          </div>
-
-          {/* Estadísticas del usuario */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col items-start p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand-600 dark:text-brand-400">
-                <Bookmark size={13} /> Cotizaciones
-              </span>
-              <span className="font-mono text-xl font-extrabold text-slate-900 dark:text-white mt-1">
-                {totalQuotes}
-              </span>
-              <span className="text-[10px] text-slate-400">guardadas en historial</span>
-            </div>
-
-            <div className="flex flex-col items-start p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-brand-600 dark:text-brand-400">
-                <Smartphone size={13} /> Modo Calle
-              </span>
-              <span className="font-mono text-xl font-extrabold text-slate-900 dark:text-white mt-1">
-                Activo
-              </span>
-              <span className="text-[10px] text-slate-400">cálculo ultrarrápido</span>
             </div>
           </div>
 

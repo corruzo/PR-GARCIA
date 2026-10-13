@@ -50,7 +50,7 @@ function PrestamosLista({ navigate }) {
       if (filtro === 'pagados' && p.estado !== 'pagado') return false;
       if (!term) return true;
       return p.cliente_nombre.toLowerCase().includes(term) || String(p.numero) === term.replace('#', '')
-        || p.cliente_documento.toLowerCase().includes(term);
+        || (p.cliente_documento ?? '').toLowerCase().includes(term);
     });
   }, [prestamos.data, filtro, search]);
 
@@ -170,7 +170,7 @@ function PrestamoDetalle({ id, navigate }) {
       <PageHeader
         title={`Préstamo #${p.numero}`}
         subtitle={(
-          <button type="button" className="underline" onClick={() => navigate('clientes', p.cliente_id)}>{p.cliente_nombre} · {p.cliente_documento}</button>
+          <button type="button" className="underline" onClick={() => navigate('clientes', p.cliente_id)}>{p.cliente_nombre}{p.cliente_documento ? ` · ${p.cliente_documento}` : ''}</button>
         )}
         actions={(
           <>

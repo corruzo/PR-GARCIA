@@ -74,3 +74,10 @@ test('open-loan period interest matches the SQL rounding', () => {
   assert.equal(openLoanPeriodInterestCents({ principalCents: 70000, ratePercent: 8, rateMode: 'semanal', frequency: 'semanal' }), 5600);
   assert.equal(openLoanPeriodInterestCents({ principalCents: 100000, ratePercent: 10, rateMode: 'mensual', frequency: 'semanal' }), 2333);
 });
+
+test('a client only needs a name; the document is optional but validated when present', () => {
+  const quick = validateCliente({ nombre: 'Luis' });
+  assert.equal(quick.ok, true);
+  assert.equal(quick.value.numero_documento, null);
+  assert.equal(validateCliente({ nombre: 'Luis', numero_documento: '12' }).ok, false);
+});

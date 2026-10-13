@@ -10,8 +10,8 @@ const base = {
 
 test('fixed USD quote lists installments only in dollars and the payment rules', () => {
   const resultado = simularPrestamo({ ...base, moneda: 'USD', tipoPlazo: 'fijo' });
-  const text = buildQuoteMessage({ resultado, cronograma: generarCronograma(resultado), nombreCliente: 'Ana', fechaHoy: '05/01/2026' });
-  assert.match(text, /Hola Ana/);
+  const text = buildQuoteMessage({ resultado, cronograma: generarCronograma(resultado), fechaHoy: '05/01/2026' });
+  assert.match(text, /^Hola, estas son las condiciones del préstamo:/);
   assert.match(text, /Cuota 1 \(12\/01\/2026\): \$ /);
   assert.doesNotMatch(text, /Bs\./, 'sin equivalentes en bolívares');
   assert.match(text, /tasa oficial del dólar \(BCV\) vigente el día del pago/);
@@ -28,7 +28,7 @@ test('VES quote allows paying in both currencies', () => {
 
 test('open-loan quote explains weekly interest and paying capital whenever possible', () => {
   const resultado = simularPrestamo({ ...base, moneda: 'USD', tipoPlazo: 'abierto' });
-  const text = buildQuoteMessage({ resultado, nombreCliente: 'Luis', fechaHoy: '05/01/2026' });
+  const text = buildQuoteMessage({ resultado, fechaHoy: '05/01/2026' });
   assert.match(text, /Intereses por semana: \$ 80,00 mientras debas \$ 1\.000,00/);
   assert.match(text, /Primer pago de intereses: 12\/01\/2026/);
   assert.match(text, /Sin fecha de fin/);

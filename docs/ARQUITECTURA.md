@@ -18,7 +18,7 @@
 
 La app es una SPA en la ruta pública `/`. Sin sesión muestra la bienvenida; con sesión, la vista activa se toma del hash (`#/clientes`, `#/prestamos/<id>`, `#/prestamos/nuevo?cliente=<id>`…) mediante `src/features/cartera/router.js`, que valida vista e identificadores. Los módulos se registran en `src/features/cartera/navigation.js`, que alimenta `Header.jsx` y `SidebarMobile.jsx`. Cada módulo se carga de forma diferida (`lazy`).
 
-Flujo principal: Cliente → Nuevo préstamo (o «Convertir en préstamo» desde la calculadora) → Detalle con cronograma → Registrar pago / abono → Cobranza (vencidas, hoy, próximos 7 días, recordatorio por WhatsApp) → Reportes.
+Flujo principal: Calculadora (solo estima y comparte) → «Convertir en préstamo» → elegir o crear el cliente (basta el nombre) → Nuevo préstamo → Detalle con cronograma → Registrar pago / abono → Cobranza (vencidas, hoy, próximos 7 días, recordatorio por WhatsApp) → Reportes.
 
 ## Acceso a datos
 

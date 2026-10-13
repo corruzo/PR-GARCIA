@@ -9,7 +9,7 @@ import { RateTicker } from './RateTicker';
 import { handleTabKeyDown } from '../utils/keyboardTabs';
 import { NAV_ITEMS } from '../features/cartera/navigation';
 
-export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0 }) {
+export function Header({ activeTab, onChangeTab, onOpenProfile }) {
   const { dark, toggle } = useTheme();
   const [showInfo, setShowInfo] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -30,7 +30,7 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
           {/* Navegación de escritorio: íconos con etiqueta y subrayado activo (estilo categorías). */}
           <nav aria-label="Módulos" className="hidden lg:block">
             <div role="tablist" aria-label="Vistas de la cuenta" className="flex items-center gap-1">
-              {NAV_ITEMS.map(({ id, label, icon: Icon, countKey }) => {
+              {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
                 const active = activeTab === id;
                 return (
                   <button
@@ -49,9 +49,6 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
                   >
                     <span className="relative">
                       <Icon size={20} aria-hidden="true" className={active ? 'text-brand-700 dark:text-brand-400' : ''} />
-                      {countKey === 'history' && historyCount > 0 && (
-                        <span className="absolute -right-3 -top-1.5 rounded-full bg-brand-700 px-1.5 text-[10px] font-bold leading-4 text-white">{historyCount}</span>
-                      )}
                     </span>
                     <span>{label}</span>
                     <span aria-hidden="true" className={`absolute inset-x-3 -bottom-px h-0.5 rounded-full transition-colors ${
@@ -126,7 +123,6 @@ export function Header({ activeTab, onChangeTab, onOpenProfile, historyCount = 0
         activeTab={activeTab}
         onChangeTab={onChangeTab}
         onOpenProfile={onOpenProfile}
-        historyCount={historyCount}
       />
     </>
   );
