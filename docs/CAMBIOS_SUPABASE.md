@@ -49,8 +49,8 @@ Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y
 | `20261011000300_reportes_bimonetarios.sql` | `fin_tasa_actual`, antigüedad de cartera, cobranza mensual, libro mayor, `reporte_diferencial_cambiario` |
 | `20261011000400_auditoria.sql` | Bitácora inmutable de clientes, préstamos y pagos |
 | `20261012000100_prestamos_abiertos.sql` | Préstamos sin fecha de fin: columnas, generación de períodos de interés, `emitir_prestamo` con `p_tipo_plazo` |
-| `20261013000100_cliente_rapido.sql` | Clientes con solo el nombre (documento opcional) |
 | `20261012000200_prestamos_abiertos_pagos.sql` | Pagos, anulación, resumen y cancelación para préstamos abiertos; `sincronizar_prestamos_abiertos` |
+| `20261013000100_cliente_rapido.sql` | Clientes con solo el nombre (documento opcional) |
 
 ## Pruebas locales
 

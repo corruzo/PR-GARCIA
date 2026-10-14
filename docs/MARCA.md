@@ -21,7 +21,7 @@ Definido como variables RGB en `src/index.css` (`:root`, `--brand-50` … `--bra
 | Tarjetas | `#FFFFFF` + borde `#EBEBEB` | `#262628` + borde `#3A3A3C` |
 | Fondo atenuado (pie, zonas) | `#F7F7F7` | `#262628` |
 | Texto principal | `#222222` | `#F5F5F7` |
-| Texto secundario | `#6A6A6A` | `#A1A1A6` |
+| Texto secundario | `#505055` | `#C7C7CC` |
 
 Los grises no tienen tinte azul. Verde (`emerald`) solo para estados positivos (pagado, al día); rojo y ámbar solo para alertas.
 Todas las combinaciones cumplen WCAG AA y están verificadas en `tests/accessibilityContrast.test.js`.
@@ -32,6 +32,14 @@ Todas las combinaciones cumplen WCAG AA y están verificadas en `tests/accessibi
 - Títulos en minúscula y negrita, sin mayúsculas sostenidas.
 - Radios amplios (tarjetas 16 px, botones 8 px, chips redondos), sombras suaves solo al pasar el cursor o en tarjetas destacadas.
 - Foco visible en `#222222` (claro) / `#F5F5F7` (oscuro).
+
+## Legibilidad (personas mayores o sin lentes)
+
+- Texto secundario con contraste AAA (≥ 7:1); nada de grises claros para información.
+- En listas y cobranza: nombres a 18–20 px, montos a 30 px, resto a 16 px como mínimo.
+- Botones y áreas táctiles de 48 px o más; bordes de 2 px para separar tarjetas.
+- Estados con color sólido y texto («En mora · 7 días», «Al día»), nunca solo con color.
+- Diseño de una columna en teléfonos (probado desde 360 px) y dos columnas en pantallas grandes.
 
 ## Navegación
 

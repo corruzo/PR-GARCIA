@@ -24,10 +24,11 @@ test('brand colors for buttons, navigation and text meet WCAG AA contrast', () =
     ['#FFFFFF', '#84102F'], // botón al pasar el cursor
     ['#9F1239', '#FFFFFF'], // texto y enlaces de marca
     ['#222222', '#FFFFFF'], // texto principal
-    ['#6A6A6A', '#FFFFFF'], // texto secundario
+    ['#505055', '#FFFFFF'], // texto secundario (oscurecido para leer sin lentes)
+    ['#505055', '#F7F7F7'], // texto secundario sobre fondo atenuado
     ['#F5F5F7', '#1C1C1E'], // texto principal modo oscuro
-    ['#A1A1A6', '#1C1C1E'], // texto secundario modo oscuro
-    ['#A1A1A6', '#262628'], // texto secundario en tarjetas oscuras
+    ['#C7C7CC', '#1C1C1E'], // texto secundario modo oscuro
+    ['#C7C7CC', '#262628'], // texto secundario en tarjetas oscuras
     ['#FB7185', '#1C1C1E'], // acento de marca en modo oscuro
     ['#FB7185', '#262628'], // acento sobre tarjetas oscuras
     ['#84102F', '#FFF1F3'], // etiqueta de marca sobre fondo rosado
@@ -43,4 +44,9 @@ test('brand colors for buttons, navigation and text meet WCAG AA contrast', () =
 test('focus outlines meet the 3:1 non-text contrast minimum', () => {
   assert.ok(contrastRatio('#222222', '#FFFFFF') >= 3);
   assert.ok(contrastRatio('#F5F5F7', '#1C1C1E') >= 3);
+});
+
+test('secondary text reaches AAA (7:1) for low-vision readability', () => {
+  assert.ok(contrastRatio('#505055', '#FFFFFF') >= 7);
+  assert.ok(contrastRatio('#C7C7CC', '#1C1C1E') >= 7);
 });
