@@ -46,10 +46,14 @@ async function fetchCurrentRate(signal) {
   throw new Error('upstream unavailable');
 }
 
-async function readLatestRate(supabase) {
-  const { data, error } = await supabase
+// `officialOnly`: solo tasas publicadas por el BCV (estado 'ok'); las de
+// proveedores referenciales se guardan con estado 'referencial'.
+async function readLatestRate(supabase, { officialOnly = false } = {}) {
+  let query = supabase
     .from('tasa_bcv')
-    .select('tasa,fuente,fecha_hora')
+    .select('tasa,fuente,fecha_hora,estado');
+  if (officialOnly) query = query.eq('estado', 'ok');
+  const { data, error } = await query
     .order('fecha_hora', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -61,13 +65,14 @@ async function readLatestRate(supabase) {
     value: Number(data.tasa),
     source: data.fuente,
     fetchedAt: data.fecha_hora,
+    official: data.estado === 'ok',
   };
 }
 
-async function persistRate(supabase, rate, source) {
+async function persistRate(supabase, rate, source, official) {
   const { data, error } = await supabase
     .from('tasa_bcv')
-    .insert({ tasa: rate, fuente: source, estado: 'ok' })
+    .insert({ tasa: rate, fuente: source, estado: official ? 'ok' : 'referencial' })
     .select('tasa,fuente,fecha_hora')
     .single();
 
@@ -95,7 +100,7 @@ function sendStale(res, latest) {
     source: latest.source,
     fetchedAt: latest.fetchedAt,
     stale: true,
-    verifiedAgainstBCV: false,
+    verifiedAgainstBCV: Boolean(latest.official),
   });
 }
 
@@ -116,11 +121,15 @@ export default async function handler(req, res) {
 
   const supabase = getSupabaseClient();
   let latest = null;
+  let latestOfficial = null;
   let storageReadable = false;
 
   if (supabase) {
     try {
-      latest = await readLatestRate(supabase);
+      [latest, latestOfficial] = await Promise.all([
+        readLatestRate(supabase),
+        readLatestRate(supabase, { officialOnly: true }),
+      ]);
       storageReadable = true;
     } catch {
       console.warn('[BCV] No se pudo consultar la tasa guardada.');
@@ -134,19 +143,21 @@ export default async function handler(req, res) {
   try {
     current = await fetchCurrentRate(controller.signal);
   } catch {
-    return sendStale(res, latest);
+    return sendStale(res, latestOfficial ?? latest);
   } finally {
     clearTimeout(timeout);
   }
 
-  if (!isReasonableBCVRate(current.value, latest?.value)) {
+  // El salto máximo se mide contra la última tasa oficial guardada.
+  if (!isReasonableBCVRate(current.value, latestOfficial?.value ?? latest?.value)) {
     console.warn('[BCV] Se rechazó una variación de tasa fuera del rango permitido.');
-    return sendStale(res, latest);
+    return sendStale(res, latestOfficial ?? latest);
   }
 
-  if (supabase && storageReadable && shouldPersistBCVRate(latest, current.value)) {
+  const previous = current.official ? latestOfficial : latest;
+  if (supabase && storageReadable && shouldPersistBCVRate(previous, current.value)) {
     try {
-      latest = await persistRate(supabase, current.value, current.source);
+      latest = await persistRate(supabase, current.value, current.source, current.official);
     } catch {
       console.warn('[BCV] No se pudo persistir la tasa consultada.');
     }

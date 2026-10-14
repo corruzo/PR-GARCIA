@@ -56,14 +56,16 @@ test('partial payment covers interest first and leaves the installment partial',
   assert.deepEqual([c1.int, c1.cap, c1.estado], [10000, 2000, 'parcial']);
 });
 
-test('VES payment is converted with the payment-day rate', { skip: skipDb }, () => {
+test('VES payment is converted with the payment-day rate (USD loan: only interest and mora)', { skip: skipDb }, () => {
   const id = nuevoPrestamo();
-  pagar(id, { fecha: '2026-01-16', moneda: 'VES', monto: 1733360, tasa: 40 }); // 43334 USD cents
-  assert.equal(cuotas(id)[0].estado, 'pagada');
+  pagar(id, { fecha: '2026-01-16', moneda: 'VES', monto: 400000, tasa: 40 }); // 10000 USD cents = interés de la cuota 1
+  assert.deepEqual([cuotas(id)[0].int, cuotas(id)[0].cap, cuotas(id)[0].estado], [10000, 0, 'parcial']);
   const pago = psql(db, `select json_build_array(moneda_pago, monto_pago_cents, monto_prestamo_cents) from public.pagos where prestamo_id = '${id}';`, { json: true });
-  assert.deepEqual(pago, ['VES', 1733360, 43334]);
+  assert.deepEqual(pago, ['VES', 400000, 10000]);
   const caja = psql(db, `select json_build_array(moneda_original, monto_original_cents, debe_cents) from public.asiento_lineas l join public.asientos a on a.id = l.asiento_id where a.prestamo_id = '${id}' and a.tipo = 'cobro' and cuenta = 'caja';`, { json: true });
-  assert.deepEqual(caja, ['VES', 1733360, 43334]);
+  assert.deepEqual(caja, ['VES', 400000, 10000]);
+  // El capital de un préstamo en dólares no se recibe en bolívares.
+  assert.throws(() => pagar(id, { fecha: '2026-01-16', moneda: 'VES', monto: 1333360, tasa: 40 }), /solo se reciben intereses y mora/);
 });
 
 test('late payment accrues daily default interest after the grace period and pays it first', { skip: skipDb }, () => {
@@ -92,7 +94,7 @@ test('mora stops growing once overdue principal and interest are paid', { skip: 
 
 test('paying the whole balance closes the loan; overpayment is rejected atomically', { skip: skipDb }, () => {
   const id = nuevoPrestamo();
-  assert.throws(() => pagar(id, { fecha: '2026-01-05', monto: 124668 }), /excede el saldo pendiente por 1 centavos/);
+  assert.throws(() => pagar(id, { fecha: '2026-01-05', monto: 124668 }), /excede el saldo pendiente por 0,01 USD/);
   assert.equal(psql(db, `select count(*) from public.pagos where prestamo_id = '${id}';`), '0');
   pagar(id, { fecha: '2026-01-05', monto: 124667 });
   assert.equal(psql(db, `select estado from public.prestamos where id = '${id}';`), 'pagado');
@@ -195,7 +197,7 @@ test('other users cannot pay, void or read foreign payments', { skip: skipDb }, 
   assert.throws(() => psql(db, asUser(BETO, `select public.anular_pago('${pago}', 'hack');`)), /Pago no encontrado/);
   assert.equal(psql(db, asUser(BETO, `select count(*) from public.pagos;`)), '0');
   assert.equal(psql(db, asUser(BETO, `select count(*) from public.v_prestamos_resumen;`)), '0');
-  assert.throws(() => psql(db, asUser(ANA, `select public.fin_devengar_mora('${id}', '2030-01-01');`)), /permission denied/);
+  assert.throws(() => psql(db, asUser(ANA, `select public.fin_devengar_mora('${id}', '2030-01-01', null);`)), /permission denied/);
 });
 
 test('loan summary view aggregates pending balances', { skip: skipDb }, () => {

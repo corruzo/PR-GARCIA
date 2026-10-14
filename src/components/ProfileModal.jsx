@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Mail, Calendar, ShieldCheck, LogOut, X, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText, passwordIssue } from '../utils/inputValidation';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -16,6 +16,7 @@ export function ProfileModal({ open, onClose }) {
   const [nameSuccess, setNameSuccess]           = useState('');
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword]   = useState('');
   const [newPassword, setNewPassword]           = useState('');
   const [confirmPassword, setConfirmPassword]   = useState('');
   const [showPass, setShowPass]                 = useState(false);
@@ -67,8 +68,13 @@ export function ProfileModal({ open, onClose }) {
     setPassError('');
     setPassSuccess('');
 
-    if (!newPassword || newPassword.length < 6) {
-      setPassError('La nueva contraseña debe tener al menos 6 caracteres.');
+    if (user.hasPassword && !currentPassword) {
+      setPassError('Ingresa tu contraseña actual.');
+      return;
+    }
+    const passwordProblem = passwordIssue(newPassword);
+    if (passwordProblem) {
+      setPassError(passwordProblem);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -78,8 +84,9 @@ export function ProfileModal({ open, onClose }) {
 
     setLoadingPass(true);
     try {
-      await updatePassword(newPassword);
+      await updatePassword(newPassword, currentPassword);
       setPassSuccess('¡Contraseña actualizada exitosamente!');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => {
@@ -266,13 +273,28 @@ export function ProfileModal({ open, onClose }) {
                   </div>
                 )}
 
+                {user.hasPassword && (
+                  <div>
+                    <label htmlFor="profile-current-password" className="label-base">Contraseña actual</label>
+                    <input
+                      id="profile-current-password"
+                      type={showPass ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={loadingPass}
+                      className="input-base min-h-10"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="profile-new-password" className="label-base">Nueva Contraseña</label>
                   <div className="relative">
                     <input
                       id="profile-new-password"
                       type={showPass ? 'text' : 'password'}
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres, con letras y números"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={loadingPass}

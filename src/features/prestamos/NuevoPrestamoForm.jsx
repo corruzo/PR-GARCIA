@@ -3,10 +3,11 @@ import { FREQUENCY_DAYS, buildSchedule, normalizeLoanTerms, openLoanPeriodIntere
 import { parseAmountInput, parseRateInput } from '../../../shared/finance/input.js';
 import { addDaysISO, isISODate, todayCaracas, toDisplayDate } from '../../../shared/finance/dates.js';
 import { convertCents } from '../../../shared/finance/money.js';
-import { getCachedBCV } from '../../services/bcvService';
 import * as api from '../cartera/api';
 import { useRemote } from '../cartera/useRemote';
-import { newIdempotencyKey } from '../cartera/helpers';
+import { newIdempotencyKey, requiereConfirmarTasa, tasaInicial } from '../cartera/helpers';
+import { TasaCambioField } from '../cartera/TasaCambioField';
+import { useTasaReferencia } from '../cartera/useTasaReferencia';
 import { Card, ErrorBox, Field, Loading, Money, SegmentedControl } from '../cartera/ui';
 import { ClientePicker } from '../clientes/ClientePicker';
 
@@ -30,7 +31,6 @@ const METODOS = [
 
 function initialForm(clienteId, prefill) {
   const hoy = todayCaracas();
-  const cached = getCachedBCV();
   return {
     clienteId: clienteId || '',
     moneda: prefill?.moneda === 'VES' ? 'VES' : 'USD',
@@ -42,8 +42,9 @@ function initialForm(clienteId, prefill) {
     tipoPlazo: prefill?.tipoPlazo || 'abierto',
     fechaInicio: prefill?.fechaInicio || hoy,
     fechaFin: prefill?.fechaFin || addDaysISO(hoy, 30),
-    tasaCambio: prefill?.tasaBCV ? String(prefill.tasaBCV) : cached?.rate ? String(cached.rate) : '',
-    fuenteTasa: cached?.verifiedAgainstBCV ? 'BCV' : 'manual',
+    // null = sin tocar: se usa la tasa BCV de referencia en cuanto llega.
+    tasaCambio: prefill?.tasaBCV ? String(prefill.tasaBCV) : null,
+    fuenteTasa: prefill?.tasaBCV ? 'BCV' : null,
     tasaMora: '0',
     diasGracia: '0',
     notas: '',
@@ -59,6 +60,10 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const { referencia } = useTasaReferencia();
+  const [confirmarTasa, setConfirmarTasa] = useState(false);
+  const tasaTexto = form.tasaCambio ?? tasaInicial(referencia);
+  const fuenteTasa = form.fuenteTasa ?? (tasaTexto && referencia?.oficial ? 'BCV' : 'manual');
   const set = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event?.target ? event.target.value : event }));
 
   const parsed = useMemo(() => {
@@ -67,8 +72,9 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
     if (!capitalCents) errors.monto = 'Ingresa un monto válido.';
     const tasa = parseRateInput(form.tasa);
     if (!tasa) errors.tasa = 'Ingresa una tasa mayor a 0.';
-    const tasaCambio = parseRateInput(form.tasaCambio);
+    const tasaCambio = parseRateInput(tasaTexto);
     if (!tasaCambio) errors.tasaCambio = 'Ingresa la tasa de cambio del día.';
+    else if (requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
     const tasaMora = form.tasaMora.trim() === '' ? 0 : Number(form.tasaMora.replace(',', '.'));
     if (!Number.isFinite(tasaMora) || tasaMora < 0 || tasaMora > 5) errors.tasaMora = 'Entre 0 y 5 % diario.';
     const diasGracia = Number(form.diasGracia || 0);
@@ -94,11 +100,18 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
       primerVencimiento: addDaysISO(form.fechaInicio, intervalo),
     } : null;
     return { errors, capitalCents, tasa, tasaCambio, tasaMora, diasGracia, plan, periodo };
-  }, [form]);
+  }, [form, referencia, confirmarTasa, tasaTexto]);
 
   const listaClientes = [...(clientes.data ?? []), ...nuevos.filter((n) => !(clientes.data ?? []).some((c) => c.id === n.id))];
   const showErrors = touched ? parsed.errors : {};
   const otraMoneda = form.moneda === 'USD' ? 'VES' : 'USD';
+
+  const cambiarTasa = (e) => {
+    const value = e.target.value;
+    const esReferencia = referencia && parseRateInput(value) === Number(referencia.tasa);
+    setForm((prev) => ({ ...prev, tasaCambio: value, fuenteTasa: esReferencia && referencia.oficial ? 'BCV' : 'manual' }));
+    setConfirmarTasa(false);
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -111,8 +124,8 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
         clienteId: form.clienteId, moneda: form.moneda, capitalCents: parsed.capitalCents, tasaInteres: parsed.tasa,
         modalidadTasa: form.modalidadTasa, frecuenciaPago: form.frecuenciaPago, metodoInteres: form.metodoInteres,
         fechaInicio: form.fechaInicio, fechaFin: form.fechaFin, tasaCambio: parsed.tasaCambio,
-        fuenteTasaCambio: form.fuenteTasa, tasaMoraDiaria: parsed.tasaMora, diasGracia: parsed.diasGracia,
-        notas: form.notas.trim(), idempotencyKey, tipoPlazo: form.tipoPlazo,
+        fuenteTasaCambio: fuenteTasa, tasaMoraDiaria: parsed.tasaMora, diasGracia: parsed.diasGracia,
+        notas: form.notas.trim(), idempotencyKey, tipoPlazo: form.tipoPlazo, confirmarTasa,
       });
       onCreated(id);
     } catch (error) {
@@ -153,11 +166,9 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
               <dd className="text-right capitalize">{form.frecuenciaPago}</dd>
             </dl>
             <div className="mt-4">
-              <Field id="prestamo-tasa-cambio-resumen" label="Tasa del día (Bs/USD)" error={showErrors.tasaCambio}
-                hint="Queda registrada en el préstamo.">
-                {(a11y) => <input {...a11y} className="input-base num" inputMode="decimal" value={form.tasaCambio}
-                  onChange={(e) => setForm((prev) => ({ ...prev, tasaCambio: e.target.value, fuenteTasa: 'manual' }))} />}
-              </Field>
+              <TasaCambioField id="prestamo-tasa-cambio-resumen" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia}
+                hint="Queda registrada en el préstamo." onChange={cambiarTasa} confirmada={confirmarTasa} onConfirmar={setConfirmarTasa}
+                error={showErrors.tasaCambio} />
             </div>
             {(showErrors.monto || showErrors.tasa || showErrors.terminos) && (
               <div className="mt-3"><ErrorBox message="Revisa las condiciones: pulsa «Editar» para corregirlas." /></div>
@@ -174,11 +185,9 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
               <Field id="prestamo-monto" label="Monto" error={showErrors.monto}>
                 {(a11y) => <input {...a11y} className="input-base num font-bold" inputMode="decimal" placeholder="0,00" value={form.monto} onChange={set('monto')} />}
               </Field>
-              <Field id="prestamo-tasa-cambio" label="Tasa del día (Bs/USD)" error={showErrors.tasaCambio}
-                hint={form.fuenteTasa === 'BCV' ? 'Tasa BCV guardada; queda fija en el préstamo.' : 'Queda fija en el préstamo.'}>
-                {(a11y) => <input {...a11y} className="input-base num" inputMode="decimal" value={form.tasaCambio}
-                  onChange={(e) => setForm((prev) => ({ ...prev, tasaCambio: e.target.value, fuenteTasa: 'manual' }))} />}
-              </Field>
+              <TasaCambioField id="prestamo-tasa-cambio" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia}
+                hint="Queda fija en el préstamo." onChange={cambiarTasa} confirmada={confirmarTasa} onConfirmar={setConfirmarTasa}
+                error={showErrors.tasaCambio} />
             </div>
           </div>
         </Card>

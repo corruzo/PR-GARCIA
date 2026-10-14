@@ -2,6 +2,7 @@ import { CalendarClock, ChartColumn, HandCoins, Moon, Sun, Users } from 'lucide-
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { BrandLogo } from './BrandLogo';
+import { CONTACT_EMAIL } from '../config';
 
 const HOW_IT_WORKS = [
   {
@@ -182,7 +183,7 @@ export function WelcomeHome() {
             <a href="/terminos" className="hover:underline">Términos</a>
             <a href="/privacidad" className="hover:underline">Privacidad</a>
             <a href="/aviso-legal" className="hover:underline">Aviso legal</a>
-            <a href="mailto:{{EMAIL_CONTACTO}}" className="hover:underline">Contacto</a>
+            {CONTACT_EMAIL && <a href={`mailto:${CONTACT_EMAIL}`} className="hover:underline">Contacto</a>}
           </nav>
         </div>
       </footer>

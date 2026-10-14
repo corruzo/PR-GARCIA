@@ -55,7 +55,7 @@ async function handleBCV(request, response) {
 
     const changed = Boolean(previous && Number(previous.value) !== rate);
     const saved = shouldPersistBCVRate(previous, rate)
-      ? saveBCVRate({ rate, source })
+      ? saveBCVRate({ rate, source, official })
       : previous;
 
     sendJson(response, 200, {

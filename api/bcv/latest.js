@@ -19,12 +19,14 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data, error } = await supabase
-      .from('tasa_bcv')
-      .select('tasa,fuente,fecha_hora')
-      .order('fecha_hora', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Prefiere la última tasa oficial; si nunca se guardó una, la referencial.
+    const latestOf = (official) => {
+      let query = supabase.from('tasa_bcv').select('tasa,fuente,fecha_hora,estado');
+      if (official) query = query.eq('estado', 'ok');
+      return query.order('fecha_hora', { ascending: false }).limit(1).maybeSingle();
+    };
+    let { data, error } = await latestOf(true);
+    if (!error && !data) ({ data, error } = await latestOf(false));
 
     if (error) {
       res.setHeader('Cache-Control', 'no-store');
@@ -42,6 +44,7 @@ export default async function handler(req, res) {
       value: Number(data.tasa),
       source: data.fuente,
       fetchedAt: data.fecha_hora,
+      verifiedAgainstBCV: data.estado === 'ok',
     });
   } catch {
     res.setHeader('Cache-Control', 'no-store');

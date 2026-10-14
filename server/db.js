@@ -22,11 +22,11 @@ database.exec(`
     ON tasa_bcv (fecha_hora DESC);
 `);
 
-export function saveBCVRate({ rate, source, fetchedAt = new Date().toISOString() }) {
+export function saveBCVRate({ rate, source, official = true, fetchedAt = new Date().toISOString() }) {
   database.prepare(`
     INSERT INTO tasa_bcv (tasa, fuente, fecha_hora, estado)
-    VALUES (?, ?, ?, 'ok')
-  `).run(rate, source, fetchedAt);
+    VALUES (?, ?, ?, ?)
+  `).run(rate, source, fetchedAt, official ? 'ok' : 'referencial');
 
   return getLatestBCVRate();
 }
@@ -35,8 +35,7 @@ export function getLatestBCVRate() {
   return database.prepare(`
     SELECT tasa AS value, fuente AS source, fecha_hora AS fetchedAt, estado AS status
     FROM tasa_bcv
-    WHERE estado = 'ok'
-    ORDER BY fecha_hora DESC, id DESC
+    ORDER BY estado = 'ok' DESC, fecha_hora DESC, id DESC
     LIMIT 1
   `).get() || null;
 }

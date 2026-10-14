@@ -1,7 +1,11 @@
--- PRGARCÍA · Instalación, parte 3 de 6. Generado por npm run db:bundle.
--- Ejecuta las partes en orden (1 a 6) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 3 de 8. Generado por npm run db:bundle.
+-- Ejecuta en orden solo las partes que aún no aplicaste (1 a 8) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261011000300_reportes_bimonetarios.sql
+create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());
+alter table public.app_migraciones enable row level security;
+revoke all on public.app_migraciones from anon, authenticated;
+do $guard$ begin if exists (select 1 from public.app_migraciones where version = '20261011000300') then raise exception 'La migración 20261011000300 ya está aplicada: no repitas esta parte.'; end if; end $guard$;
 create or replace function public.fin_tasa_actual()
 returns numeric language sql stable security definer set search_path = '' as $$
   select tasa from public.tasa_bcv where estado = 'ok' order by fecha_hora desc limit 1;
@@ -91,7 +95,12 @@ revoke execute on function public.reporte_diferencial_cambiario(numeric) from pu
 grant execute on function public.reporte_diferencial_cambiario(numeric) to authenticated;
 grant select on public.v_cartera_antiguedad, public.v_cobranza_mensual, public.v_libro_mayor to authenticated;
 revoke all on public.v_cartera_antiguedad, public.v_cobranza_mensual, public.v_libro_mayor from anon;
+insert into public.app_migraciones (version) values ('20261011000300') on conflict do nothing;
 -- 20261011000400_auditoria.sql
+create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());
+alter table public.app_migraciones enable row level security;
+revoke all on public.app_migraciones from anon, authenticated;
+do $guard$ begin if exists (select 1 from public.app_migraciones where version = '20261011000400') then raise exception 'La migración 20261011000400 ya está aplicada: no repitas esta parte.'; end if; end $guard$;
 create table public.auditoria (
   id bigint generated always as identity primary key,
   user_id uuid not null,
@@ -132,4 +141,5 @@ create trigger prestamos_auditoria after insert or update or delete on public.pr
   for each row execute function public.fin_auditar();
 create trigger pagos_auditoria after insert or update or delete on public.pagos
   for each row execute function public.fin_auditar();
+insert into public.app_migraciones (version) values ('20261011000400') on conflict do nothing;
 commit;
