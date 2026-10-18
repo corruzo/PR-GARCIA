@@ -36,7 +36,7 @@ modificar ni borrar.
 
 | Archivo | Operación |
 | --- | --- |
-| `api/bcv.js` | Lee la última tasa (oficial y cualquiera), consulta el BCV/proveedores y guarda la nueva con estado `ok` (oficial) o `referencial`. |
+| `api/bcv.js` | Lee la última tasa (oficial y cualquiera) y consulta **primero la portada de www.bcv.org.ve** (`api/_lib/bcvPagina.js`): esa es la única tasa que se guarda como oficial (`ok`), con su fecha valor. Si el BCV no responde, usa dolarapi.com, open.er-api.com o exchangerate-api.com y las guarda como `referencial`. |
 | `api/bcv/latest.js` | Devuelve la última tasa oficial guardada (o la referencial si no hay oficial). |
 
 En desarrollo, `server/index.js` sirve estas mismas funciones.

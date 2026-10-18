@@ -1,50 +1,50 @@
 import { createInMemoryRateLimiter, isReasonableBCVRate, shouldPersistBCVRate } from '../shared/bcvPolicy.js';
 import { getSupabaseClient } from './_lib/db.js';
+import { obtenerTasaBCV } from './_lib/bcvPagina.js';
 
 const CACHE_HEADERS = 's-maxage=120, stale-while-revalidate=300';
 const RATE_LIMIT_HEADERS = 'no-store';
-const UPSTREAM_TIMEOUT_MS = 8000;
+const UPSTREAM_TIMEOUT_MS = 9000;
+const BCV_TIMEOUT_MS = 6000;
 const allowBCVRequest = createInMemoryRateLimiter();
 
-async function fetchRate(url, source, readValue, signal, accept = 'application/json', official = false) {
-  const response = await fetch(url, {
-    headers: { Accept: accept },
-    signal,
-  });
+async function fetchJsonRate(url, source, readValue, signal) {
+  const response = await fetch(url, { headers: { Accept: 'application/json' }, signal });
   if (!response.ok) throw new Error('upstream response was not successful');
-
-  const payload = accept === 'text/html' ? await response.text() : await response.json();
-  const rate = Number(readValue(payload));
+  const rate = Number(readValue(await response.json()));
   if (!Number.isFinite(rate) || rate <= 0) throw new Error('upstream rate is invalid');
-  return { value: rate, source, official };
+  return { value: rate, source, official: false };
 }
 
-function extractBCVRate(html) {
-  const match = html.match(/id=['"]dolar['"][^>]*>[\s\S]*?<strong[^>]*>(.*?)<\/strong>/i)
-    || html.match(/(?:>\s*USD\s*<|\bUSD\b)[\s\S]{0,240}?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]+)/i);
-  const raw = match?.[1]?.replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.');
-  return Number(raw);
+/** Tasa oficial leída directamente de la portada de www.bcv.org.ve. */
+async function fetchBCVPage(signal) {
+  const { tasa, fechaValor } = await obtenerTasaBCV({ signal, timeoutMs: BCV_TIMEOUT_MS });
+  const valor = fechaValor ? ` · fecha valor ${fechaValor.split('-').reverse().join('/')}` : '';
+  return { value: tasa, source: `BCV oficial (bcv.org.ve)${valor}`, official: true, fechaValor };
 }
 
-async function fetchCurrentRate(signal) {
-  const strategies = [
-    // Primero las fuentes que publican la tasa oficial del BCV; luego proveedores referenciales.
-    () => fetchRate('https://ve.dolarapi.com/v1/dolares/oficial', 'dolarapi.com (BCV Oficial)', data => data?.promedio, signal, 'application/json', true),
-    () => fetchRate('https://www.bcv.org.ve/', 'BCV oficial', extractBCVRate, signal, 'text/html', true),
-    () => fetchRate('https://open.er-api.com/v6/latest/USD', 'open.er-api.com (referencial)', data => data?.rates?.VES, signal),
-    () => fetchRate('https://api.exchangerate-api.com/v4/latest/USD', 'exchangerate-api.com (referencial)', data => data?.rates?.VES, signal),
-  ];
-
-  for (const strategy of strategies) {
+/**
+ * Orden de consulta: 1) la página del BCV (única fuente que se guarda como
+ * oficial). 2) Si no responde, proveedores referenciales: se muestran y se
+ * guardan como 'referencial', nunca como tasa oficial.
+ */
+export async function fetchCurrentRate(signal, fuentes = DEFAULT_SOURCES) {
+  for (const fuente of fuentes) {
     try {
-      return await strategy();
+      return await fuente(signal);
     } catch {
-      // Try the next upstream without exposing provider errors to clients.
+      // Se prueba la siguiente fuente sin exponer el error del proveedor.
     }
   }
-
   throw new Error('upstream unavailable');
 }
+
+const DEFAULT_SOURCES = [
+  fetchBCVPage,
+  (signal) => fetchJsonRate('https://ve.dolarapi.com/v1/dolares/oficial', 'dolarapi.com (referencial)', (d) => d?.promedio, signal),
+  (signal) => fetchJsonRate('https://open.er-api.com/v6/latest/USD', 'open.er-api.com (referencial)', (d) => d?.rates?.VES, signal),
+  (signal) => fetchJsonRate('https://api.exchangerate-api.com/v4/latest/USD', 'exchangerate-api.com (referencial)', (d) => d?.rates?.VES, signal),
+];
 
 // `officialOnly`: solo tasas publicadas por el BCV (estado 'ok'); las de
 // proveedores referenciales se guardan con estado 'referencial'.
@@ -169,5 +169,6 @@ export default async function handler(req, res) {
     source: current.source,
     fetchedAt: new Date().toISOString(),
     verifiedAgainstBCV: current.official,
+    ...(current.fechaValor ? { fechaValor: current.fechaValor } : {}),
   });
 }

@@ -25,6 +25,7 @@ export const PARTS = [
   ['20261014000300'],
   ['20261014000400'],
   ['20261018000100'],
+  ['20261018000200'],
 ];
 
 /** Quita líneas vacías y comentarios de línea completa (no toca código). */

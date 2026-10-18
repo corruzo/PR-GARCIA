@@ -12,7 +12,7 @@
 --     (scripts/volcar-esquema.sh) o reconstruirla en un proyecto Supabase
 --     NUEVO y VACÍO. Requiere el esquema auth de Supabase.
 --   * Se regenera con scripts/esquema-desde-local.sh.
--- Migraciones incluidas: hasta 20261018000100.
+-- Migraciones incluidas: hasta 20261018000200.
 -- ════════════════════════════════════════════════════════════════════════════
 
 --
@@ -2996,5 +2996,5 @@ GRANT SELECT ON TABLE public.v_libro_mayor TO authenticated;
 --
 
 INSERT INTO public.app_migraciones (version) VALUES
-  ('20261011000000'),('20261011000100'),('20261011000200'),('20261011000300'),('20261011000400'),('20261012000100'),('20261012000200'),('20261013000100'),('20261014000100'),('20261014000200'),('20261014000300'),('20261014000400'),('20261018000100')
+  ('20261011000000'),('20261011000100'),('20261011000200'),('20261011000300'),('20261011000400'),('20261012000100'),('20261012000200'),('20261013000100'),('20261014000100'),('20261014000200'),('20261014000300'),('20261014000400'),('20261018000100'),('20261018000200')
 ON CONFLICT DO NOTHING;

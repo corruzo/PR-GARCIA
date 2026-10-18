@@ -36,6 +36,8 @@ El contrato local es el mismo que en producción:
 
 En Vercel, las mismas rutas serverless consultan el BCV y guardan la tasa en Supabase. El navegador solo habla con `/api/bcv`: nunca llama directamente al BCV ni a proveedores externos.
 
+**Fuente de la tasa**: el servidor lee la tasa directamente de la portada de https://www.bcv.org.ve/ (recuadro USD y fecha valor). Es la única que se guarda como oficial. Si el BCV no responde, usa proveedores referenciales (dolarapi.com, open.er-api.com, exchangerate-api.com), marcados como «referencial». El sitio del BCV omite su certificado intermedio; `api/_lib/httpsVerificado.js` lo completa como hacen los navegadores (descarga por AIA y verifica su firma contra las raíces de confianza), sin desactivar nunca la verificación TLS.
+
 ### Variables de entorno requeridas
 
 ```bash

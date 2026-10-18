@@ -89,6 +89,8 @@ y luego `diff supabase/esquema/esquema_completo.actual.sql supabase/esquema/esqu
 | `20261014000100_correcciones_auditoria.sql` | `app_migraciones`; `fin_hoy` sin fecha simulada desde la API; tasas `referencial`; confirmación de tasa de cambio (±20 % de la BCV); límite de crédito; mora devengada por pago (`pagos_mora`); recálculo de préstamos abiertos |
 | `20261014000200_correcciones_pagos.sql` | `registrar_pago` (confirmación de tasa; préstamo en USD solo recibe intereses y mora en Bs) |
 | `20261014000300_correcciones_anulaciones.sql` | `anular_pago` (revierte mora y recalcula abiertos), `anular_pagos_desde`; libro contable, pagos y auditoría inmutables |
+| `20261018000100_endurecimiento.sql` | Clientes: solo columnas de la ficha; `user_history` sin altas; desembolso de hace ≤ 10 años |
+| `20261018000200_tasa_bcv_solo_oficial.sql` | Las tasas guardadas desde dolarapi.com pasan a `referencial`: solo la página del BCV es oficial |
 | `20261014000400_correcciones_permisos.sql` | Préstamos anulados con saldo cero en las vistas; funciones internas cerradas a anónimos |
 
 ## Pruebas locales
