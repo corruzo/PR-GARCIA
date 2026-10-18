@@ -4,6 +4,7 @@ import { WelcomeHome } from './components/WelcomeHome';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useHashRoute } from './features/cartera/router';
 import { NAV_ITEMS } from './features/cartera/navigation';
+import { CONTACT_EMAIL } from './config';
 
 const Header = lazy(() => import('./components/Header').then(module => ({ default: module.Header })));
 const ProfileModal = lazy(() => import('./components/ProfileModal').then(module => ({ default: module.ProfileModal })));
@@ -88,7 +89,7 @@ function AppContent() {
             <a href="/terminos" className="underline">Términos</a>
             <a href="/privacidad" className="underline">Privacidad</a>
             <a href="/aviso-legal" className="underline">Aviso legal</a>
-            <a href="mailto:{{EMAIL_CONTACTO}}" className="underline">Contacto</a>
+            {CONTACT_EMAIL && <a href={`mailto:${CONTACT_EMAIL}`} className="underline">Contacto</a>}
           </nav>
         </footer>
 

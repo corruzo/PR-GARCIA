@@ -64,6 +64,19 @@ export default defineConfig({
             },
           },
           {
+            // Lecturas de la cartera (Supabase REST): con red se piden siempre al
+            // servidor; sin red se muestra lo último consultado. La caché se
+            // borra al cerrar sesión (AuthContext) para no dejar datos en el equipo.
+            urlPattern: ({ request, url, sameOrigin }) => !sameOrigin && request.method === 'GET' && url.pathname.startsWith('/rest/v1/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'cartera-cache',
+              networkTimeoutSeconds: 6,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 300, maxAgeSeconds: 7 * 24 * 3600 },
+            },
+          },
+          {
             urlPattern: /^https?:\/\/(ve\.dolarapi\.com|open\.er-api\.com|pydolarve\.org|api\.exchangedna\.com)\//i,
             handler: 'NetworkFirst',
             options: {

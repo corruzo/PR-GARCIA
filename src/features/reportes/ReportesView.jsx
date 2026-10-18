@@ -3,7 +3,6 @@ import { Download } from 'lucide-react';
 import { parseRateInput } from '../../../shared/finance/input.js';
 import { centsToCSV, toCSV } from '../../../shared/finance/report.js';
 import { todayCaracas } from '../../../shared/finance/dates.js';
-import { getCachedBCV } from '../../services/bcvService';
 import * as api from '../cartera/api';
 import { useRemote } from '../cartera/useRemote';
 import { downloadText } from '../cartera/helpers';
@@ -40,8 +39,8 @@ function Tabla({ caption, headers, children }) {
 }
 
 function DiferencialCambiario() {
-  const cached = getCachedBCV();
-  const [tasaTexto, setTasaTexto] = useState(cached?.rate ? String(cached.rate) : '');
+  // Vacío = la última tasa BCV oficial guardada en el servidor (no una caché vieja).
+  const [tasaTexto, setTasaTexto] = useState('');
   const tasa = parseRateInput(tasaTexto);
   const remote = useRemote(() => api.getDiferencialCambiario(tasa), [tasa]);
   const rows = remote.data ?? [];
@@ -95,6 +94,61 @@ function DiferencialCambiario() {
           </Tabla>
         )}
       </div>
+    </Card>
+  );
+}
+
+const METODOS_PAGO = { efectivo: 'Efectivo', pago_movil: 'Pago móvil', transferencia: 'Transferencia', zelle: 'Zelle', otro: 'Otro' };
+
+/** Copia de seguridad en CSV (se abre en Excel o Google Sheets). */
+function RespaldoDatos({ prestamos }) {
+  const [estado, setEstado] = useState({ cargando: '', error: '' });
+  const numeroPorId = Object.fromEntries(prestamos.map((p) => [p.id, p.numero]));
+
+  const exportar = async (tipo) => {
+    setEstado({ cargando: tipo, error: '' });
+    try {
+      if (tipo === 'clientes') {
+        const rows = await api.listClientes();
+        downloadText(`clientes-${todayCaracas()}.csv`, toCSV([
+          { label: 'Nombre', value: 'nombre' },
+          { label: 'Documento', value: (r) => (r.numero_documento ? `${r.tipo_documento}-${r.numero_documento}` : '') },
+          { label: 'Teléfono', value: 'telefono' }, { label: 'Correo', value: 'email' }, { label: 'Dirección', value: 'direccion' },
+          { label: 'Referencia', value: 'referencia' }, { label: 'Notas', value: 'notas' }, { label: 'Estado', value: 'estado' },
+          { label: 'Límite de crédito', value: (r) => (r.limite_credito_cents == null ? '' : centsToCSV(r.limite_credito_cents)) },
+          { label: 'Moneda del límite', value: 'moneda_limite' },
+        ], rows));
+      } else {
+        const rows = await api.listTodosLosPagos();
+        downloadText(`pagos-${todayCaracas()}.csv`, toCSV([
+          { label: 'Fecha', value: 'fecha' }, { label: 'Préstamo', value: (r) => numeroPorId[r.prestamo_id] ?? '' },
+          { label: 'Tipo', value: (r) => (r.tipo === 'abono_capital' ? 'Abono a capital' : 'Cuota') },
+          { label: 'Método', value: (r) => METODOS_PAGO[r.metodo] ?? r.metodo }, { label: 'Referencia', value: 'referencia' },
+          { label: 'Moneda recibida', value: 'moneda_pago' }, { label: 'Monto recibido', value: (r) => centsToCSV(r.monto_pago_cents) },
+          { label: 'Tasa', value: (r) => String(r.tasa_cambio).replace('.', ',') },
+          { label: 'Monto en moneda del préstamo', value: (r) => centsToCSV(r.monto_prestamo_cents) },
+          { label: 'Estado', value: 'estado' }, { label: 'Motivo de anulación', value: 'anulado_motivo' },
+          { label: 'Registrado', value: (r) => new Date(r.created_at).toLocaleString('es-VE', { timeZone: 'America/Caracas' }) },
+        ], rows));
+      }
+      setEstado({ cargando: '', error: '' });
+    } catch (error) {
+      setEstado({ cargando: '', error: error.message });
+    }
+  };
+
+  return (
+    <Card title="Respaldo de datos">
+      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">Descarga tus datos en CSV para guardarlos o abrirlos en una hoja de cálculo.</p>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className="btn-secondary" disabled={Boolean(estado.cargando)} onClick={() => exportar('clientes')}>
+          <Download size={16} /> {estado.cargando === 'clientes' ? 'Preparando…' : 'Clientes'}
+        </button>
+        <button type="button" className="btn-secondary" disabled={Boolean(estado.cargando)} onClick={() => exportar('pagos')}>
+          <Download size={16} /> {estado.cargando === 'pagos' ? 'Preparando…' : 'Pagos'}
+        </button>
+      </div>
+      {estado.error && <div className="mt-3"><ErrorBox message={estado.error} /></div>}
     </Card>
   );
 }
@@ -167,6 +221,8 @@ export function ReportesView() {
       </Card>
 
       <DiferencialCambiario />
+
+      <RespaldoDatos prestamos={prestamos} />
 
       <Card title="Actividad reciente">
         {auditoria.length === 0 ? <Empty title="Sin actividad registrada" /> : (

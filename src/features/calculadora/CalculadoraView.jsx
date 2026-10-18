@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Landmark, RotateCcw } from 'lucide-react';
+import { parseRateInput } from '../../../shared/finance/input.js';
 import { todayCaracas } from '../../../shared/finance/dates.js';
 import { generarCronograma, simularPrestamo } from '../../utils/calculator';
 import { LoanForm } from '../../components/LoanForm';
 import { ResultPanel } from '../../components/ResultPanel';
 import { CronogramaTable } from '../../components/CronogramaTable';
+import { BCVField } from '../../components/BCVField';
 
 const DRAFT_KEY = 'prgarcia.calculadora.v2';
 const DRAFT_EXPIRATION_MS = 30 * 60 * 1000;
@@ -20,6 +22,7 @@ function defaults() {
     metodoInteres: 'saldo_insoluto',
     fechaInicio: todayCaracas(),
     fechaFin: '',
+    tasaBCV: '',
   };
 }
 
@@ -28,7 +31,8 @@ function loadDraft() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
     if (!saved || Date.now() - saved.timestamp > DRAFT_EXPIRATION_MS) return defaults();
-    return { ...defaults(), ...saved.values };
+    // La tasa no se guarda en el borrador: al volver se usa la personalizada o la BCV del día.
+    return { ...defaults(), ...saved.values, tasaBCV: '' };
   } catch {
     return defaults();
   }
@@ -53,9 +57,12 @@ export function CalculadoraView({ onConvertir }) {
     const monto = parseFloat(values.monto);
     const tasa = parseFloat(values.tasa);
     if (!monto || !tasa || (values.tipoPlazo !== 'abierto' && !values.fechaFin)) return null;
-    return simularPrestamo({ ...values, monto, tasa });
+    // La tasa BCV es opcional: sin ella no se muestran equivalencias en la otra moneda.
+    const tasaBCV = parseRateInput(values.tasaBCV) ?? undefined;
+    return simularPrestamo({ ...values, monto, tasa, tasaBCV });
   }, [values]);
 
+  const setTasaBCV = useCallback((value) => setValues((prev) => ({ ...prev, tasaBCV: value })), []);
   const cronograma = useMemo(() => generarCronograma(resultado), [resultado]);
   const dirty = Boolean(values.monto || values.fechaFin);
 
@@ -71,6 +78,7 @@ export function CalculadoraView({ onConvertir }) {
       tipoPlazo: resultado.tipoPlazo,
       fechaInicio: resultado.fechaInicio,
       fechaFin: resultado.fechaFin,
+      tasaBCV: resultado.tasaBCV,
     });
   };
 
@@ -84,10 +92,16 @@ export function CalculadoraView({ onConvertir }) {
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Estima un préstamo y compártelo.</p>
             </div>
             {dirty && (
-              <button type="button" className="btn-ghost" onClick={() => setValues(defaults())}>
+              <button type="button" className="btn-ghost" onClick={() => setValues((prev) => ({ ...defaults(), tasaBCV: prev.tasaBCV }))}>
                 <RotateCcw size={14} aria-hidden="true" /> Limpiar
               </button>
             )}
+          </div>
+          <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900/90">
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
+              <Landmark size={18} className="text-brand-700 dark:text-brand-400" aria-hidden="true" /> Tasa de cambio
+            </h2>
+            <BCVField value={values.tasaBCV} onChange={setTasaBCV} />
           </div>
           <LoanForm values={values} onChange={(key, value) => setValues((prev) => ({ ...prev, [key]: value }))} />
         </section>

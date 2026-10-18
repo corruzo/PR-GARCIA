@@ -1,22 +1,29 @@
 import { useMemo, useState } from 'react';
 import { parseAmountInput, parseRateInput } from '../../../shared/finance/input.js';
 import { convertCents } from '../../../shared/finance/money.js';
-import { todayCaracas } from '../../../shared/finance/dates.js';
-import { getCachedBCV } from '../../services/bcvService';
+import { todayCaracas, toDisplayDate } from '../../../shared/finance/dates.js';
 import * as api from '../cartera/api';
-import { newIdempotencyKey } from '../cartera/helpers';
+import { newIdempotencyKey, requiereConfirmarTasa, tasaInicial } from '../cartera/helpers';
+import { TasaCambioField } from '../cartera/TasaCambioField';
+import { useTasaReferencia } from '../cartera/useTasaReferencia';
+import { tasaATexto, useTasaPersonalizada } from '../../services/tasaPersonalizada';
 import { ErrorBox, Field, Money, SegmentedControl } from '../cartera/ui';
 
 const METODOS = [
   ['efectivo', 'Efectivo'], ['pago_movil', 'Pago móvil'], ['transferencia', 'Transferencia'], ['zelle', 'Zelle'], ['otro', 'Otro'],
 ];
 
-export function RegistrarPagoForm({ prestamo, onSaved }) {
-  const cached = getCachedBCV();
+export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0, interesAdelantadoCents = 0 }) {
+  // La tasa del día sale de la BCV guardada (≤ 48 h); nunca de la tasa del desembolso.
+  const { referencia } = useTasaReferencia();
   const [form, setForm] = useState(() => ({
-    moneda: prestamo.moneda, monto: '', tasaCambio: cached?.rate ? String(cached.rate) : String(prestamo.tasa_cambio),
+    // null = sin tocar: se muestra la tasa BCV de referencia en cuanto llega.
+    moneda: prestamo.moneda, monto: '', tasaCambio: null,
     fecha: todayCaracas(), tipo: 'cuota', modoAbono: 'reducir_plazo', metodo: 'efectivo', referencia: '', notas: '',
   }));
+  const [confirmarTasa, setConfirmarTasa] = useState(false);
+  const personalizada = useTasaPersonalizada();
+  const tasaTexto = form.tasaCambio ?? (personalizada ? tasaATexto(personalizada.tasa) : tasaInicial(referencia));
   const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey);
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -27,23 +34,27 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
     const errors = {};
     const montoCents = parseAmountInput(form.monto);
     if (!montoCents) errors.monto = 'Ingresa un monto válido.';
-    const tasaCambio = parseRateInput(form.tasaCambio);
+    // En dólares sobre un préstamo en dólares la tasa no cambia el monto: solo queda registrada.
+    const soloRegistro = form.moneda === 'USD' && prestamo.moneda === 'USD';
+    const tasaCambio = parseRateInput(tasaTexto) || (soloRegistro ? Number(referencia?.tasa || prestamo.tasa_cambio) : null);
     if (!tasaCambio) errors.tasaCambio = 'Ingresa la tasa del día.';
+    else if (!soloRegistro && requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa && tasaCambio !== personalizada?.tasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
     if (!form.fecha || form.fecha > todayCaracas()) errors.fecha = 'La fecha no puede ser futura.';
     if (form.fecha && form.fecha < prestamo.fecha_inicio) errors.fecha = 'No puede ser anterior al desembolso.';
     if (form.referencia.length > 80 || /[<>]/.test(form.referencia)) errors.referencia = 'Máximo 80 caracteres, sin < ni >.';
     const enMonedaPrestamo = montoCents && tasaCambio ? convertCents(montoCents, tasaCambio, form.moneda, prestamo.moneda) : null;
     return { errors, montoCents, tasaCambio, enMonedaPrestamo };
-  }, [form, prestamo]);
+  }, [form, prestamo, referencia, confirmarTasa, tasaTexto, personalizada]);
 
   const [cancelacion, setCancelacion] = useState({ loading: false, error: '' });
   const abierto = prestamo.tipo_plazo === 'abierto';
+  const soloIntereses = prestamo.moneda === 'USD' && form.moneda === 'VES';
   const showErrors = touched ? parsed.errors : {};
 
   const fill = (cents) => {
-    const tasa = parseRateInput(form.tasaCambio) || prestamo.tasa_cambio;
+    const tasa = parseRateInput(tasaTexto) || referencia?.tasa || prestamo.tasa_cambio;
     const value = convertCents(cents, tasa, prestamo.moneda, form.moneda);
-    setForm((prev) => ({ ...prev, monto: (value / 100).toFixed(2) }));
+    setForm((prev) => ({ ...prev, monto: (value / 100).toFixed(2).replace('.', ',') }));
   };
 
   // Cancelación total: el servidor calcula capital + interés ganado + mora a la fecha.
@@ -70,10 +81,12 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
         prestamoId: prestamo.id, fecha: form.fecha, moneda: form.moneda, montoCents: parsed.montoCents,
         tasaCambio: parsed.tasaCambio, tipo: form.tipo, modoAbono: form.modoAbono, metodo: form.metodo,
         referencia: form.referencia.trim(), notas: form.notas.trim(), idempotencyKey,
+        confirmarTasa: confirmarTasa || parsed.tasaCambio === personalizada?.tasa,
       });
       setIdempotencyKey(newIdempotencyKey());
       setTouched(false);
       setForm((prev) => ({ ...prev, monto: '', referencia: '', notas: '' }));
+      setConfirmarTasa(false);
       onSaved();
     } catch (error) {
       setSubmitError(error.message);
@@ -111,19 +124,26 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
         <Field id="pago-monto" label="Monto recibido" error={showErrors.monto}>
           {(a11y) => <input {...a11y} className="input-base num font-bold" inputMode="decimal" placeholder="0,00" value={form.monto} onChange={set('monto')} />}
         </Field>
-        <Field id="pago-tasa" label="Tasa del día (Bs/USD)" error={showErrors.tasaCambio}>
-          {(a11y) => <input {...a11y} className="input-base num" inputMode="decimal" value={form.tasaCambio} onChange={set('tasaCambio')} />}
-        </Field>
+        <TasaCambioField id="pago-tasa" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia} personalizada={personalizada}
+          onChange={(e) => { set('tasaCambio')(e); setConfirmarTasa(false); }}
+          confirmada={confirmarTasa} onConfirmar={setConfirmarTasa} error={showErrors.tasaCambio} />
       </div>
       <div className="flex flex-wrap gap-2">
-        {prestamo.exigible_hoy_cents > 0 && (
+        {soloIntereses ? interesExigibleCents > 0 && (
+          // Préstamo en dólares cobrado en bolívares: solo intereses y mora.
+          <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" onClick={() => fill(interesExigibleCents)}>
+            Intereses y mora vencidos (<Money cents={interesExigibleCents} currency={prestamo.moneda} />)
+          </button>
+        ) : prestamo.exigible_hoy_cents > 0 && (
           <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" onClick={() => fill(prestamo.exigible_hoy_cents)}>
             Exigible hoy (<Money cents={prestamo.exigible_hoy_cents} currency={prestamo.moneda} />)
           </button>
         )}
-        <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" disabled={cancelacion.loading} onClick={cargarCancelacion}>
-          {cancelacion.loading ? 'Calculando…' : 'Cancelación total'}
-        </button>
+        {!soloIntereses && (
+          <button type="button" className="btn-ghost border border-slate-200 dark:border-slate-700" disabled={cancelacion.loading} onClick={cargarCancelacion}>
+            {cancelacion.loading ? 'Calculando…' : 'Cancelación total'}
+          </button>
+        )}
       </div>
       {cancelacion.error && <ErrorBox message={cancelacion.error} />}
       {prestamo.moneda === 'USD' && form.moneda === 'VES' && (
@@ -134,6 +154,12 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
       {prestamo.metodo_interes === 'saldo_insoluto' && !abierto && (
         <p className="text-xs text-slate-500 dark:text-slate-400">
           Interés sobre saldo: lo que abone a capital deja de generar interés desde la fecha del pago. «Cancelación total» cobra solo el interés ganado hasta ese día.
+        </p>
+      )}
+      {prestamo.metodo_interes === 'saldo_insoluto' && interesAdelantadoCents > 0 && !soloIntereses && (
+        <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200" role="note">
+          Ya se cobraron <Money cents={interesAdelantadoCents} currency={prestamo.moneda} /> de intereses de períodos que aún no vencen.
+          Un abono a capital no devuelve ese interés: reduce los intereses de los períodos siguientes.
         </p>
       )}
       {form.moneda !== prestamo.moneda && parsed.enMonedaPrestamo !== null && (
@@ -152,6 +178,12 @@ export function RegistrarPagoForm({ prestamo, onSaved }) {
           )}
         </Field>
       </div>
+      {form.fecha && form.fecha < todayCaracas() && !showErrors.fecha && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200" role="note">
+          Pago con fecha anterior a hoy: la mora y los intereses se calculan al {toDisplayDate(form.fecha)}. Úsalo solo si el
+          cliente realmente pagó ese día; después no podrás registrar pagos con fecha anterior a esta.
+        </p>
+      )}
       <Field id="pago-referencia" label="Referencia (opcional)" error={showErrors.referencia}>
         {(a11y) => <input {...a11y} className="input-base" maxLength={80} value={form.referencia} onChange={set('referencia')} />}
       </Field>

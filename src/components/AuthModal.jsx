@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Mail, Lock, X, LogIn, UserPlus, AlertCircle, Eye, EyeOff, CheckCircle, ShieldAlert, KeyRound, ArrowLeft, Smartphone } from 'lucide-react';
+import { User, Mail, Lock, X, LogIn, UserPlus, AlertCircle, Eye, EyeOff, CheckCircle, ShieldAlert, ArrowLeft, Smartphone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { MAX_PERSON_NAME_LENGTH, normalizePlainText } from '../utils/inputValidation';
+import { MAX_PERSON_NAME_LENGTH, normalizePlainText, passwordIssue } from '../utils/inputValidation';
 
 export function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalTab, login, register, resetPasswordForEmail, verifyOtpAndSetPassword, loginWithProvider, supabaseReady } = useAuth();
@@ -16,12 +16,15 @@ export function AuthModal() {
   const [error, setError]               = useState('');
   const [success, setSuccess]           = useState('');
   const [cargando, setCargando]         = useState(false);
+  // El código de 6 dígitos sirve para confirmar el registro o para recuperar la contraseña.
+  const [otpPurpose, setOtpPurpose]     = useState('recovery');
 
   // State for OTP Code boxes (6 digits)
   const [otpDigits, setOtpDigits]       = useState(['', '', '', '', '', '']);
   const otpRefs                         = useRef([]);
 
   const emailInputRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     setTab(authModalTab);
@@ -32,7 +35,11 @@ export function AuthModal() {
 
   useEffect(() => {
     if (isAuthModalOpen && tab !== 'otp') {
-      setTimeout(() => emailInputRef.current?.focus(), 100);
+      // No roba el foco si la persona ya está escribiendo en otro campo del modal.
+      const timer = setTimeout(() => {
+        if (!dialogRef.current?.contains(document.activeElement)) emailInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isAuthModalOpen, tab]);
 
@@ -68,14 +75,15 @@ export function AuthModal() {
         setError('Ingresa el código completo de 6 dígitos.');
         return;
       }
-      if (!password || password.length < 6) {
-        setError('Ingresa tu nueva contraseña (mínimo 6 caracteres).');
+      const recovery = otpPurpose === 'recovery';
+      if (recovery && passwordIssue(password)) {
+        setError(passwordIssue(password));
         return;
       }
       setCargando(true);
       try {
-        await verifyOtpAndSetPassword(email, code, password);
-        setSuccess('¡Contraseña restablecida e inicio de sesión correcto!');
+        await verifyOtpAndSetPassword(email, code, recovery ? password : null);
+        setSuccess(recovery ? '¡Contraseña restablecida e inicio de sesión correcto!' : '¡Cuenta confirmada!');
       } catch (err) {
         setError(err?.message || 'Código de verificación inválido o expirado.');
       } finally {
@@ -93,6 +101,8 @@ export function AuthModal() {
       try {
         await resetPasswordForEmail(email);
         setSuccess(`Si ${email} está asociado a una cuenta, recibirás instrucciones. Revisa tu bandeja o spam.`);
+        setOtpPurpose('recovery');
+        setPassword('');
         setTab('otp');
       } catch (err) {
         setError(err?.message || 'No se pudo verificar el correo electrónico.');
@@ -106,8 +116,8 @@ export function AuthModal() {
       setError('Ingresa un correo electrónico válido.');
       return;
     }
-    if (!password || password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+    if (!password || (tab === 'register' && passwordIssue(password))) {
+      setError(tab === 'register' ? passwordIssue(password) : 'Ingresa tu contraseña.');
       return;
     }
     if (tab === 'register' && !name.trim()) {
@@ -126,6 +136,7 @@ export function AuthModal() {
       const msg = err?.message || 'Ocurrió un error al procesar la solicitud.';
       if (msg.startsWith('✉️')) {
         setSuccess(msg.replace('✉️ ', ''));
+        setOtpPurpose('signup');
         setTab('otp');
       } else {
         setError(msg);
@@ -155,6 +166,7 @@ export function AuthModal() {
       onClick={closeAuthModal}
     >
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
@@ -183,9 +195,9 @@ export function AuthModal() {
                 {tab === 'login' && 'Iniciar Sesión'}
                 {tab === 'register' && 'Crear Cuenta'}
                 {tab === 'forgot' && 'Recuperar Contraseña'}
-                {tab === 'otp' && 'Verificación OTP'}
+                {tab === 'otp' && (otpPurpose === 'signup' ? 'Confirma tu correo' : 'Nueva contraseña')}
               </h2>
-              <p className="text-[11px] font-semibold text-slate-400">PRGARCÍA · Calculadora</p>
+              <p className="text-[11px] font-semibold text-slate-400">PRGARCÍA · Gestión de préstamos</p>
             </div>
           </div>
 
@@ -261,7 +273,7 @@ export function AuthModal() {
               <div className="text-center">
                 <Smartphone className="mx-auto text-brand-500 mb-2" size={28} />
                 <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  Ingresa el código de 6 dígitos que enviamos a tu dispositivo.
+                  Ingresa el código de 6 dígitos que enviamos a {email || 'tu correo'}.
                 </p>
               </div>
 
@@ -333,7 +345,7 @@ export function AuthModal() {
           )}
 
           {/* Contraseña (login, register, otp) */}
-          {(tab === 'login' || tab === 'register' || tab === 'otp') && (
+          {(tab === 'login' || tab === 'register' || (tab === 'otp' && otpPurpose === 'recovery')) && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="auth-password" className="label-base mb-0">
@@ -387,7 +399,7 @@ export function AuthModal() {
               <span className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full" />
             ) : (
               <>
-                {tab === 'login' && 'Entrar a la Calculadora'}
+                {tab === 'login' && 'Entrar'}
                 {tab === 'register' && 'Crear mi cuenta'}
                 {tab === 'forgot' && 'Enviar Código de Recuperación'}
                 {tab === 'otp' && 'Verificar Código'}

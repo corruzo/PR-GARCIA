@@ -51,8 +51,11 @@ export function ResultPanel({ resultado, onConvertir }) {
     );
   }
 
-  const { moneda, frecuenciaPago } = resultado;
+  const { moneda, frecuenciaPago, monedaAlterna } = resultado;
   const fmt = (v) => formatearMoneda(v, moneda);
+  // Equivalencia a la tasa BCV escrita en la calculadora (si hay).
+  const eq = (v) => (v === null || v === undefined ? null : `≈ ${formatearMoneda(v, monedaAlterna)}`);
+  const aTasa = `a Bs. ${Number(resultado.tasaBCV).toLocaleString('es-VE', { maximumFractionDigits: 4 })} por USD`;
   const mensaje = buildQuoteMessage({
     resultado,
     cronograma: generarCronograma(resultado),
@@ -77,9 +80,10 @@ export function ResultPanel({ resultado, onConvertir }) {
             <span className="block text-xs font-medium text-gray-500 dark:text-gray-400">Intereses por {PERIODO[frecuenciaPago]}</span>
             <span className="result-value block text-brand-700 dark:text-brand-400">{fmt(resultado.interesPeriodo)}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">mientras deba {fmt(resultado.monto)}</span>
+            {eq(resultado.interesPeriodoAlterna) && <span className="block text-xs font-semibold text-gray-600 dark:text-gray-300">{eq(resultado.interesPeriodoAlterna)} {aTasa}</span>}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Dato label="Capital">{fmt(resultado.monto)}</Dato>
+            <Dato label="Capital" sub={eq(resultado.montoAlterna) ?? undefined}>{fmt(resultado.monto)}</Dato>
             <Dato label="Primer cobro">{toDisplayDate(resultado.primerVencimiento)}</Dato>
           </div>
           <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
@@ -93,9 +97,10 @@ export function ResultPanel({ resultado, onConvertir }) {
             <span className="block text-xs font-medium text-gray-500 dark:text-gray-400">Total a pagar</span>
             <span className="result-value block text-brand-700 dark:text-brand-400">{fmt(resultado.totalPagar)}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">en {resultado.diasTotales} días</span>
+            {eq(resultado.totalAlterna) && <span className="block text-xs font-semibold text-gray-600 dark:text-gray-300">{eq(resultado.totalAlterna)} {aTasa}</span>}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Dato label="Intereses">{fmt(resultado.interes)}</Dato>
+            <Dato label="Intereses" sub={eq(resultado.interesAlterna) ?? undefined}>{fmt(resultado.interes)}</Dato>
             <Dato label={`${resultado.numeroCuotas} cuota(s) ${FRECUENCIA[frecuenciaPago]}`}
               sub={resultado.cuotaFinal !== resultado.montoCuota ? `última: ${fmt(resultado.cuotaFinal)}` : undefined}>
               {fmt(resultado.montoCuota)}

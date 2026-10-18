@@ -61,7 +61,7 @@ export function Header({ activeTab, onChangeTab, onOpenProfile }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <RateTicker className="hidden sm:inline-flex" />
+            <RateTicker />
             <button
               type="button"
               onClick={() => setShowInfo(true)}

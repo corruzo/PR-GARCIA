@@ -42,7 +42,15 @@ function mapSupabaseUser(sbUser) {
     name:      sbUser.user_metadata?.full_name || sbUser.email.split('@')[0],
     avatarUrl: sbUser.user_metadata?.avatar_url || null,
     createdAt: sbUser.created_at,
+    // Las cuentas creadas con Google/Apple no tienen contraseña que verificar.
+    hasPassword: (sbUser.app_metadata?.providers ?? [sbUser.app_metadata?.provider ?? 'email']).includes('email'),
   };
+}
+
+// Borra la caché sin conexión de la cartera (datos del usuario que cierra sesión).
+function clearOfflineData() {
+  if (typeof caches === 'undefined') return;
+  caches.delete('cartera-cache').catch(() => {});
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -75,7 +83,8 @@ export function AuthProvider({ children }) {
 
     // Listener para cambios de sesión en tiempo real:
     // LOGIN, LOGOUT, TOKEN_REFRESHED, etc.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') clearOfflineData();
       setUser(session?.user ? mapSupabaseUser(session.user) : null);
       // No cambiamos loading aquí — ya fue seteado arriba
     });
@@ -180,7 +189,7 @@ export function AuthProvider({ children }) {
       verifyRes = await supabase.auth.verifyOtp({
         email,
         token,
-        type: 'recovery',
+        type: newPassword ? 'recovery' : 'signup',
       });
     }
 
@@ -205,9 +214,16 @@ export function AuthProvider({ children }) {
     return verifyRes.data?.user ? mapSupabaseUser(verifyRes.data.user) : null;
   };
 
-  const updatePassword = async (newPassword) => {
+  const updatePassword = async (newPassword, currentPassword) => {
     if (!supabase) {
       throw new Error('El sistema de autenticación no está disponible.');
+    }
+
+    // Reautenticación: quien tome un teléfono con la sesión abierta no puede
+    // cambiar la contraseña sin conocer la actual.
+    if (user?.hasPassword) {
+      const { error: reauthError } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword || '' });
+      if (reauthError) throw new Error('La contraseña actual no es correcta.');
     }
 
     const { error } = await supabase.auth.updateUser({
@@ -262,9 +278,9 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: normalizedProvider,
       options: {
-        redirectTo: typeof window !== 'undefined'
-          ? (import.meta.env.DEV ? window.location.origin : 'https://prgarcia.app/')
-          : 'https://prgarcia.app/',
+        // Vuelve al dominio desde el que se inició sesión (debe estar en la lista de
+        // URL permitidas de Supabase → Authentication → URL Configuration).
+        redirectTo: `${window.location.origin}/`,
       },
     });
 
@@ -279,6 +295,7 @@ export function AuthProvider({ children }) {
   // ── Logout ────────────────────────────────────────────────────────────────
 
   const logout = async () => {
+    clearOfflineData();
     if (supabase) {
       await supabase.auth.signOut();
       // onAuthStateChange → SIGNED_OUT → setUser(null) automáticamente
@@ -327,16 +344,18 @@ function translateSupabaseError(message = '') {
   if (m.includes('invalid login credentials') || m.includes('invalid credentials'))
     return 'Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.';
 
+  if (m.includes('signups not allowed') || m.includes('signup is disabled'))
+    return 'El registro de nuevas cuentas está deshabilitado. Contacta al administrador.';
+
+  // Mensajes genéricos: no revelan si un correo tiene cuenta.
   if (
-    m.includes('signups not allowed') ||
-    m.includes('signup is disabled') ||
     m.includes('user not found') ||
     m.includes('email not found') ||
     m.includes('unable to find') ||
     m.includes('no user') ||
     m.includes('not registered')
   )
-    return 'No existe ninguna cuenta registrada con este correo electrónico. Verifica la dirección o regístrate.';
+    return 'No se pudo completar la operación con esos datos. Verifica el correo e inténtalo de nuevo.';
 
   if (m.includes('token has expired') || m.includes('otp has expired'))
     return 'El código de 6 dígitos ha expirado. Solicita un nuevo código.';
@@ -348,19 +367,16 @@ function translateSupabaseError(message = '') {
     return 'Tu cuenta aún no ha sido confirmada. Revisa tu correo electrónico.';
 
   if (m.includes('user already registered') || m.includes('already been registered'))
-    return 'Este correo ya tiene una cuenta registrada. Intenta iniciar sesión.';
+    return 'No se pudo crear la cuenta. Si ya tienes una, inicia sesión o recupera tu contraseña.';
 
-  if (m.includes('password should be at least'))
-    return 'La contraseña debe tener al menos 6 caracteres.';
+  if (m.includes('password should be at least') || m.includes('weak password') || m.includes('password should contain'))
+    return 'La contraseña es muy débil: usa al menos 8 caracteres con letras y números.';
 
   if (m.includes('rate limit') || m.includes('too many requests'))
     return 'Demasiados intentos. Espera un momento antes de intentar de nuevo.';
 
   if (m.includes('network') || m.includes('fetch'))
     return 'Error de conexión. Verifica tu internet e intenta de nuevo.';
-
-  if (m.includes('signup is disabled'))
-    return 'El registro de nuevas cuentas está deshabilitado. Contacta al administrador.';
 
   // Devolver el mensaje original si no hay traducción
   return message;

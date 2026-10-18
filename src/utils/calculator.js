@@ -182,6 +182,8 @@ function simularPrestamoAbierto({ monto, moneda, tasa, modalidadTasa, fechaInici
     totalPagar: montoNormalizado,
     rendimientoPorcentaje: (interesPeriodo / montoNormalizado) * 100,
     monedaAlterna: moneda === 'USD' ? 'VES' : 'USD',
+    interesPeriodoAlterna: validarTasaCambio(tasaBCV) ? fromCents(convertCents(interesCents, tasaBCV, moneda, moneda === 'USD' ? 'VES' : 'USD')) : null,
+    montoAlterna: validarTasaCambio(tasaBCV) ? fromCents(convertCents(terms.principalCents, tasaBCV, moneda, moneda === 'USD' ? 'VES' : 'USD')) : null,
   };
 }
 

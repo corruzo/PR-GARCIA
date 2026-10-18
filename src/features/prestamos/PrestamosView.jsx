@@ -149,6 +149,25 @@ function PrestamoDetalle({ id, navigate }) {
     }
   };
 
+  // Corregir un pago antiguo: se anulan también los posteriores (se aplican en orden).
+  const anularDesde = async (pago) => {
+    const posteriores = pagosAplicados.indexOf(pago);
+    const cuantos = posteriores === 1 ? 'el pago posterior' : `los ${posteriores} pagos posteriores`;
+    if (!window.confirm(`Para corregir este pago se anulará también ${cuantos}. Luego podrás registrarlos de nuevo. ¿Continuar?`)) return;
+    const motivo = confirmarMotivo('Motivo de la anulación (obligatorio):');
+    if (!motivo) return;
+    setBusy(true);
+    setActionError('');
+    try {
+      await api.anularPagosDesde(pago.id, motivo);
+      reloadAll();
+    } catch (error) {
+      setActionError(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const anularPrestamo = async () => {
     const motivo = confirmarMotivo('Motivo de la anulación del préstamo (obligatorio):');
     if (!motivo) return;
@@ -255,7 +274,12 @@ function PrestamoDetalle({ id, navigate }) {
 
         {p.estado === 'activo' && (
           <Card title="Registrar pago">
-            <RegistrarPagoForm prestamo={p} onSaved={reloadAll} />
+            <RegistrarPagoForm prestamo={p} onSaved={reloadAll} interesExigibleCents={(cuotas.data ?? [])
+              .filter((c) => c.situacion === 'vencida' || c.situacion === 'vence_hoy')
+              .reduce((s, c) => s + c.interes_pendiente_cents + c.mora_pendiente_cents, 0)}
+              interesAdelantadoCents={(cuotas.data ?? [])
+                .filter((c) => c.situacion !== 'vencida' && c.situacion !== 'vence_hoy' && c.situacion !== 'anulada')
+                .reduce((s, c) => s + c.interes_pagado_cents, 0)} />
           </Card>
         )}
       </div>
@@ -287,6 +311,9 @@ function PrestamoDetalle({ id, navigate }) {
                   </div>
                   {pg === ultimoPago && (
                     <button type="button" className="btn-ghost self-start text-red-700 dark:text-red-300" disabled={busy} onClick={() => anularPago(pg)}>Anular pago</button>
+                  )}
+                  {pg.estado === 'aplicado' && pg !== ultimoPago && (
+                    <button type="button" className="btn-ghost self-start text-xs text-red-700 dark:text-red-300" disabled={busy} onClick={() => anularDesde(pg)}>Anular este y los posteriores</button>
                   )}
                 </li>
               );

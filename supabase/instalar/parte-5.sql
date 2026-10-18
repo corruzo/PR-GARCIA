@@ -1,7 +1,11 @@
--- PRGARCÍA · Instalación, parte 5 de 6. Generado por npm run db:bundle.
--- Ejecuta las partes en orden (1 a 6) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 5 de 10. Generado por npm run db:bundle.
+-- Ejecuta en orden solo las partes que aún no aplicaste (1 a 10) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261012000200_prestamos_abiertos_pagos.sql
+create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());
+alter table public.app_migraciones enable row level security;
+revoke all on public.app_migraciones from anon, authenticated;
+do $guard$ begin if exists (select 1 from public.app_migraciones where version = '20261012000200') then raise exception 'La migración 20261012000200 ya está aplicada: no repitas esta parte.'; end if; end $guard$;
 create or replace function public.registrar_pago(
   p_prestamo_id uuid,
   p_fecha date,
@@ -369,4 +373,5 @@ revoke execute on function public.anular_prestamo(uuid, text) from public, anon;
 grant execute on function public.anular_prestamo(uuid, text) to authenticated;
 revoke execute on function public.monto_cancelacion(uuid, date) from public, anon;
 grant execute on function public.monto_cancelacion(uuid, date) to authenticated;
+insert into public.app_migraciones (version) values ('20261012000200') on conflict do nothing;
 commit;

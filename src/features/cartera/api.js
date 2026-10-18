@@ -120,6 +120,7 @@ export function emitirPrestamo(params) {
     p_cotizacion_origen: params.cotizacionOrigen || null,
     p_idempotency_key: params.idempotencyKey,
     p_tipo_plazo: params.tipoPlazo ?? 'fijo',
+    p_confirmar_tasa: Boolean(params.confirmarTasa),
   }));
 }
 
@@ -151,11 +152,26 @@ export function registrarPago(params) {
     p_referencia: params.referencia || null,
     p_notas: params.notas || null,
     p_idempotency_key: params.idempotencyKey,
+    p_confirmar_tasa: Boolean(params.confirmarTasa),
   }));
 }
 
 export function anularPago(id, motivo) {
   return run(client().rpc('anular_pago', { p_pago_id: id, p_motivo: motivo }));
+}
+
+/** Anula un pago y todos los posteriores del mismo préstamo; devuelve cuántos. */
+export function anularPagosDesde(id, motivo) {
+  return run(client().rpc('anular_pagos_desde', { p_pago_id: id, p_motivo: motivo }));
+}
+
+// ─── Tasa de cambio de referencia ───────────────────────────────────────────
+
+/** Última tasa BCV oficial guardada en el servidor (la que usa la validación). */
+export async function getTasaReferencia() {
+  const data = await run(client().from('tasa_bcv').select('tasa,fecha_hora,fuente')
+    .eq('estado', 'ok').order('fecha_hora', { ascending: false }).limit(1).maybeSingle());
+  return data ? { tasa: Number(data.tasa), fecha: data.fecha_hora, fuente: data.fuente } : null;
 }
 
 // ─── Cobranza y reportes ────────────────────────────────────────────────────
@@ -187,6 +203,14 @@ export function getDiferencialCambiario(tasaActual) {
 export function listAuditoria({ limit = 50 } = {}) {
   return run(client().from('auditoria').select('id,tabla,registro_id,accion,antes,despues,creado_en')
     .order('creado_en', { ascending: false }).limit(limit));
+}
+
+// ─── Exportación ────────────────────────────────────────────────────────────
+
+export function listTodosLosPagos() {
+  return run(client().from('pagos')
+    .select('fecha,prestamo_id,tipo,metodo,referencia,moneda_pago,monto_pago_cents,tasa_cambio,monto_prestamo_cents,estado,anulado_motivo,created_at')
+    .order('fecha', { ascending: true }).order('created_at', { ascending: true }));
 }
 
 /** Monto que salda el préstamo completo en `fecha` (solo interés ganado en saldo insoluto). */
