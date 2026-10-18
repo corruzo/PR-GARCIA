@@ -55,4 +55,20 @@ export const supabase = supabaseUrl && supabaseKey
     })
   : null;
 
+/**
+ * ¿Está activo este proveedor de inicio de sesión (google, apple…) en Supabase?
+ * Consulta la configuración pública de Auth. Devuelve null si no se pudo saber.
+ */
+export async function proveedorActivo(provider) {
+  if (!supabaseUrl || !supabaseKey) return null;
+  try {
+    const r = await fetch(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabaseKey } });
+    if (!r.ok) return null;
+    const { external } = await r.json();
+    return Boolean(external?.[provider]);
+  } catch {
+    return null;
+  }
+}
+
 export default supabase;

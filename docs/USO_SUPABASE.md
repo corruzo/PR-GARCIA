@@ -45,5 +45,5 @@ En desarrollo, `server/index.js` sirve estas mismas funciones.
 
 `getSession`, `onAuthStateChange`, `signInWithPassword`, `signUp` (con `full_name`), `signInWithOtp`
 (recuperación, `shouldCreateUser: false`), `verifyOtp` (registro y recuperación), `updateUser`
-(contraseña previa verificación de la actual; nombre), `signInWithOAuth` (Google/Apple, vuelve al dominio
-actual) y `signOut` (borra además la caché sin conexión).
+(contraseña previa verificación de la actual; nombre), `signInWithOAuth` (solo Google, vuelve al dominio
+actual; antes consulta `/auth/v1/settings` para avisar si el proveedor está apagado) y `signOut` (borra además la caché sin conexión).

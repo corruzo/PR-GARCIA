@@ -17,7 +17,7 @@
 import { useState, useEffect } from 'react';
 import { AuthContext } from './useAuth';
 import { translateSupabaseError } from './authErrors';
-import { supabase } from '../utils/supabase/client';
+import { proveedorActivo, supabase } from '../utils/supabase/client';
 import { normalizePlainText } from '../utils/inputValidation';
 
 // ─── Contexto ─────────────────────────────────────────────────────────────────
@@ -251,17 +251,21 @@ export function AuthProvider({ children }) {
     return true;
   };
 
-  // ── Login Social (Google / Apple) ──────────────────────────────────────────
+  // ── Login Social (Google) ──────────────────────────────────────────────────
 
   const loginWithProvider = async (provider) => {
     if (!supabase) {
       throw new Error('El sistema de autenticación no está disponible. Contacta al administrador.');
     }
 
-    const allowedProviders = new Set(['google', 'apple']);
     const normalizedProvider = provider.toLowerCase();
-    if (!allowedProviders.has(normalizedProvider)) {
+    if (normalizedProvider !== 'google') {
       throw new Error('Proveedor de inicio de sesión no válido.');
+    }
+    // Sin este aviso, un proveedor apagado en Supabase deja a la persona en una
+    // página de error de Supabase en lugar de volver a la app.
+    if (await proveedorActivo(normalizedProvider) === false) {
+      throw new Error('El inicio de sesión con Google no está disponible por ahora. Entra con tu correo y contraseña.');
     }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
