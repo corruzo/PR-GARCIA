@@ -31,13 +31,28 @@ la parte 7 crea la tabla y registra las migraciones previas.
 y el panel de Supabase, no un error del SQL; la parte se ejecuta en una transacción, así que no quedó nada
 a medias. La antigua parte 8 se dividió en tres más cortas (8, 9 y 10): ejecuta esas tres en orden.
 Mientras falten, **no se pueden registrar pagos** (la parte 7 sola deja el registro de pagos sin una
-función que necesita). Si alguna vez la antigua parte 8 sí llegó a aplicarse, la nueva parte 8 se detendrá con
-«ya está aplicada» y las partes 9 y 10 se pueden ejecutar igual.
+función que necesita). Si la antigua parte 8 sí llegó a aplicarse (el panel perdió la respuesta, pero el SQL se ejecutó), la nueva
+parte 8 se detiene con «La migración 20261014000200 ya está aplicada»: es correcto, no hay que hacer nada con
+ella; ejecuta solo `parte-9.sql` y `parte-10.sql`. Se verificó que el resultado es idéntico, incluidos permisos,
+a una instalación limpia de las partes 1 a 10.
 
 Las partes se generan con `npm run db:bundle` a partir de `supabase/migrations/` (sin comentarios ni líneas vacías).
 `tests/migrationsBundle.test.js` avisa si quedaron desactualizadas, y `PGTEST_FROM=instalar npm run test:db` prueba la base instalada desde ellas.
 
 Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y `npx supabase db push`.
+
+## Respaldo de la estructura
+
+`supabase/esquema/esquema_completo.sql` es el volcado exacto (`pg_dump --schema-only --schema=public`) de una
+base con todas las migraciones: tablas, restricciones, índices, funciones, vistas, triggers, RLS, políticas y
+permisos, más el registro de `app_migraciones`. Sirve para revisar o comparar la estructura y para reconstruirla
+en un proyecto Supabase nuevo y vacío. No contiene datos: para los datos usa las copias de Supabase
+(*Database → Backups*) o **Reportes → Respaldo de datos** en la app.
+
+Para comparar tu proyecto con el respaldo:
+`DATABASE_URL="postgresql://postgres:CLAVE@db.TU_PROYECTO.supabase.co:5432/postgres" sh scripts/volcar-esquema.sh`
+y luego `diff supabase/esquema/esquema_completo.actual.sql supabase/esquema/esquema_completo.sql`.
+`tests/esquemaBackup.test.js` avisa si una migración nueva no está en el respaldo.
 
 ## Variables de entorno
 

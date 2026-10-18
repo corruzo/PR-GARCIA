@@ -31,7 +31,8 @@ function loadDraft() {
   try {
     const saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
     if (!saved || Date.now() - saved.timestamp > DRAFT_EXPIRATION_MS) return defaults();
-    return { ...defaults(), ...saved.values };
+    // La tasa no se guarda en el borrador: al volver se usa la personalizada o la BCV del día.
+    return { ...defaults(), ...saved.values, tasaBCV: '' };
   } catch {
     return defaults();
   }

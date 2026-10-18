@@ -6,7 +6,7 @@
 - `src/components/`: formularios y vistas React; `src/context/` contiene autenticación y tema.
 - `shared/finance/`: núcleo financiero puro en centavos enteros (`money.js`, `dates.js`, `schedule.js`, `input.js`, `report.js`), compartido por cliente, servidor y pruebas.
 - `src/features/`: módulos de cartera — `clientes/`, `prestamos/`, `cobranza/`, `reportes/` y `cartera/` (API Supabase, enrutador por hash, navegación y componentes comunes).
-- `supabase/migrations/`: esquema, RLS, RPC y vistas; `supabase/tests/bootstrap_local.sql` emula Supabase para pruebas locales.
+- `supabase/migrations/`: esquema, RLS, RPC y vistas (`supabase/esquema/esquema_completo.sql` es el respaldo exacto de la estructura resultante); `supabase/tests/bootstrap_local.sql` emula Supabase para pruebas locales.
 - `src/utils/calculator.js`: adaptador de la calculadora sobre `shared/finance/`, sin acceso a red o base de datos.
 - `src/services/`: clientes HTTP y caché local de tasa.
 - `src/hooks/`: estado compartido de tasa BCV y preferencias.
@@ -39,3 +39,8 @@ Flujo principal: Calculadora (solo estima y comparte) → «Convertir en présta
 ## Calidad
 
 Antes de confirmar cambios: `npm test`, `npm run lint` y `npm run build`. Mantener las fórmulas puras y cubrir fechas, conversiones, redondeo y errores en pruebas. Los montos se suman y guardan siempre como enteros de centavos; el redondeo es mitad al par y se aplica una sola vez por operación. Los formularios deben asociar etiquetas, conservar foco visible y anunciar estados de carga/error. Las funciones destructivas y cualquier secreto permanecen en el servidor.
+## Tasa de cambio
+
+- El chip del encabezado muestra la tasa BCV del día (o «Mi tasa» si hay una personalizada). Al tocarlo se abre un panel para actualizar la BCV y escribir, usar o quitar una tasa personalizada (`src/services/tasaPersonalizada.js`, guardada en el equipo).
+- La calculadora tiene su bloque «Tasa de cambio»: carga la BCV o la tasa personalizada, se puede editar y guardar como tasa propia; muestra equivalencias y pasa la tasa al préstamo.
+- Préstamos y pagos proponen la tasa personalizada si existe; si no, la BCV oficial guardada en el servidor (≤ 48 h). Una tasa que se aleja más del 20 % de la BCV requiere confirmación; la tasa personalizada guardada cuenta como confirmada y queda registrada con fuente `personalizada`.

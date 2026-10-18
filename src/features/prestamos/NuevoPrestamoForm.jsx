@@ -8,6 +8,7 @@ import { useRemote } from '../cartera/useRemote';
 import { newIdempotencyKey, requiereConfirmarTasa, tasaInicial } from '../cartera/helpers';
 import { TasaCambioField } from '../cartera/TasaCambioField';
 import { useTasaReferencia } from '../cartera/useTasaReferencia';
+import { tasaATexto, useTasaPersonalizada } from '../../services/tasaPersonalizada';
 import { Card, ErrorBox, Field, Loading, Money, SegmentedControl } from '../cartera/ui';
 import { ClientePicker } from '../clientes/ClientePicker';
 
@@ -62,8 +63,11 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
   const [submitError, setSubmitError] = useState('');
   const { referencia } = useTasaReferencia();
   const [confirmarTasa, setConfirmarTasa] = useState(false);
-  const tasaTexto = form.tasaCambio ?? tasaInicial(referencia);
-  const fuenteTasa = form.fuenteTasa ?? (tasaTexto && referencia?.oficial ? 'BCV' : 'manual');
+  const personalizada = useTasaPersonalizada();
+  const tasaTexto = form.tasaCambio ?? (personalizada ? tasaATexto(personalizada.tasa) : tasaInicial(referencia));
+  const fuenteTasa = parseRateInput(tasaTexto) === personalizada?.tasa
+    ? 'personalizada'
+    : form.fuenteTasa ?? (tasaTexto && referencia?.oficial ? 'BCV' : 'manual');
   const set = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event?.target ? event.target.value : event }));
 
   const parsed = useMemo(() => {
@@ -74,7 +78,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
     if (!tasa) errors.tasa = 'Ingresa una tasa mayor a 0.';
     const tasaCambio = parseRateInput(tasaTexto);
     if (!tasaCambio) errors.tasaCambio = 'Ingresa la tasa de cambio del día.';
-    else if (requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
+    else if (requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa && tasaCambio !== personalizada?.tasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
     const tasaMora = form.tasaMora.trim() === '' ? 0 : Number(form.tasaMora.replace(',', '.'));
     if (!Number.isFinite(tasaMora) || tasaMora < 0 || tasaMora > 5) errors.tasaMora = 'Entre 0 y 5 % diario.';
     const diasGracia = Number(form.diasGracia || 0);
@@ -100,7 +104,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
       primerVencimiento: addDaysISO(form.fechaInicio, intervalo),
     } : null;
     return { errors, capitalCents, tasa, tasaCambio, tasaMora, diasGracia, plan, periodo };
-  }, [form, referencia, confirmarTasa, tasaTexto]);
+  }, [form, referencia, confirmarTasa, tasaTexto, personalizada]);
 
   const listaClientes = [...(clientes.data ?? []), ...nuevos.filter((n) => !(clientes.data ?? []).some((c) => c.id === n.id))];
   const showErrors = touched ? parsed.errors : {};
@@ -125,7 +129,8 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
         modalidadTasa: form.modalidadTasa, frecuenciaPago: form.frecuenciaPago, metodoInteres: form.metodoInteres,
         fechaInicio: form.fechaInicio, fechaFin: form.fechaFin, tasaCambio: parsed.tasaCambio,
         fuenteTasaCambio: fuenteTasa, tasaMoraDiaria: parsed.tasaMora, diasGracia: parsed.diasGracia,
-        notas: form.notas.trim(), idempotencyKey, tipoPlazo: form.tipoPlazo, confirmarTasa,
+        notas: form.notas.trim(), idempotencyKey, tipoPlazo: form.tipoPlazo,
+        confirmarTasa: confirmarTasa || parsed.tasaCambio === personalizada?.tasa,
       });
       onCreated(id);
     } catch (error) {
@@ -166,7 +171,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
               <dd className="text-right capitalize">{form.frecuenciaPago}</dd>
             </dl>
             <div className="mt-4">
-              <TasaCambioField id="prestamo-tasa-cambio-resumen" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia}
+              <TasaCambioField id="prestamo-tasa-cambio-resumen" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia} personalizada={personalizada}
                 hint="Queda registrada en el préstamo." onChange={cambiarTasa} confirmada={confirmarTasa} onConfirmar={setConfirmarTasa}
                 error={showErrors.tasaCambio} />
             </div>
@@ -185,7 +190,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
               <Field id="prestamo-monto" label="Monto" error={showErrors.monto}>
                 {(a11y) => <input {...a11y} className="input-base num font-bold" inputMode="decimal" placeholder="0,00" value={form.monto} onChange={set('monto')} />}
               </Field>
-              <TasaCambioField id="prestamo-tasa-cambio" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia}
+              <TasaCambioField id="prestamo-tasa-cambio" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia} personalizada={personalizada}
                 hint="Queda fija en el préstamo." onChange={cambiarTasa} confirmada={confirmarTasa} onConfirmar={setConfirmarTasa}
                 error={showErrors.tasaCambio} />
             </div>

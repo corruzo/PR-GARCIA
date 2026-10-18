@@ -6,6 +6,7 @@ import * as api from '../cartera/api';
 import { newIdempotencyKey, requiereConfirmarTasa, tasaInicial } from '../cartera/helpers';
 import { TasaCambioField } from '../cartera/TasaCambioField';
 import { useTasaReferencia } from '../cartera/useTasaReferencia';
+import { tasaATexto, useTasaPersonalizada } from '../../services/tasaPersonalizada';
 import { ErrorBox, Field, Money, SegmentedControl } from '../cartera/ui';
 
 const METODOS = [
@@ -21,7 +22,8 @@ export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0,
     fecha: todayCaracas(), tipo: 'cuota', modoAbono: 'reducir_plazo', metodo: 'efectivo', referencia: '', notas: '',
   }));
   const [confirmarTasa, setConfirmarTasa] = useState(false);
-  const tasaTexto = form.tasaCambio ?? tasaInicial(referencia);
+  const personalizada = useTasaPersonalizada();
+  const tasaTexto = form.tasaCambio ?? (personalizada ? tasaATexto(personalizada.tasa) : tasaInicial(referencia));
   const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey);
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,13 +38,13 @@ export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0,
     const soloRegistro = form.moneda === 'USD' && prestamo.moneda === 'USD';
     const tasaCambio = parseRateInput(tasaTexto) || (soloRegistro ? Number(referencia?.tasa || prestamo.tasa_cambio) : null);
     if (!tasaCambio) errors.tasaCambio = 'Ingresa la tasa del día.';
-    else if (!soloRegistro && requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
+    else if (!soloRegistro && requiereConfirmarTasa(tasaCambio, referencia) && !confirmarTasa && tasaCambio !== personalizada?.tasa) errors.tasaCambio = 'Confirma la tasa o corrígela.';
     if (!form.fecha || form.fecha > todayCaracas()) errors.fecha = 'La fecha no puede ser futura.';
     if (form.fecha && form.fecha < prestamo.fecha_inicio) errors.fecha = 'No puede ser anterior al desembolso.';
     if (form.referencia.length > 80 || /[<>]/.test(form.referencia)) errors.referencia = 'Máximo 80 caracteres, sin < ni >.';
     const enMonedaPrestamo = montoCents && tasaCambio ? convertCents(montoCents, tasaCambio, form.moneda, prestamo.moneda) : null;
     return { errors, montoCents, tasaCambio, enMonedaPrestamo };
-  }, [form, prestamo, referencia, confirmarTasa, tasaTexto]);
+  }, [form, prestamo, referencia, confirmarTasa, tasaTexto, personalizada]);
 
   const [cancelacion, setCancelacion] = useState({ loading: false, error: '' });
   const abierto = prestamo.tipo_plazo === 'abierto';
@@ -78,7 +80,8 @@ export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0,
       await api.registrarPago({
         prestamoId: prestamo.id, fecha: form.fecha, moneda: form.moneda, montoCents: parsed.montoCents,
         tasaCambio: parsed.tasaCambio, tipo: form.tipo, modoAbono: form.modoAbono, metodo: form.metodo,
-        referencia: form.referencia.trim(), notas: form.notas.trim(), idempotencyKey, confirmarTasa,
+        referencia: form.referencia.trim(), notas: form.notas.trim(), idempotencyKey,
+        confirmarTasa: confirmarTasa || parsed.tasaCambio === personalizada?.tasa,
       });
       setIdempotencyKey(newIdempotencyKey());
       setTouched(false);
@@ -121,7 +124,7 @@ export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0,
         <Field id="pago-monto" label="Monto recibido" error={showErrors.monto}>
           {(a11y) => <input {...a11y} className="input-base num font-bold" inputMode="decimal" placeholder="0,00" value={form.monto} onChange={set('monto')} />}
         </Field>
-        <TasaCambioField id="pago-tasa" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia}
+        <TasaCambioField id="pago-tasa" value={tasaTexto} tasa={parsed.tasaCambio} referencia={referencia} personalizada={personalizada}
           onChange={(e) => { set('tasaCambio')(e); setConfirmarTasa(false); }}
           confirmada={confirmarTasa} onConfirmar={setConfirmarTasa} error={showErrors.tasaCambio} />
       </div>
