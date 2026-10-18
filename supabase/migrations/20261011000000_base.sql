@@ -5,7 +5,6 @@
 -- Idempotente: no falla si las tablas ya existen.
 -- ════════════════════════════════════════════════════════════════════════════
 
-create extension if not exists pgcrypto;
 
 create table if not exists public.user_history (
   id uuid primary key default gen_random_uuid(),

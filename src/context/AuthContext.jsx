@@ -14,24 +14,14 @@
  *  - onAuthStateChange escucha cambios en tiempo real (logout en otra pestaña, etc.)
  */
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { AuthContext } from './useAuth';
+import { translateSupabaseError } from './authErrors';
 import { supabase } from '../utils/supabase/client';
 import { normalizePlainText } from '../utils/inputValidation';
 
 // ─── Contexto ─────────────────────────────────────────────────────────────────
 
-const AuthContext = createContext({
-  user:             null,
-  loading:          true,
-  supabaseReady:    false,
-  isAuthModalOpen:  false,
-  authModalTab:     'login',
-  openAuthModal:    () => {},
-  closeAuthModal:   () => {},
-  login:            async () => {},
-  register:         async () => {},
-  logout:           async () => {},
-});
 
 // ─── Helper: mapear usuario de Supabase al formato interno ────────────────────
 
@@ -57,7 +47,7 @@ function clearOfflineData() {
 
 export function AuthProvider({ children }) {
   const [user, setUser]                       = useState(null);
-  const [loading, setLoading]                 = useState(true);
+  const [loading, setLoading]                 = useState(Boolean(supabase));
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => new URLSearchParams(window.location.search).get('auth') === 'register');
   const [authModalTab, setAuthModalTab]       = useState(() => new URLSearchParams(window.location.search).get('auth') === 'register' ? 'register' : 'login');
 
@@ -71,7 +61,6 @@ export function AuthProvider({ children }) {
         '[PRGARCIA Auth] ¡Supabase no está configurado!\n' +
         'Agrega VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY en Vercel.'
       );
-      setLoading(false);
       return;
     }
 
@@ -330,54 +319,3 @@ export function AuthProvider({ children }) {
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
-export function useAuth() {
-  return useContext(AuthContext);
-}
-
-// ─── Utilidad: traducción de errores de Supabase ──────────────────────────────
-
-function translateSupabaseError(message = '') {
-  const m = message.toLowerCase();
-
-  if (m.includes('invalid login credentials') || m.includes('invalid credentials'))
-    return 'Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.';
-
-  if (m.includes('signups not allowed') || m.includes('signup is disabled'))
-    return 'El registro de nuevas cuentas está deshabilitado. Contacta al administrador.';
-
-  // Mensajes genéricos: no revelan si un correo tiene cuenta.
-  if (
-    m.includes('user not found') ||
-    m.includes('email not found') ||
-    m.includes('unable to find') ||
-    m.includes('no user') ||
-    m.includes('not registered')
-  )
-    return 'No se pudo completar la operación con esos datos. Verifica el correo e inténtalo de nuevo.';
-
-  if (m.includes('token has expired') || m.includes('otp has expired'))
-    return 'El código de 6 dígitos ha expirado. Solicita un nuevo código.';
-
-  if (m.includes('invalid token') || m.includes('invalid otp') || m.includes('token is invalid'))
-    return 'El código de 6 dígitos ingresado es incorrecto.';
-
-  if (m.includes('email not confirmed'))
-    return 'Tu cuenta aún no ha sido confirmada. Revisa tu correo electrónico.';
-
-  if (m.includes('user already registered') || m.includes('already been registered'))
-    return 'No se pudo crear la cuenta. Si ya tienes una, inicia sesión o recupera tu contraseña.';
-
-  if (m.includes('password should be at least') || m.includes('weak password') || m.includes('password should contain'))
-    return 'La contraseña es muy débil: usa al menos 8 caracteres con letras y números.';
-
-  if (m.includes('rate limit') || m.includes('too many requests'))
-    return 'Demasiados intentos. Espera un momento antes de intentar de nuevo.';
-
-  if (m.includes('network') || m.includes('fetch'))
-    return 'Error de conexión. Verifica tu internet e intenta de nuevo.';
-
-  // Devolver el mensaje original si no hay traducción
-  return message;
-}

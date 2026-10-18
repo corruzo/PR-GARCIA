@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Download } from 'lucide-react';
 import { parseRateInput } from '../../../shared/finance/input.js';
 import { centsToCSV, toCSV } from '../../../shared/finance/report.js';
-import { todayCaracas } from '../../../shared/finance/dates.js';
+import { toDisplayDateTimeCaracas, todayCaracas } from '../../../shared/finance/dates.js';
 import * as api from '../cartera/api';
 import { useRemote } from '../cartera/useRemote';
 import { downloadText } from '../cartera/helpers';
+import { METODOS_PAGO } from '../../../shared/catalogos.js';
 import { Card, Empty, ErrorBox, Field, Loading, Money, PageHeader } from '../cartera/ui';
 
 const CUENTAS = {
@@ -98,7 +99,6 @@ function DiferencialCambiario() {
   );
 }
 
-const METODOS_PAGO = { efectivo: 'Efectivo', pago_movil: 'Pago móvil', transferencia: 'Transferencia', zelle: 'Zelle', otro: 'Otro' };
 
 /** Copia de seguridad en CSV (se abre en Excel o Google Sheets). */
 function RespaldoDatos({ prestamos }) {
@@ -128,7 +128,7 @@ function RespaldoDatos({ prestamos }) {
           { label: 'Tasa', value: (r) => String(r.tasa_cambio).replace('.', ',') },
           { label: 'Monto en moneda del préstamo', value: (r) => centsToCSV(r.monto_prestamo_cents) },
           { label: 'Estado', value: 'estado' }, { label: 'Motivo de anulación', value: 'anulado_motivo' },
-          { label: 'Registrado', value: (r) => new Date(r.created_at).toLocaleString('es-VE', { timeZone: 'America/Caracas' }) },
+          { label: 'Registrado', value: (r) => toDisplayDateTimeCaracas(r.created_at) },
         ], rows));
       }
       setEstado({ cargando: '', error: '' });

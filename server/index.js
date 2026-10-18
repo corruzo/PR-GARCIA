@@ -1,139 +1,42 @@
+/**
+ * API local de desarrollo: sirve las mismas funciones de api/ que Vercel
+ * (una sola implementación). Vite reenvía /api a este puerto.
+ *
+ * Variables (opcionales, en el entorno o .env.local): SUPABASE_URL y
+ * SUPABASE_SERVICE_ROLE_KEY para guardar y leer la tasa en Supabase. Sin
+ * ellas, /api/bcv consulta la tasa en vivo sin guardarla y /api/bcv/latest
+ * responde que el servicio no está disponible.
+ */
 import { createServer } from 'node:http';
-import { getLatestBCVRate, saveBCVRate } from './db.js';
-import { fetchOfficialBCVRate } from './bcv.js';
-import { createInMemoryRateLimiter, isReasonableBCVRate, shouldPersistBCVRate } from '../shared/bcvPolicy.js';
+import bcvHandler from '../api/bcv.js';
+import latestHandler from '../api/bcv/latest.js';
 
 const port = Number(process.env.API_PORT || 8787);
-const isProduction = process.env.NODE_ENV === 'production';
-const allowBCVRequest = createInMemoryRateLimiter();
+const routes = { '/api/bcv': bcvHandler, '/api/bcv/latest': latestHandler };
 
-if (!isProduction && !getLatestBCVRate()) {
-  const developmentRate = Number(process.env.BCV_DEV_RATE || 852.4168);
-
-  if (Number.isFinite(developmentRate) && developmentRate > 0) {
-    saveBCVRate({
-      rate: developmentRate,
-      source: 'BCV local (desarrollo)',
-    });
-  }
+/** Adapta la respuesta de Node al estilo de Vercel (res.status().json()). */
+function vercelResponse(res) {
+  res.status = (code) => { res.statusCode = code; return res; };
+  res.json = (body) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(body));
+    return res;
+  };
+  return res;
 }
 
-function sendJson(response, statusCode, payload, cacheControl = 'no-store') {
-  response.writeHead(statusCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': cacheControl,
-  });
-  response.end(JSON.stringify(payload));
-}
-
-async function handleBCV(request, response) {
-  if (!allowBCVRequest(request.socket.remoteAddress)) {
-    response.setHeader('Retry-After', '300');
-    sendJson(response, 429, { ok: false, error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.' });
+createServer(async (req, res) => {
+  const handler = routes[new URL(req.url, 'http://localhost').pathname];
+  if (!handler) {
+    res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: false, error: 'Not found' }));
     return;
   }
-
   try {
-    const previous = getLatestBCVRate();
-    const { rate, source, official } = await fetchOfficialBCVRate();
-    if (!isReasonableBCVRate(rate, Number(previous?.value))) {
-      if (previous) {
-        sendJson(response, 200, {
-          ok: true,
-          value: Number(previous.value),
-          source: previous.source,
-          fetchedAt: previous.fetchedAt,
-          storage: 'sqlite',
-          stale: true,
-          verifiedAgainstBCV: false,
-          changed: false,
-        });
-        return;
-      }
-      throw new Error('La tasa recibida no está dentro del rango permitido.');
-    }
-
-    const changed = Boolean(previous && Number(previous.value) !== rate);
-    const saved = shouldPersistBCVRate(previous, rate)
-      ? saveBCVRate({ rate, source, official })
-      : previous;
-
-    sendJson(response, 200, {
-      ok: true,
-      value: Number(rate),
-      source,
-      fetchedAt: saved.fetchedAt,
-      storage: 'sqlite',
-      verifiedAgainstBCV: official,
-      changed,
-    });
-  } catch (error) {
-    console.error('[api/bcv]', error.message);
-    const latest = getLatestBCVRate();
-
-    if (latest) {
-      sendJson(response, 200, {
-        ok: true,
-        value: Number(latest.value),
-        source: latest.source,
-        fetchedAt: latest.fetchedAt,
-        storage: 'sqlite',
-        stale: true,
-        verifiedAgainstBCV: false,
-        changed: false,
-      });
-      return;
-    }
-
-    sendJson(response, 502, {
-      ok: false,
-      error: 'No se pudo obtener la tasa oficial del BCV y no hay una tasa local.',
-    });
+    await handler(req, vercelResponse(res));
+  } catch {
+    if (!res.headersSent) vercelResponse(res).status(500).json({ ok: false, error: 'Error interno del servidor.' });
   }
-}
-
-function handleLatest(response) {
-  const latest = getLatestBCVRate();
-
-  if (!latest) {
-    sendJson(response, 404, {
-      ok: false,
-      error: 'No hay una tasa BCV guardada todavía.',
-    });
-    return;
-  }
-
-  sendJson(response, 200, {
-    ok: true,
-    value: Number(latest.value),
-    source: latest.source,
-    fetchedAt: latest.fetchedAt,
-    storage: 'sqlite',
-  }, 's-maxage=300, stale-while-revalidate=600');
-}
-
-const server = createServer(async (request, response) => {
-  const url = new URL(request.url, `http://${request.headers.host}`);
-
-  if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET');
-    sendJson(response, 405, { ok: false, error: 'Method not allowed' });
-    return;
-  }
-
-  if (url.pathname === '/api/bcv') {
-    await handleBCV(request, response);
-    return;
-  }
-
-  if (url.pathname === '/api/bcv/latest') {
-    handleLatest(response);
-    return;
-  }
-
-  sendJson(response, 404, { ok: false, error: 'Not found' });
-});
-
-server.listen(port, () => {
-  console.log(`Local API listening on http://localhost:${port}`);
+}).listen(port, () => {
+  console.log(`API local en http://localhost:${port} (mismas funciones que Vercel)`);
 });

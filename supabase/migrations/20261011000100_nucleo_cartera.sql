@@ -9,7 +9,6 @@
 --   * El cálculo replica exactamente shared/finance/*.js (redondeo mitad al par).
 -- ════════════════════════════════════════════════════════════════════════════
 
-create extension if not exists pgcrypto;
 
 -- ─── Tasa BCV (ya usada por api/bcv.js; se crea solo si no existe) ──────────
 create table if not exists public.tasa_bcv (

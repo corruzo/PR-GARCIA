@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { User, LogIn, UserPlus, LogOut, ChevronDown, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export function UserMenu({ onOpenProfile }) {
   const { user, openAuthModal, logout } = useAuth();

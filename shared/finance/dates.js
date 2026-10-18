@@ -48,3 +48,17 @@ export function toDisplayDate(value) {
   const match = ISO_DATE.exec(String(value ?? ''));
   return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
 }
+
+const ZONA = 'America/Caracas';
+
+/** Instante (ISO o Date) → «18/10/2026» en hora de Caracas. */
+export function toDisplayDateCaracas(value) {
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-VE', { timeZone: ZONA, day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/** Instante (ISO o Date) → «18/10/2026, 07:09 a. m.» en hora de Caracas. */
+export function toDisplayDateTimeCaracas(value) {
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('es-VE', { timeZone: ZONA, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}

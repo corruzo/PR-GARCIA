@@ -5,13 +5,14 @@
 - `src/App.jsx`: estado principal, acceso autenticado, pestañas internas e historial de cotizaciones.
 - `src/components/`: formularios y vistas React; `src/context/` contiene autenticación y tema.
 - `shared/finance/`: núcleo financiero puro en centavos enteros (`money.js`, `dates.js`, `schedule.js`, `input.js`, `report.js`), compartido por cliente, servidor y pruebas.
-- `src/features/`: módulos de cartera — `clientes/`, `prestamos/`, `cobranza/`, `reportes/` y `cartera/` (API Supabase, enrutador por hash, navegación y componentes comunes).
+- `src/features/`: módulos de cartera — `clientes/` (`ClientesLista`, `ClienteDetalle`, `ClienteForm`), `prestamos/` (`PrestamosLista`, `PrestamoDetalle`, `TablaCuotas`, `PagosRecibidos`, formularios), `cobranza/`, `reportes/`, `calculadora/` y `cartera/` (API Supabase, enrutador por hash, `useAccion`, `useMotivoDialog`, componentes comunes).
+- `shared/catalogos.js`: métodos de pago, frecuencias, modalidades y métodos de interés (los mismos valores que los `CHECK` de la base).
 - `supabase/migrations/`: esquema, RLS, RPC y vistas (`supabase/esquema/esquema_completo.sql` es el respaldo exacto de la estructura resultante); `supabase/tests/bootstrap_local.sql` emula Supabase para pruebas locales.
 - `src/utils/calculator.js`: adaptador de la calculadora sobre `shared/finance/`, sin acceso a red o base de datos.
-- `src/services/`: clientes HTTP y caché local de tasa.
-- `src/hooks/`: estado compartido de tasa BCV y preferencias.
+- `src/services/`: acceso a la API propia (`/api/bcv`), caché local de tasa y tasa personalizada.
+- `src/hooks/`: estado compartido de la tasa BCV.
 - `api/`: funciones serverless de Vercel; `api/_lib/` contiene clientes de servidor.
-- `server/`: API de desarrollo de la tasa BCV con SQLite local (`npm run dev:api`, puerto 8787); no se usa en Vercel.
+- `server/index.js`: API de desarrollo (`npm run dev:api`, puerto 8787) que sirve las mismas funciones de `api/` que Vercel.
 - `tests/`: pruebas de Node `node:test`; `docs/`: decisiones y SQL pendiente de ejecución.
 
 ## Navegación y módulos
@@ -33,10 +34,11 @@ Flujo principal: Calculadora (solo estima y comparte) → «Convertir en présta
 - Para corregir un pago antiguo, `anular_pagos_desde` anula ese pago y todos los posteriores (los pagos se aplican en orden).
 - Sin conexión, el service worker muestra las últimas lecturas de la cartera (`cartera-cache`), que se borran al cerrar sesión. Registrar pagos requiere conexión.
 - Las funciones de `api/` acceden a Supabase desde servidor. La clave `SUPABASE_SERVICE_ROLE_KEY` nunca debe pasar a `src/`.
-- El servidor local usa SQLite en `server/` para la tasa BCV. No es un reemplazo de Supabase en producción.
 - Cada tabla nueva con datos de cuenta debe tener `user_id` vinculado a `auth.uid()`, RLS para cada operación y pruebas de acceso entre usuarios. Registrar el SQL en `docs/CAMBIOS_SUPABASE.md`; no aplicarlo desde el cliente de código.
 
 ## Calidad
+
+Las reglas de organización y seguridad del código están en `docs/CONVENCIONES.md`.
 
 Antes de confirmar cambios: `npm test`, `npm run lint` y `npm run build`. Mantener las fórmulas puras y cubrir fechas, conversiones, redondeo y errores en pruebas. Los montos se suman y guardan siempre como enteros de centavos; el redondeo es mitad al par y se aplica una sola vez por operación. Los formularios deben asociar etiquetas, conservar foco visible y anunciar estados de carga/error. Las funciones destructivas y cualquier secreto permanecen en el servidor.
 ## Tasa de cambio

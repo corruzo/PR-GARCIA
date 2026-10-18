@@ -1,9 +1,7 @@
 import { requiereConfirmarTasa } from './helpers';
 import { tasaATexto } from '../../services/tasaPersonalizada';
 import { Field } from './ui';
-
-// La tasa se guarda con hora UTC; se muestra el día de Caracas.
-const fechaCaracas = (iso) => new Date(iso).toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit', year: 'numeric' });
+import { toDisplayDateCaracas } from '../../../shared/finance/dates.js';
 
 /**
  * Campo de tasa de cambio con la tasa BCV de referencia a la vista. Si la tasa
@@ -15,7 +13,7 @@ export function TasaCambioField({ id, label = 'Tasa del día (Bs/USD)', value, t
   const esPersonalizada = Boolean(personalizada && tasa === personalizada.tasa);
   const confirmar = !esPersonalizada && requiereConfirmarTasa(tasa, referencia);
   const refTexto = referencia
-    ? `${referencia.oficial ? 'BCV' : 'Referencial'} del ${fechaCaracas(referencia.fecha)}: ${Number(referencia.tasa).toLocaleString('es-VE', { maximumFractionDigits: 4 })}`
+    ? `${referencia.oficial ? 'BCV' : 'Referencial'} del ${toDisplayDateCaracas(referencia.fecha)}: ${Number(referencia.tasa).toLocaleString('es-VE', { maximumFractionDigits: 4 })}`
     : 'Sin tasa BCV guardada: escríbela.';
   return (
     <div className="space-y-2">

@@ -1,24 +1,33 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ThemeContext } from './useTheme';
 
-const ThemeContext = createContext(null);
+const KEY = 'prestamo-theme';
+
+function temaInicial() {
+  try {
+    const stored = localStorage.getItem(KEY);
+    if (stored) return stored === 'dark';
+  } catch {
+    // Sin almacenamiento: se usa la preferencia del sistema.
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+}
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(() => {
-    const stored = localStorage.getItem('prestamo-theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const [dark, setDark] = useState(temaInicial);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('prestamo-theme', dark ? 'dark' : 'light');
+    try {
+      localStorage.setItem(KEY, dark ? 'dark' : 'light');
+    } catch {
+      // Ventana privada: el tema no se recuerda.
+    }
   }, [dark]);
 
   return (
-    <ThemeContext.Provider value={{ dark, toggle: () => setDark(d => !d) }}>
+    <ThemeContext.Provider value={{ dark, toggle: () => setDark((d) => !d) }}>
       {children}
     </ThemeContext.Provider>
   );
 }
-
-export const useTheme = () => useContext(ThemeContext);

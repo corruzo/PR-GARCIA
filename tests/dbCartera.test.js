@@ -112,7 +112,7 @@ test('RLS isolates users and blocks direct writes to loans, installments and led
   assert.equal(psql(db, asUser(BETO, `update public.clientes set nombre = 'Hack' where id = '${cliente}' returning id;`)), '');
   assert.throws(() => psql(db, asUser(ANA, `update public.cuotas set capital_pagado_cents = 1 where prestamo_id = '${id}';`)), /permission denied/);
   assert.throws(() => psql(db, asUser(ANA, `delete from public.prestamos where id = '${id}';`)), /permission denied/);
-  assert.throws(() => psql(db, asUser(ANA, `insert into public.clientes (user_id, tipo_documento, numero_documento, nombre) values ('${BETO}', 'V', '99999999', 'Ajeno');`)), /row-level security/);
+  assert.throws(() => psql(db, asUser(ANA, `insert into public.clientes (user_id, tipo_documento, numero_documento, nombre) values ('${BETO}', 'V', '99999999', 'Ajeno');`)), /permission denied|row-level security/);
   assert.throws(() => psql(db, `set role anon; select * from public.clientes;`), /permission denied/);
   assert.throws(() => psql(db, `set role anon; select public.emitir_prestamo(null, 'USD', 1, 1, 'diaria', 'diario', 'interes_fijo', '2026-01-01', '2026-01-02', 1, 'x');`), /permission denied/);
 });
@@ -136,10 +136,11 @@ test('anular_prestamo reverses an unpaid loan with a balanced entry', { skip: sk
 });
 
 test('base tables: quotes are private per user and the BCV rate is public read-only', { skip: skipDb }, () => {
-  psql(db, asUser(ANA, `insert into public.user_history (prestamo_data) values ('{"values":{},"resultado":{}}');`));
+  // user_history es de la versión anterior: solo lectura y borrado de lo propio.
+  psql(db, `insert into public.user_history (user_id, prestamo_data) values ('${ANA}', '{"values":{},"resultado":{}}');`);
   assert.equal(psql(db, asUser(ANA, 'select count(*) from public.user_history;')), '1');
   assert.equal(psql(db, asUser(BETO, 'select count(*) from public.user_history;')), '0');
-  assert.throws(() => psql(db, asUser(BETO, `insert into public.user_history (user_id, prestamo_data) values ('${ANA}', '{}');`)), /row-level security/);
+  assert.throws(() => psql(db, asUser(BETO, `insert into public.user_history (user_id, prestamo_data) values ('${ANA}', '{}');`)), /permission denied/);
   psql(db, `insert into public.tasa_bcv (tasa, fuente) values (40, 'BCV');`);
   assert.equal(psql(db, `set role anon; select count(*) from public.tasa_bcv;`), '1');
   assert.throws(() => psql(db, `set role anon; insert into public.tasa_bcv (tasa, fuente) values (1, 'x');`), /permission denied/);

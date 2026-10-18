@@ -1,20 +1,18 @@
 -- ════════════════════════════════════════════════════════════════════════════
 -- PRGARCÍA · Estructura completa de la base de datos (esquema public).
 --
--- RESPALDO DE REFERENCIA: es el resultado exacto de aplicar
--- supabase/migrations/ (o supabase/instalar/parte-1 … parte-10) sobre un
--- proyecto Supabase vacío (imagen supabase/postgres 15.8), volcado con:
---   pg_dump --schema-only --schema=public --no-owner
--- Incluye tablas, restricciones, índices, funciones, vistas, triggers, RLS,
--- políticas y permisos. No incluye datos.
+-- RESPALDO DE REFERENCIA: resultado exacto de aplicar supabase/migrations/
+-- (o supabase/instalar/) sobre un proyecto Supabase vacío (imagen
+-- supabase/postgres 15.8), volcado con pg_dump --schema-only --schema=public
+-- --no-owner. Incluye tablas, restricciones, índices, funciones, vistas,
+-- triggers, RLS, políticas y permisos. No incluye datos.
 --
--- Uso:
---   * Para instalar o actualizar, usa supabase/instalar/ (ver docs/CAMBIOS_SUPABASE.md).
---   * Este archivo sirve para revisar la estructura, compararla con producción o
---     reconstruirla en un proyecto Supabase NUEVO y VACÍO (SQL Editor o psql).
---     Requiere el esquema auth de Supabase (auth.users y auth.uid()).
---   * Regenerar: ver scripts/volcar-esquema.sh.
--- Migraciones incluidas: 20261011000000 … 20261014000400.
+--   * Para instalar o actualizar usa supabase/instalar/ (docs/CAMBIOS_SUPABASE.md).
+--   * Sirve para revisar la estructura, compararla con producción
+--     (scripts/volcar-esquema.sh) o reconstruirla en un proyecto Supabase
+--     NUEVO y VACÍO. Requiere el esquema auth de Supabase.
+--   * Se regenera con scripts/esquema-desde-local.sh.
+-- Migraciones incluidas: hasta 20261018000100.
 -- ════════════════════════════════════════════════════════════════════════════
 
 --
@@ -1912,6 +1910,14 @@ ALTER TABLE ONLY public.prestamos
 
 
 --
+-- Name: prestamos prestamos_inicio_reciente; Type: CHECK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE public.prestamos
+    ADD CONSTRAINT prestamos_inicio_reciente CHECK ((fecha_inicio >= (((created_at AT TIME ZONE 'America/Caracas'::text))::date - 3660))) NOT VALID;
+
+
+--
 -- Name: prestamos prestamos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2829,7 +2835,84 @@ GRANT SELECT ON TABLE public.auditoria TO authenticated;
 -- Name: TABLE clientes; Type: ACL; Schema: public; Owner: -
 --
 
-GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.clientes TO authenticated;
+GRANT SELECT,DELETE ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.tipo_documento; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(tipo_documento),UPDATE(tipo_documento) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.numero_documento; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(numero_documento),UPDATE(numero_documento) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.nombre; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(nombre),UPDATE(nombre) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.telefono; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(telefono),UPDATE(telefono) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.email; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(email),UPDATE(email) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.direccion; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(direccion),UPDATE(direccion) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.referencia; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(referencia),UPDATE(referencia) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.notas; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(notas),UPDATE(notas) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.limite_credito_cents; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(limite_credito_cents),UPDATE(limite_credito_cents) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.moneda_limite; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(moneda_limite),UPDATE(moneda_limite) ON TABLE public.clientes TO authenticated;
+
+
+--
+-- Name: COLUMN clientes.estado; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT INSERT(estado),UPDATE(estado) ON TABLE public.clientes TO authenticated;
 
 
 --
@@ -2865,7 +2948,7 @@ GRANT SELECT ON TABLE public.tasa_bcv TO authenticated;
 -- Name: TABLE user_history; Type: ACL; Schema: public; Owner: -
 --
 
-GRANT SELECT,INSERT,DELETE ON TABLE public.user_history TO authenticated;
+GRANT SELECT,DELETE ON TABLE public.user_history TO authenticated;
 
 
 --
@@ -2907,12 +2990,11 @@ GRANT SELECT ON TABLE public.v_libro_mayor TO authenticated;
 -- PostgreSQL database dump complete
 --
 
+
 --
 -- Registro de migraciones: una base reconstruida con este archivo queda al día.
 --
 
 INSERT INTO public.app_migraciones (version) VALUES
-  ('20261011000000'), ('20261011000100'), ('20261011000200'), ('20261011000300'),
-  ('20261011000400'), ('20261012000100'), ('20261012000200'), ('20261013000100'),
-  ('20261014000100'), ('20261014000200'), ('20261014000300'), ('20261014000400')
+  ('20261011000000'),('20261011000100'),('20261011000200'),('20261011000300'),('20261011000400'),('20261012000100'),('20261012000200'),('20261013000100'),('20261014000100'),('20261014000200'),('20261014000300'),('20261014000400'),('20261018000100')
 ON CONFLICT DO NOTHING;

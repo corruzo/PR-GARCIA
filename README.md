@@ -6,7 +6,7 @@ Antes de usar los módulos de cartera hay que aplicar las migraciones de `supaba
 
 ## Requisitos
 
-- Node.js 22.5+
+- Node.js 22.9+
 - npm
 
 ## Scripts locales
@@ -17,8 +17,9 @@ npm run dev
 ```
 
 `npm run dev` levanta dos procesos: Vite en `http://localhost:5173` y la API local en `http://localhost:8787`.
-La API usa SQLite nativo con WAL y guarda el archivo en `data/prestamo.sqlite`. Ese archivo está ignorado por Git.
-Si el BCV no responde durante el desarrollo, la API usa `BCV_DEV_RATE` como semilla local y devuelve la última tasa guardada con la marca `stale: true`.
+La API local ejecuta **las mismas funciones de `api/`** que Vercel (no hay una segunda implementación). Con
+`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` guarda y lee la tasa en Supabase; sin ellas consulta
+la tasa en vivo sin guardarla.
 
 Para ejecutar solo la API local:
 
@@ -33,7 +34,7 @@ El contrato local es el mismo que en producción:
 
 ## Backend Vercel
 
-En Vercel, las mismas rutas serverless consultan el BCV y guardan la tasa en Supabase. No se usa SQLite en Vercel porque el filesystem de una función serverless no es persistente.
+En Vercel, las mismas rutas serverless consultan el BCV y guardan la tasa en Supabase. El navegador solo habla con `/api/bcv`: nunca llama directamente al BCV ni a proveedores externos.
 
 ### Variables de entorno requeridas
 
@@ -58,7 +59,7 @@ La tabla `tasa_bcv` la crea el instalador de Supabase (ver `docs/CAMBIOS_SUPABAS
 3. Haz deploy.
 4. La ruta API queda disponible en tu dominio de Vercel.
 
-El flujo recomendado es validar primero con SQLite local y luego desplegar el frontend y las funciones `api/` en Vercel conectadas a Supabase.
+El flujo recomendado es probar en local con `npm run dev` y luego desplegar en Vercel conectado a Supabase.
 
 ## Calidad
 

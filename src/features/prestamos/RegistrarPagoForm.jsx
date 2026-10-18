@@ -8,10 +8,8 @@ import { TasaCambioField } from '../cartera/TasaCambioField';
 import { useTasaReferencia } from '../cartera/useTasaReferencia';
 import { tasaATexto, useTasaPersonalizada } from '../../services/tasaPersonalizada';
 import { ErrorBox, Field, Money, SegmentedControl } from '../cartera/ui';
+import { METODOS_PAGO } from '../../../shared/catalogos.js';
 
-const METODOS = [
-  ['efectivo', 'Efectivo'], ['pago_movil', 'Pago móvil'], ['transferencia', 'Transferencia'], ['zelle', 'Zelle'], ['otro', 'Otro'],
-];
 
 export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0, interesAdelantadoCents = 0 }) {
   // La tasa del día sale de la BCV guardada (≤ 48 h); nunca de la tasa del desembolso.
@@ -173,7 +171,7 @@ export function RegistrarPagoForm({ prestamo, onSaved, interesExigibleCents = 0,
         <Field id="pago-metodo" label="Método">
           {(a11y) => (
             <select {...a11y} className="input-base" value={form.metodo} onChange={set('metodo')}>
-              {METODOS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              {Object.entries(METODOS_PAGO).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           )}
         </Field>

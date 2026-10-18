@@ -26,11 +26,6 @@ export const MONEDAS = {
   VES: { simbolo: 'Bs.', nombre: 'VES (Bs Digitales)', decimales: 2 },
 };
 
-export const METODOS_INTERES = {
-  interes_fijo: 'Interés fijo sobre capital inicial',
-  saldo_insoluto: 'Interés sobre saldo pendiente',
-};
-
 export function calcularDiasExactos(fechaInicio, fechaFin) {
   if (!isISODate(fechaInicio) || !isISODate(fechaFin)) return 0;
   return Math.max(0, daysBetween(fechaInicio, fechaFin));

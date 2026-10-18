@@ -6,10 +6,9 @@
 import { paymentTermsNote } from '../../shared/finance/report.js';
 import { toDisplayDate } from '../../shared/finance/dates.js';
 import { formatearMoneda } from './calculator.js';
+import { FRECUENCIA_PLURAL, MODALIDADES_TASA, PERIODO } from '../../shared/catalogos.js';
 
-const MODALIDAD = { diaria: 'diaria', semanal: 'semanal', quincenal: 'quincenal', mensual: 'mensual' };
-const PERIODO = { diario: 'día', semanal: 'semana', quincenal: 'quincena', mensual: 'mes' };
-const FRECUENCIA_PLURAL = { diario: 'diarias', semanal: 'semanales', quincenal: 'quincenales', mensual: 'mensuales' };
+const MODALIDAD = Object.fromEntries(Object.entries(MODALIDADES_TASA).map(([k, v]) => [k, v.toLowerCase()]));
 
 function formatPercent(value) {
   return `${Number(value).toLocaleString('es-VE', { maximumFractionDigits: 6 })} %`;

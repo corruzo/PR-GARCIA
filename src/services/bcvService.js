@@ -1,45 +1,12 @@
+/**
+ * Tasa BCV desde la API propia (/api/bcv). El servidor es el único que habla
+ * con el BCV y los proveedores referenciales: el navegador no llama a
+ * terceros (menos superficie de ataque y una sola lógica de validación).
+ */
 export const BCV_CACHE_KEY = 'prgarcia.bcv.v2.cache';
 
-export const BCV_ENDPOINTS = [
-  {
-    nombre: 'BCV oficial',
-    url: '/api/bcv',
-    parsear: (payload) => {
-      if (!payload) return 0;
-      if (typeof payload === 'object') {
-        return Number(payload.value || payload.tasa || payload.promedio || 0);
-      }
-      if (typeof payload === 'string') {
-        const match = payload.match(/<div[^>]*id=['"]dolar['"][^>]*>[\s\S]*?<strong[^>]*>(.*?)<\/strong>/i);
-        const raw = match?.[1]?.replace(/[^0-9,.-]/g, '').replace(',', '.');
-        return Number(raw || 0);
-      }
-      return 0;
-    },
-  },
-  {
-    nombre: 'open.er-api.com (referencial)',
-    url: 'https://open.er-api.com/v6/latest/USD',
-    parsear: (payload) => {
-      if (!payload) return 0;
-      if (typeof payload === 'object' && payload.rates) {
-        return Number(payload.rates.VES || 0);
-      }
-      return 0;
-    },
-  },
-  {
-    nombre: 'DolarApi Venezuela',
-    url: 'https://ve.dolarapi.com/v1/dolares/oficial',
-    parsear: (payload) => {
-      if (!payload) return 0;
-      if (typeof payload === 'object') {
-        return Number(payload.promedio || payload.price || payload.tasa || 0);
-      }
-      return 0;
-    },
-  },
-];
+const ENDPOINTS = ['/api/bcv', '/api/bcv/latest'];
+const TIMEOUT_MS = 8000;
 
 function safeJsonParse(value) {
   try {
@@ -49,11 +16,26 @@ function safeJsonParse(value) {
   }
 }
 
+function readStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Sin almacenamiento (ventana privada): la app sigue sin caché.
+  }
+}
+
 export function getCachedBCV() {
   if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem(BCV_CACHE_KEY);
-  const parsed = safeJsonParse(raw);
-  if (!parsed || !parsed.rate || parsed.rate <= 0) return null;
+  const parsed = safeJsonParse(readStorage(BCV_CACHE_KEY));
+  if (!parsed || !(Number(parsed.rate) > 0)) return null;
   return {
     rate: Number(parsed.rate),
     fetchedAt: parsed.fetchedAt || new Date(0).toISOString(),
@@ -65,7 +47,7 @@ export function getCachedBCV() {
 }
 
 export function saveBCVCache(rate, source, stale = false, fetchedAt = null, verifiedAgainstBCV = false, changed = false) {
-  if (typeof window === 'undefined' || !rate || rate <= 0) return null;
+  if (typeof window === 'undefined' || !(Number(rate) > 0)) return null;
   const payload = {
     rate: Number(rate),
     fetchedAt: fetchedAt || new Date().toISOString(),
@@ -74,68 +56,47 @@ export function saveBCVCache(rate, source, stale = false, fetchedAt = null, veri
     verifiedAgainstBCV: Boolean(verifiedAgainstBCV),
     changed: Boolean(changed),
   };
-  localStorage.setItem(BCV_CACHE_KEY, JSON.stringify(payload));
+  writeStorage(BCV_CACHE_KEY, JSON.stringify(payload));
   return payload;
 }
 
-export async function fetchBCVRate() {
-  const tasks = BCV_ENDPOINTS.map(async (endpoint) => {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-
-      const res = await fetch(endpoint.url, {
-        signal: controller.signal,
-        headers: {
-          Accept: 'text/html,application/json;q=0.9,*/*;q=0.8',
-        },
-      });
-
-      clearTimeout(timeout);
-
-      if (!res || !res.ok) {
-        return null;
-      }
-
-      const contentType = res.headers.get('content-type') || '';
-      const raw = contentType.includes('application/json') ? await res.json() : await res.text();
-      const valor = Number(endpoint.parsear(raw));
-
-      if (valor > 0) {
-        return {
-          ok: true,
-          tasa: valor,
-          fuente: raw?.source || endpoint.nombre,
-          cached: Boolean(raw?.stale),
-          stale: Boolean(raw?.stale),
-          verifiedAgainstBCV: Boolean(raw?.verifiedAgainstBCV),
-          changed: Boolean(raw?.changed),
-          fetchedAt: raw?.fetchedAt || null,
-        };
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  });
-
-  const results = await Promise.all(tasks);
-  const firstOk = results.find(Boolean);
-
-  if (firstOk) {
-    return firstOk;
+async function fetchJson(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
   }
+}
 
+/** Consulta /api/bcv y, si falla, la última tasa guardada (/api/bcv/latest). */
+export async function fetchBCVRate() {
+  for (const url of ENDPOINTS) {
+    const payload = await fetchJson(url);
+    const valor = Number(payload?.value);
+    if (payload?.ok && valor > 0) {
+      return {
+        ok: true,
+        tasa: valor,
+        fuente: payload.source || 'BCV',
+        cached: Boolean(payload.stale) || url.endsWith('/latest'),
+        stale: Boolean(payload.stale) || url.endsWith('/latest'),
+        verifiedAgainstBCV: Boolean(payload.verifiedAgainstBCV),
+        changed: Boolean(payload.changed),
+        fetchedAt: payload.fetchedAt || null,
+      };
+    }
+  }
   return { ok: false, error: 'No se pudo obtener la tasa BCV.' };
 }
 
 export function formatRateString(val) {
-  if (!val || isNaN(val)) return '';
   const num = Number(val);
-  const str = num.toString();
-  const parts = str.split('.');
-  if (parts.length === 1) return num.toFixed(2);
-  if (parts[1].length < 2) return num.toFixed(2);
-  return str;
+  if (!num || Number.isNaN(num)) return '';
+  const [, dec = ''] = String(num).split('.');
+  return dec.length < 2 ? num.toFixed(2) : String(num);
 }

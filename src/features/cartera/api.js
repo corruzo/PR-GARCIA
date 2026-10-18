@@ -10,6 +10,7 @@ import { supabase } from '../../utils/supabase/client';
 const KNOWN_MESSAGES = [
   [/duplicate key.*clientes_user_id_tipo_documento/i, 'Ya existe un cliente con ese documento.'],
   [/violates foreign key constraint.*prestamos/i, 'No se puede eliminar: el cliente tiene préstamos registrados.'],
+  [/prestamos_inicio_reciente/i, 'La fecha de desembolso no puede ser de hace más de 10 años.'],
   [/check constraint/i, 'Algún dato no cumple el formato permitido. Revisa los campos.'],
   [/permission denied|row-level security|JWT/i, 'Tu sesión no tiene permiso para esta acción. Vuelve a iniciar sesión.'],
   [/Failed to fetch|NetworkError|network/i, 'Sin conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'],

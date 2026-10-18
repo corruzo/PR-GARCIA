@@ -1,5 +1,5 @@
 import { CircleHelp, Moon, Sun, Menu } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/useTheme';
 import { useState } from 'react';
 import { InfoModal } from './InfoModal';
 import { UserMenu } from './UserMenu';

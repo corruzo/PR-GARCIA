@@ -8,7 +8,9 @@ const securityHeaders = {
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://open.er-api.com https://ve.dolarapi.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self'; manifest-src 'self'; upgrade-insecure-requests",
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'X-Permitted-Cross-Domain-Policies': 'none',
 };
 
 export default defineConfig({
@@ -74,15 +76,6 @@ export default defineConfig({
               networkTimeoutSeconds: 6,
               cacheableResponse: { statuses: [200] },
               expiration: { maxEntries: 300, maxAgeSeconds: 7 * 24 * 3600 },
-            },
-          },
-          {
-            urlPattern: /^https?:\/\/(ve\.dolarapi\.com|open\.er-api\.com|pydolarve\.org|api\.exchangedna\.com)\//i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'bcv-rate-cache',
-              networkTimeoutSeconds: 8,
-              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],

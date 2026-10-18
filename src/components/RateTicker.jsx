@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { RefreshCw, X } from 'lucide-react';
 import { useBCV } from '../hooks/useBCV';
 import { parseRateInput } from '../../shared/finance/input.js';
+import { toDisplayDateTimeCaracas } from '../../shared/finance/dates.js';
 import { clearTasaPersonalizada, setTasaPersonalizada, tasaATexto, useTasaPersonalizada } from '../services/tasaPersonalizada';
 
 const fmt = (v) => Number(v).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
@@ -39,7 +40,7 @@ function PanelTasa({ bcv, personalizada, onClose }) {
   const [error, setError] = useState('');
   const valorBCV = Number(bcv.tasa);
   const consultada = bcv.ultimaConsulta && bcv.ultimaConsulta.getTime() > 0
-    ? bcv.ultimaConsulta.toLocaleString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    ? toDisplayDateTimeCaracas(bcv.ultimaConsulta)
     : '';
 
   const guardar = (event) => {

@@ -3,9 +3,9 @@ import { AlertCircle, CheckCircle2, Clock3, PencilLine, RefreshCw } from 'lucide
 import { useBCV } from '../hooks/useBCV';
 import { formatRateString } from '../services/bcvService';
 import { parseRateInput } from '../../shared/finance/input.js';
+import { toDisplayDateTimeCaracas } from '../../shared/finance/dates.js';
 import { clearTasaPersonalizada, setTasaPersonalizada, tasaATexto, useTasaPersonalizada } from '../services/tasaPersonalizada';
 
-const fechaHora = (d) => d.toLocaleString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /**
  * Tasa BCV del día (Bs por USD): se consulta sola al abrir, se puede actualizar
@@ -87,7 +87,7 @@ export function BCVField({ value, onChange }) {
         <Icono size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           <strong className="font-semibold">{estado.texto}</strong> · {estado.detalle}
-          {consultada && consultada.getTime() > 0 && <span className="block text-[11px] opacity-80">Consultada: {fechaHora(consultada)}{!online ? ' · sin conexión' : ''}</span>}
+          {consultada && consultada.getTime() > 0 && <span className="block text-[11px] opacity-80">Consultada: {toDisplayDateTimeCaracas(consultada)}{!online ? ' · sin conexión' : ''}</span>}
         </span>
       </p>
       <div className="flex flex-wrap gap-2">

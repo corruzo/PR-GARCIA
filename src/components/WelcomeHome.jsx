@@ -1,6 +1,6 @@
 import { CalendarClock, ChartColumn, HandCoins, Moon, Sun, Users } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/useAuth';
+import { useTheme } from '../context/useTheme';
 import { BrandLogo } from './BrandLogo';
 import { CONTACT_EMAIL } from '../config';
 

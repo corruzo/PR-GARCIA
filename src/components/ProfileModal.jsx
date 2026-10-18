@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Mail, Calendar, ShieldCheck, LogOut, X, KeyRound, CheckCircle, AlertCircle, Eye, EyeOff, User } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { MAX_PERSON_NAME_LENGTH, normalizePlainText, passwordIssue } from '../utils/inputValidation';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

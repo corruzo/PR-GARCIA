@@ -5,9 +5,8 @@ import { formatearMoneda, generarCronograma } from '../utils/calculator';
 import { buildQuoteMessage } from '../utils/quoteMessage';
 import { paymentTermsNote } from '../../shared/finance/report.js';
 import { toDisplayDate } from '../../shared/finance/dates.js';
+import { FRECUENCIA_PLURAL as FRECUENCIA, PERIODO } from '../../shared/catalogos.js';
 
-const PERIODO = { diario: 'día', semanal: 'semana', quincenal: 'quincena', mensual: 'mes' };
-const FRECUENCIA = { diario: 'diarias', semanal: 'semanales', quincenal: 'quincenales', mensual: 'mensuales' };
 
 function Dato({ label, children, sub }) {
   return (

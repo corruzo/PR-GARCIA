@@ -11,24 +11,12 @@ import { useTasaReferencia } from '../cartera/useTasaReferencia';
 import { tasaATexto, useTasaPersonalizada } from '../../services/tasaPersonalizada';
 import { Card, ErrorBox, Field, Loading, Money, SegmentedControl } from '../cartera/ui';
 import { ClientePicker } from '../clientes/ClientePicker';
+import { FRECUENCIAS as CAT_FRECUENCIAS, METODOS_INTERES, MODALIDADES_TASA, PERIODO, TIPOS_PLAZO, opciones } from '../../../shared/catalogos.js';
 
-const MODALIDADES = [
-  { value: 'diaria', label: 'Diaria' }, { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' }, { value: 'mensual', label: 'Mensual' },
-];
-const FRECUENCIAS = [
-  { value: 'diario', label: 'Diario' }, { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' }, { value: 'mensual', label: 'Mensual' },
-];
-const PLAZOS = [
-  { value: 'abierto', label: 'Sin fecha de fin' },
-  { value: 'fijo', label: 'Con fecha de fin' },
-];
-const PERIODO = { diario: 'día', semanal: 'semana', quincenal: 'quincena', mensual: 'mes' };
-const METODOS = [
-  { value: 'saldo_insoluto', label: 'Sobre saldo pendiente' },
-  { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
-];
+const MODALIDADES = opciones(MODALIDADES_TASA);
+const FRECUENCIAS = opciones(CAT_FRECUENCIAS);
+const PLAZOS = opciones(TIPOS_PLAZO);
+const METODOS = opciones(METODOS_INTERES);
 
 function initialForm(clienteId, prefill) {
   const hoy = todayCaracas();

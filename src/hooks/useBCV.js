@@ -1,5 +1,5 @@
 /**
- * useBCV.js — Hook robusto para consultar la tasa BCV con cache local y soporte offline.
+ * useBCV.js — Tasa BCV del día (vía /api/bcv) con caché local y soporte sin conexión.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -12,16 +12,18 @@ import {
 } from '../services/bcvService';
 
 export function useBCV() {
-  const [tasa, setTasa] = useState('');
+  // El estado arranca con la última tasa guardada en el equipo (si hay).
+  const [inicial] = useState(() => getCachedBCV());
+  const [tasa, setTasa] = useState(() => (inicial ? formatRateString(inicial.rate) : ''));
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-  const [fuente, setFuente] = useState(null);
-  const [ultimaConsulta, setUltima] = useState(null);
-  const [tasaAnticuada, setTasaAnticuada] = useState(false);
+  const [fuente, setFuente] = useState(() => inicial?.source || null);
+  const [ultimaConsulta, setUltima] = useState(() => (inicial ? new Date(inicial.fetchedAt) : null));
+  const [tasaAnticuada, setTasaAnticuada] = useState(() => Boolean(inicial?.stale));
   const [tiempoRespuesta, setTiempoRespuesta] = useState(null);
-  const [verificadaBCV, setVerificadaBCV] = useState(false);
+  const [verificadaBCV, setVerificadaBCV] = useState(() => Boolean(inicial?.verifiedAgainstBCV));
   const [cambioBCV, setCambioBCV] = useState(false);
-  const [cacheInfo, setCacheInfo] = useState(() => getCachedBCV());
+  const [cacheInfo, setCacheInfo] = useState(inicial);
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine);
 
   useEffect(() => {
@@ -120,18 +122,10 @@ export function useBCV() {
     return { ok: false, error: msg };
   }, []);
 
+  // Consulta la tasa en vivo al montar (asíncrono: no bloquea el primer render).
   useEffect(() => {
-    const cached = getCachedBCV();
-    if (cached) {
-      setTasa(formatRateString(cached.rate));
-      setFuente(cached.source || 'caché local');
-      setUltima(new Date(cached.fetchedAt));
-      setTasaAnticuada(Boolean(cached.stale));
-      setVerificadaBCV(Boolean(cached.verifiedAgainstBCV));
-      setCacheInfo(cached);
-    }
-
-    consultarBCV();
+    const id = setTimeout(() => { consultarBCV(); }, 0);
+    return () => clearTimeout(id);
   }, [consultarBCV]);
 
   return {

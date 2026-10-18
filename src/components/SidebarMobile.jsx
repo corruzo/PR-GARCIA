@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom';
 import { X, User, LogOut, Sun, Moon, CircleHelp } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/useAuth';
+import { useTheme } from '../context/useTheme';
 import { InfoModal } from './InfoModal';
 import { useState } from 'react';
 import { handleTabKeyDown } from '../utils/keyboardTabs';

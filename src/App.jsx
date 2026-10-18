@@ -1,7 +1,8 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { AuthModal } from './components/AuthModal';
 import { WelcomeHome } from './components/WelcomeHome';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { useHashRoute } from './features/cartera/router';
 import { NAV_ITEMS } from './features/cartera/navigation';
 import { CONTACT_EMAIL } from './config';

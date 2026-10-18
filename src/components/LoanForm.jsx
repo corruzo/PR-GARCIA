@@ -1,29 +1,11 @@
 import { DollarSign, Calendar, Percent, CheckCircle2 } from 'lucide-react';
 import { handleRadioKeyDown } from '../utils/keyboardTabs';
+import { FRECUENCIAS as CAT_FRECUENCIAS, METODOS_INTERES, MODALIDADES_TASA, TIPOS_PLAZO, opciones } from '../../shared/catalogos.js';
 
-const MODALIDADES = [
-  { value: 'diaria', label: 'Diaria' },
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' },
-  { value: 'mensual', label: 'Mensual' },
-];
-
-const METODOS = [
-  { value: 'saldo_insoluto', label: 'Sobre saldo pendiente' },
-  { value: 'interes_fijo', label: 'Fijo sobre capital inicial' },
-];
-
-const PLAZOS = [
-  { value: 'abierto', label: 'Sin fecha de fin' },
-  { value: 'fijo', label: 'Con fecha de fin' },
-];
-
-const FRECUENCIAS = [
-  { value: 'diario', label: 'Diario' },
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' },
-  { value: 'mensual', label: 'Mensual' },
-];
+const MODALIDADES = opciones(MODALIDADES_TASA);
+const METODOS = opciones(METODOS_INTERES);
+const PLAZOS = opciones(TIPOS_PLAZO);
+const FRECUENCIAS = opciones(CAT_FRECUENCIAS);
 
 export function LoanForm({ values, onChange }) {
   const set = (key) => (e) => {

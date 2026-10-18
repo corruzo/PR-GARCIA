@@ -189,3 +189,13 @@ test('a voided loan shows no pending balance', { skip: skipDb }, () => {
   const r = psql(db, asUser(ANA, `select json_build_array(estado, capital_pendiente_cents, interes_pendiente_cents, mora_pendiente_cents, exigible_hoy_cents) from public.v_prestamos_resumen where id = '${id}';`, { today: '2026-03-01' }), { json: true });
   assert.deepEqual(r, ['anulado', 0, 0, 0, 0]);
 });
+
+test('hardening: client columns, legacy quotes table and loans older than 10 years', { skip: skipDb }, () => {
+  const id = cliente();
+  assert.throws(() => psql(db, asUser(ANA, `update public.clientes set created_at = now() - interval '5 years' where id = '${id}';`)), /permission denied/);
+  assert.throws(() => psql(db, asUser(ANA, `insert into public.clientes (id, nombre) values (gen_random_uuid(), 'Con id propio');`)), /permission denied/);
+  psql(db, asUser(ANA, `update public.clientes set nombre = 'Nombre editado', estado = 'activo' where id = '${id}';`));
+  assert.throws(() => psql(db, asUser(ANA, `insert into public.user_history (prestamo_data) values ('{}');`)), /permission denied/);
+  assert.throws(() => psql(db, asUser(ANA, `select public.emitir_prestamo('${id}', 'USD', 1000, 8, 'semanal', 'semanal', 'interes_fijo',
+    '2010-01-05', null, 40, 'BCV', 0, 0, null, null, null, 'abierto');`, { today: '2026-01-05' })), /prestamos_inicio_reciente/);
+});
