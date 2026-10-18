@@ -86,3 +86,19 @@ ni una tasa absurda sin confirmar.
 - Las fuentes de tasa externas (BCV, DolarApi, open.er-api) están bloqueadas en este entorno: se usó una tasa BCV guardada.
 - El modo sin conexión del service worker (Playwright bloquea los service workers); la configuración se verificó en la compilación.
 - Inicio de sesión con Google/Apple (requiere credenciales OAuth reales).
+
+## Prueba de fallos (18/10/2026): «no deja registrar usuarios ni préstamos y no se ve la tasa BCV»
+
+Se reprodujo la situación real: la app publicada (rama `main`, sin las correcciones) con una base de datos
+que tiene aplicadas las partes 1 a 7 y no la 8 (que falló con «Failed to fetch»).
+
+| Falla | Causa | Arreglo |
+| --- | --- | --- |
+| Al confirmar el registro, la app pide «Nueva contraseña»; si se repite la misma, Supabase responde `same_password` y vuelve a mostrar «Crear cuenta», como si el registro hubiera fallado | Código de `main`: la pantalla del código de registro reutilizaba la de recuperación | Ya corregido en la rama: la confirmación solo pide el código |
+| No se pueden registrar pagos: «La base de datos no está actualizada» (`fin_devengar_mora(uuid, date) does not exist`) | La parte 7 borraba una función que el registro de pagos viejo usa hasta que la parte 8 lo reemplaza | Nuevas partes 8, 9 y 10; la función vieja ahora se borra en la parte 8, después de reemplazar el registro de pagos |
+| No se puede emitir un préstamo con una tasa que se aleja más del 20 % de la BCV guardada | La base ya valida la tasa (parte 7), pero la app de `main` no tiene la casilla «Confirmo que es correcta» | Publicar la app de la rama, que muestra la casilla |
+| No se ve la tasa BCV en el teléfono ni en la calculadora | Desde el commit `7a85a9a` la calculadora no tiene campo de tasa y el chip del encabezado está oculto en pantallas pequeñas (`hidden sm:inline-flex`) | Chip BCV visible en todos los tamaños y bloque «Tasa de cambio» en la calculadora, con «Actualizar», equivalencias en Bs y la tasa pasada al préstamo |
+
+Con la app de la rama y las partes 1 a 10: registro → código → dentro de la app; tasa BCV visible en el
+teléfono y en la calculadora; cliente, préstamo y pago correctos; con una tasa de 300 (BCV 215,5) la app pide
+confirmarla y, confirmada, emite el préstamo y registra el pago.

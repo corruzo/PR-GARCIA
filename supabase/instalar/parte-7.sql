@@ -1,5 +1,5 @@
--- PRGARCÍA · Instalación, parte 7 de 8. Generado por npm run db:bundle.
--- Ejecuta en orden solo las partes que aún no aplicaste (1 a 8) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 7 de 10. Generado por npm run db:bundle.
+-- Ejecuta en orden solo las partes que aún no aplicaste (1 a 10) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261014000100_correcciones_auditoria.sql
 create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());
@@ -62,7 +62,6 @@ create policy pagos_mora_select on public.pagos_mora for select to authenticated
 revoke all on public.pagos_mora from anon;
 revoke insert, update, delete, truncate on public.pagos_mora from authenticated;
 grant select on public.pagos_mora to authenticated;
-drop function if exists public.fin_devengar_mora(uuid, date);
 create or replace function public.fin_devengar_mora(p_prestamo_id uuid, p_hasta date, p_pago_id uuid)
 returns void language plpgsql set search_path = '' as $$
 declare

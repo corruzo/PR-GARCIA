@@ -1,5 +1,5 @@
--- PRGARCÍA · Instalación, parte 2 de 8. Generado por npm run db:bundle.
--- Ejecuta en orden solo las partes que aún no aplicaste (1 a 8) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 2 de 10. Generado por npm run db:bundle.
+-- Ejecuta en orden solo las partes que aún no aplicaste (1 a 10) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261011000200_pagos_mora.sql
 create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());

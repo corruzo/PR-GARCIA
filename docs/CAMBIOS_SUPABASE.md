@@ -7,11 +7,11 @@ Proyecto actual: `muxxvbcxzqszstiotbwu` (el proyecto anterior quedó sin acceso)
 
 ## Instalar en un proyecto nuevo (una sola vez)
 
-El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 8 archivos en `supabase/instalar/`:
+El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 10 archivos en `supabase/instalar/`:
 
 1. Supabase → **SQL Editor** → *New query* → pega **todo** `parte-1.sql` → **Run**. Debe decir *Success*.
 2. Nueva consulta (o borra el contenido) → pega `parte-2.sql` → **Run**.
-3. Igual con `parte-3.sql` a `parte-8.sql`, en ese orden.
+3. Igual con `parte-3.sql` a `parte-10.sql`, en ese orden (ojo: `parte-10` va después de `parte-9`, aunque el explorador de archivos la muestre junto a `parte-1`).
 
 Ejecútalas **en orden** y **una sola vez**. Cada parte corre en una transacción: si una falla, no deja nada a medias; corrige el problema y repite solo esa parte.
 
@@ -24,8 +24,15 @@ select version, aplicada_en from public.app_migraciones order by version;
 ```
 
 Ejecuta solo las partes cuyas migraciones no aparezcan. Si pegas por error una parte ya aplicada, se detiene con
-«La migración … ya está aplicada» sin tocar nada. Una instalación anterior a esta tabla (partes 1 a 6) solo necesita
-`parte-7.sql` y `parte-8.sql`: la parte 7 crea la tabla y registra las migraciones previas.
+«La migración … ya está aplicada» sin tocar nada. Una instalación anterior a esta tabla (partes 1 a 6) necesita `parte-7.sql` a `parte-10.sql`:
+la parte 7 crea la tabla y registra las migraciones previas.
+
+**Si la parte 8 dio «Failed to fetch (api.supabase.com)»**: es un corte de la conexión entre el navegador
+y el panel de Supabase, no un error del SQL; la parte se ejecuta en una transacción, así que no quedó nada
+a medias. La antigua parte 8 se dividió en tres más cortas (8, 9 y 10): ejecuta esas tres en orden.
+Mientras falten, **no se pueden registrar pagos** (la parte 7 sola deja el registro de pagos sin una
+función que necesita). Si alguna vez la antigua parte 8 sí llegó a aplicarse, la nueva parte 8 se detendrá con
+«ya está aplicada» y las partes 9 y 10 se pueden ejecutar igual.
 
 Las partes se generan con `npm run db:bundle` a partir de `supabase/migrations/` (sin comentarios ni líneas vacías).
 `tests/migrationsBundle.test.js` avisa si quedaron desactualizadas, y `PGTEST_FROM=instalar npm run test:db` prueba la base instalada desde ellas.
@@ -65,7 +72,9 @@ Alternativa con la CLI: `npx supabase link --project-ref muxxvbcxzqszstiotbwu` y
 | `20261012000200_prestamos_abiertos_pagos.sql` | Pagos, anulación, resumen y cancelación para préstamos abiertos; `sincronizar_prestamos_abiertos` |
 | `20261013000100_cliente_rapido.sql` | Clientes con solo el nombre (documento opcional) |
 | `20261014000100_correcciones_auditoria.sql` | `app_migraciones`; `fin_hoy` sin fecha simulada desde la API; tasas `referencial`; confirmación de tasa de cambio (±20 % de la BCV); límite de crédito; mora devengada por pago (`pagos_mora`); recálculo de préstamos abiertos |
-| `20261014000200_correcciones_pagos.sql` | `registrar_pago` (confirmación de tasa; préstamo en USD solo recibe intereses y mora en Bs), `anular_pago` (revierte mora y recalcula abiertos), `anular_pagos_desde`; libro contable, pagos y auditoría inmutables; funciones internas cerradas a anónimos |
+| `20261014000200_correcciones_pagos.sql` | `registrar_pago` (confirmación de tasa; préstamo en USD solo recibe intereses y mora en Bs) |
+| `20261014000300_correcciones_anulaciones.sql` | `anular_pago` (revierte mora y recalcula abiertos), `anular_pagos_desde`; libro contable, pagos y auditoría inmutables |
+| `20261014000400_correcciones_permisos.sql` | Préstamos anulados con saldo cero en las vistas; funciones internas cerradas a anónimos |
 
 ## Pruebas locales
 
@@ -77,3 +86,10 @@ PGTEST_URL=postgres://postgres@localhost:5432/postgres npm run test:db
 ```
 
 Sin `PGTEST_URL`, `npm test` las omite.
+
+## Importante: base de datos y aplicación van juntas
+
+Las partes 7 a 10 cambian las funciones que usa la app. Publica en Vercel la versión de la app que
+acompaña a estas partes (la rama con las correcciones, una vez unida a `main`). La versión anterior de la
+app sigue registrando clientes, préstamos y pagos con la base nueva, pero no puede confirmar una tasa que
+se aleje más del 20 % de la BCV, tiene la falla del registro de usuarios y no muestra la tasa BCV en el teléfono.

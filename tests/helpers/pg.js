@@ -46,7 +46,7 @@ export function createTestDatabase() {
   const source = process.env.PGTEST_FROM === 'instalar' ? 'supabase/instalar' : 'supabase/migrations';
   const files = [
     join(root, 'supabase/tests/bootstrap_local.sql'),
-    ...readdirSync(join(root, source)).filter((f) => f.endsWith('.sql')).sort()
+    ...readdirSync(join(root, source)).filter((f) => f.endsWith('.sql')).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
       .map((f) => join(root, source, f)),
   ];
   for (const file of files) psql(name, `\\i ${file}`);

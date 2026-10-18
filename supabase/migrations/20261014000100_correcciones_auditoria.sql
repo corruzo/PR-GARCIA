@@ -87,8 +87,8 @@ revoke all on public.pagos_mora from anon;
 revoke insert, update, delete, truncate on public.pagos_mora from authenticated;
 grant select on public.pagos_mora to authenticated;
 
-drop function if exists public.fin_devengar_mora(uuid, date);
-
+-- La versión de 2 parámetros la usa registrar_pago hasta que se reemplaza en
+-- 20261014000200; se elimina allí para no romper los pagos entre una parte y otra.
 create or replace function public.fin_devengar_mora(p_prestamo_id uuid, p_hasta date, p_pago_id uuid)
 returns void language plpgsql set search_path = '' as $$
 declare
