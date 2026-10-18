@@ -1,5 +1,5 @@
 import { ArrowLeft, MessageCircle } from 'lucide-react';
-import { toDisplayDate } from '../../../shared/finance/dates.js';
+import { todayCaracas } from '../../../shared/finance/dates.js';
 import { buildPaymentReminder, toWhatsAppNumber } from '../../../shared/finance/report.js';
 import * as api from '../cartera/api';
 import { useRemote } from '../cartera/useRemote';
@@ -9,16 +9,11 @@ import { Card, ErrorBox, Loading, Money, PageHeader, PrestamoBadge } from '../ca
 import { RegistrarPagoForm } from './RegistrarPagoForm';
 import { PagosRecibidos } from './PagosRecibidos';
 import { TablaCuotas } from './TablaCuotas';
+import { ResumenPrestamo } from './ResumenPrestamo';
+import { CondicionesPrestamo } from './CondicionesPrestamo';
+import { LineaCuotas } from './LineaCuotas';
+import { progresoPrestamo } from './progreso';
 import { interesAdelantadoCents, interesExigibleCents } from './cuotas';
-
-function Stat({ label, children, tone }) {
-  return (
-    <div className="result-card compact-result-card">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
-      <div className={`mt-1 text-base font-bold ${tone === 'red' ? 'text-red-700 dark:text-red-300' : 'text-slate-900 dark:text-white'}`}>{children}</div>
-    </div>
-  );
-}
 
 export function PrestamoDetalle({ id, navigate }) {
   const prestamo = useRemote(() => api.getPrestamo(id), [id]);
@@ -33,7 +28,7 @@ export function PrestamoDetalle({ id, navigate }) {
   if (prestamo.error) return <ErrorBox message={prestamo.error} onRetry={prestamo.reload} />;
   const p = prestamo.data;
   const abierto = p.tipo_plazo === 'abierto';
-  const pendiente = p.capital_pendiente_cents + p.interes_pendiente_cents + p.mora_pendiente_cents;
+  const progreso = progresoPrestamo(p, cuotas.data ?? [], todayCaracas());
   const pagosAplicados = (pagos.data ?? []).filter((pg) => pg.estado === 'aplicado');
   const whatsapp = toWhatsAppNumber(p.cliente_telefono);
   const recordatorio = buildPaymentReminder({
@@ -83,28 +78,9 @@ export function PrestamoDetalle({ id, navigate }) {
         )}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Pendiente total"><Money cents={pendiente} currency={p.moneda} /></Stat>
-        <Stat label="Exigible hoy" tone={p.exigible_hoy_cents > 0 ? 'red' : undefined}><Money cents={p.exigible_hoy_cents} currency={p.moneda} /></Stat>
-        <Stat label="Mora acumulada" tone={p.mora_pendiente_cents > 0 ? 'red' : undefined}><Money cents={p.mora_pendiente_cents} currency={p.moneda} /></Stat>
-        <Stat label="Cobrado"><Money cents={p.cobrado_cents} currency={p.moneda} /></Stat>
-      </div>
+      <ResumenPrestamo p={p} progreso={progreso} />
 
-      <Card title="Condiciones">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Capital</dt><dd><Money cents={p.capital_cents} currency={p.moneda} /></dd></div>
-          {abierto ? (
-            <div><dt className="text-xs text-slate-500 dark:text-slate-400">Interés generado</dt><dd><Money cents={p.interes_generado_cents} currency={p.moneda} /></dd></div>
-          ) : (
-            <div><dt className="text-xs text-slate-500 dark:text-slate-400">Interés pactado</dt><dd><Money cents={p.interes_total_cents} currency={p.moneda} /></dd></div>
-          )}
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Tasa</dt><dd>{Number(p.tasa_interes).toLocaleString('es-VE')} % {p.modalidad_tasa} · {p.metodo_interes === 'saldo_insoluto' ? 'sobre saldo' : 'fijo'}</dd></div>
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Vigencia</dt><dd>{abierto ? `Desde ${toDisplayDate(p.fecha_inicio)} · sin fecha de fin` : `${toDisplayDate(p.fecha_inicio)} → ${toDisplayDate(p.fecha_fin)}`}</dd></div>
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Tasa de cambio al desembolso</dt><dd className="num">{Number(p.tasa_cambio).toLocaleString('es-VE')} Bs/USD ({p.fuente_tasa_cambio})</dd></div>
-          <div><dt className="text-xs text-slate-500 dark:text-slate-400">Mora</dt><dd>{Number(p.tasa_mora_diaria) > 0 ? `${Number(p.tasa_mora_diaria).toLocaleString('es-VE')} % diario · ${p.dias_gracia} días de gracia` : 'Sin mora'}</dd></div>
-        </dl>
-        {p.notas && <p className="mt-3 whitespace-pre-line text-sm text-slate-600 dark:text-slate-300">{p.notas}</p>}
-      </Card>
+      <CondicionesPrestamo p={p} />
 
       <ErrorBox message={accion.error} />
 
@@ -116,6 +92,7 @@ export function PrestamoDetalle({ id, navigate }) {
               Cada período cobra interés sobre lo que se debe al empezar; los abonos lo reducen desde el día del pago.
             </p>
           )}
+          {cuotas.data && <LineaCuotas cuotas={cuotas.data} conteo={progreso.conteo} abierto={abierto} />}
           <TablaCuotas cuotas={cuotas} moneda={p.moneda} abierto={abierto} />
         </Card>
 
