@@ -106,7 +106,7 @@ export function ProfileModal({ open, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overlay-safe backdrop-blur-sm animate-fade-in"
       role="presentation"
       onClick={onClose}
     >

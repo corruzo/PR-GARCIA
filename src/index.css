@@ -36,6 +36,13 @@
   }
   body {
     @apply bg-white text-[#222222] dark:bg-surface-dark dark:text-[#F5F5F7] transition-colors duration-200;
+    /* Bordes curvos y notch en horizontal. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  html {
+    /* Los anclajes no quedan escondidos bajo el encabezado fijo. */
+    scroll-padding-top: calc(5rem + env(safe-area-inset-top));
   }
   * {
     @apply border-slate-200 dark:border-slate-800;
@@ -135,8 +142,34 @@
   .font-mono {
     font-variant-numeric: tabular-nums;
   }
+  /*
+   * Márgenes de seguridad del dispositivo (notch, barra de estado, barra de
+   * inicio y bordes curvos). La página usa viewport-fit=cover, así que todo
+   * lo que toca un borde de la pantalla debe reservar este espacio.
+   */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* Capa de fondo de ventanas emergentes: nunca bajo el notch ni la barra de inicio. */
+  .overlay-safe {
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+             max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  }
+  /* Espacio inferior para la barra de navegación del teléfono + barra de inicio. */
+  .pb-nav {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 1024px) {
+    .pb-nav {
+      padding-bottom: calc(2.25rem + env(safe-area-inset-bottom));
+    }
   }
 
   /* Contraste mínimo (WCAG AA) para textos secundarios. */
@@ -182,4 +215,11 @@
   .dark textarea::placeholder {
     color: #B8B8BE;
   }
+}
+
+/* Menú lateral del teléfono: contenido fuera del notch y de la barra de inicio. */
+.sidebar-safe {
+  padding-top: calc(1.25rem + env(safe-area-inset-top));
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  padding-left: calc(1.25rem + env(safe-area-inset-left));
 }

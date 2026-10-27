@@ -27,7 +27,7 @@ export function InfoModal({ open, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/45 p-3 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-gray-950/45 overlay-safe backdrop-blur-sm sm:items-center"
       role="presentation"
       onClick={onClose}
     >

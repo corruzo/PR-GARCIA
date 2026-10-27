@@ -68,7 +68,7 @@ function AppContent() {
         onOpenProfile={() => setShowProfile(true)}
       />
 
-      <main id="app-tab-panel" role="tabpanel" aria-label={NAV_ITEMS.find((item) => item.id === activeTab)?.label} tabIndex={0} className="mx-auto max-w-6xl px-4 pt-6 pb-28 lg:px-6 lg:py-9">
+      <main id="app-tab-panel" role="tabpanel" aria-label={NAV_ITEMS.find((item) => item.id === activeTab)?.label} tabIndex={0} className="pb-nav mx-auto max-w-6xl px-4 pt-6 lg:px-6 lg:pt-9">
 
         <Suspense fallback={<div className="min-h-40" aria-label="Cargando módulo" />}>
           {activeTab === 'calculator' && <CalculadoraView onConvertir={convertirEnPrestamo} />}

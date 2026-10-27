@@ -25,7 +25,7 @@ export function SidebarMobile({ open, onClose, activeTab, onChangeTab, onOpenPro
         role="dialog"
         aria-modal="true"
         aria-label="Menú de navegación"
-        className="w-72 max-w-[80vw] h-full bg-white dark:bg-surface-cardDark border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between p-5 animate-slide-right overflow-y-auto"
+        className="sidebar-safe w-72 max-w-[85vw] h-full bg-white dark:bg-surface-cardDark border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between p-5 animate-slide-right overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-6">

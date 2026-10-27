@@ -63,7 +63,7 @@ export function WelcomeHome() {
 
   return (
     <div className="min-h-screen bg-white text-[#222222] selection:bg-brand-700 selection:text-white dark:bg-surface-dark dark:text-[#F5F5F7]">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95">
+      <header className="pt-safe sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-3 px-4 lg:px-6">
           <a href="/" className="no-underline" aria-label="PRGARCÍA, inicio">
             <BrandLogo />
@@ -173,7 +173,7 @@ export function WelcomeHome() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-200 bg-surface-muted px-4 py-10 text-sm text-slate-600 dark:border-slate-800 dark:bg-surface-cardDark dark:text-slate-400">
+      <footer className="border-t border-slate-200 bg-surface-muted px-4 pt-10 pb-[calc(2.5rem+env(safe-area-inset-bottom))] text-sm text-slate-600 dark:border-slate-800 dark:bg-surface-cardDark dark:text-slate-400">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:px-2">
           <div>
             <p className="font-semibold text-[#222222] dark:text-white">PRGARCÍA™ · Gestión de préstamos USD y VES.</p>

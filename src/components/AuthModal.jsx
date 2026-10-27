@@ -140,7 +140,7 @@ function AuthModalContent() {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 overlay-safe backdrop-blur-sm animate-fade-in"
       role="presentation"
       onClick={closeAuthModal}
     >

@@ -16,7 +16,7 @@ export function Header({ activeTab, onChangeTab, onOpenProfile }) {
 
   return (
     <>
-      <header className="app-header sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95">
+      <header className="app-header pt-safe sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 lg:h-20 lg:px-6">
           <button
             type="button"
@@ -94,7 +94,7 @@ export function Header({ activeTab, onChangeTab, onOpenProfile }) {
       </header>
 
       {/* Barra inferior en móvil, como en las apps nativas. */}
-      <nav aria-label="Módulos" className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95 lg:hidden">
+      <nav aria-label="Módulos" className="pb-safe px-safe fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-surface-dark/95 lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {NAV_ITEMS.filter((item) => item.mobile).map(({ id, label, shortLabel, icon: Icon }) => {
             const active = activeTab === id;

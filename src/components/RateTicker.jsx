@@ -52,7 +52,7 @@ function PanelTasa({ bcv, personalizada, onClose }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" role="presentation" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 overlay-safe sm:items-center" role="presentation" onClick={onClose}>
       <section role="dialog" aria-modal="true" aria-labelledby="panel-tasa-titulo" onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-lg dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center justify-between">
