@@ -1,59 +1,73 @@
-import { CalendarClock, ChartColumn, HandCoins, Moon, Sun, Users } from 'lucide-react';
+import { BadgePercent, CalendarClock, ChartColumn, HandCoins, Landmark, Moon, Sun, Users } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { useTheme } from '../context/useTheme';
 import { BrandLogo } from './BrandLogo';
 import { CONTACT_EMAIL } from '../config';
 
-const HOW_IT_WORKS = [
-  {
-    title: 'Registra a tus clientes',
-    description: 'Guarda cédula o RIF, teléfono y referencias. Cada cliente tiene su ficha con todos sus préstamos.',
-  },
-  {
-    title: 'Emite el préstamo',
-    description: 'Elige monto, moneda, tasa y plazo. El cronograma queda guardado con la tasa BCV del día.',
-  },
-  {
-    title: 'Cobra y controla',
-    description: 'Registra pagos y abonos en dólares o bolívares, sigue la mora y envía recordatorios por WhatsApp.',
-  },
+const FUNCIONES = [
+  { icon: Users, title: 'Clientes en segundos', description: 'Crea al cliente solo con su nombre mientras haces el préstamo y completa su ficha después. Cada ficha reúne sus préstamos, pagos y contacto.' },
+  { icon: Landmark, title: 'Préstamos a tu manera', description: 'En dólares o bolívares, con tasa diaria, semanal, quincenal o mensual. Con cuotas y fecha de fin, o sin fecha de fin pagando intereses por período.' },
+  { icon: BadgePercent, title: 'Interés sobre lo que se debe', description: 'Cada abono a capital baja los intereses desde el día del pago. Elige si el abono reduce el plazo o el monto de las cuotas.' },
+  { icon: HandCoins, title: 'Pagos en USD o Bs.', description: 'Registra pagos, abonos y cancelaciones totales en cualquiera de las dos monedas, convertidos a la tasa BCV del día. Un pago mal anotado se anula con su motivo.' },
+  { icon: CalendarClock, title: 'Cobranza del día', description: 'Al entrar ves quién está atrasado, quién vence hoy y qué viene en la semana, con la mora calculada y botones para escribir por WhatsApp o llamar.' },
+  { icon: ChartColumn, title: 'Reportes claros', description: 'Capital en la calle, antigüedad de la deuda, intereses cobrados y efecto del tipo de cambio. Todo se exporta en CSV.' },
 ];
 
-const SERVICIOS = [
-  { icon: Users, title: 'Cartera de clientes', description: 'Fichas, historial y estado de cada cliente.' },
-  { icon: CalendarClock, title: 'Cuotas y abonos', description: 'Cronograma, pagos parciales y abonos que reducen el interés.' },
-  { icon: HandCoins, title: 'Mora y cobranza', description: 'Atrasos, mora diaria y agenda de cobros de la semana.' },
-  { icon: ChartColumn, title: 'Reportes en USD y Bs.', description: 'Libro mayor, cobranza mensual y efecto de la tasa.' },
+const HOW_IT_WORKS = [
+  {
+    title: 'Estima y comparte',
+    description: 'Usa la calculadora para ver la cuota o los intereses por período y envía la propuesta por WhatsApp.',
+  },
+  {
+    title: 'Conviértela en préstamo',
+    description: 'Con un toque los datos pasan al préstamo real. Elige o crea al cliente y el préstamo queda guardado con su cronograma de cobros.',
+  },
+  {
+    title: 'Cobra y registra',
+    description: 'Cada día la cobranza te dice a quién cobrar. Anota el pago y los saldos, la mora y los reportes se actualizan solos.',
+  },
 ];
 
 const FAQS = [
   {
-    question: '¿PRGARCÍA otorga préstamos?',
-    answer: 'No. PRGARCÍA es una herramienta para que tú gestiones tus préstamos. No presta dinero, no aprueba solicitudes ni intermedia pagos.',
+    question: '¿Qué pasa si mi cliente abona al capital?',
+    answer: 'El interés se calcula sobre el saldo pendiente: lo que abone deja de generar interés desde la fecha del pago. Puedes elegir si el abono acorta el plazo o baja el monto de las cuotas restantes.',
   },
   {
-    question: '¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?',
-    answer: 'La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. Puedes calcular el interés sobre el saldo pendiente (cada abono lo reduce) o fijo sobre el capital inicial, siempre por días exactos.',
+    question: '¿Puedo registrar préstamos sin fecha de fin?',
+    answer: 'Sí. En un préstamo sin fecha de fin el cliente paga los intereses de cada período sobre el capital que debe y abona al capital cuando puede, hasta pagarlo completo.',
+  },
+  {
+    question: '¿Cómo se manejan los pagos en bolívares?',
+    answer: 'Cada pago se convierte a la tasa BCV del día en que se paga. En préstamos en dólares, los intereses y la mora pueden pagarse en bolívares, pero el capital se paga en dólares. Los préstamos en bolívares aceptan ambas monedas.',
+  },
+  {
+    question: '¿Cómo se calcula la mora?',
+    answer: 'Tú defines el porcentaje de mora diaria y los días de gracia de cada préstamo. La mora corre solo sobre lo vencido y aparece sumada en la cobranza del día.',
+  },
+  {
+    question: '¿Puedo corregir un pago mal registrado?',
+    answer: 'Sí. El pago se anula indicando el motivo y los saldos se recalculan. El registro original queda en el historial para que siempre sepas qué pasó.',
   },
   {
     question: '¿De dónde sale la tasa BCV?',
-    answer: 'La aplicación consulta las fuentes de referencia disponibles, que pueden retrasarse o fallar. Verifica siempre la tasa publicada en bcv.org.ve.',
+    answer: 'Se lee directamente del sitio oficial del Banco Central de Venezuela cada día. Si pactaste otra tasa con tu cliente, puedes escribirla al registrar el pago.',
   },
   {
-    question: '¿Puedo simular en dólares y bolívares?',
-    answer: 'Sí. Elige USD o VES y revisa la equivalencia calculada con la tasa indicada en la cotización.',
+    question: '¿Quién puede ver mis clientes y préstamos?',
+    answer: 'Solo tu cuenta. Cada registro está protegido en la base de datos para que nadie más pueda leerlo, y cada cambio queda en una bitácora que no se puede alterar.',
   },
   {
-    question: '¿Se guardan mis cotizaciones?',
-    answer: 'Solo si inicias sesión y eliges guardarlas. Puedes consultar las cotizaciones guardadas desde tu cuenta.',
+    question: '¿Funciona en el teléfono?',
+    answer: 'Sí. Está pensada primero para el teléfono, con letra grande y botones cómodos. Puedes instalarla en la pantalla de inicio y consultar lo último que viste aunque no tengas conexión.',
   },
   {
-    question: '¿PRGARCÍA envía automáticamente la propuesta por WhatsApp?',
-    answer: 'No. La aplicación prepara un mensaje; tú lo revisas y decides si lo envías desde WhatsApp.',
+    question: '¿PRGARCÍA presta dinero o cobra por mí?',
+    answer: 'No. Es una herramienta para que administres tus propios préstamos. No presta dinero, no procesa pagos y no envía mensajes sin que tú los revises.',
   },
   {
-    question: '¿Cuánto cuesta usar PRGARCÍA?',
-    answer: 'El costo aún no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio.',
+    question: '¿Cuánto cuesta?',
+    answer: 'Por ahora es gratis. Si algún día hay planes de pago, se anunciarán con anticipación y nada se cobrará sin tu aceptación.',
   },
 ];
 
@@ -94,10 +108,11 @@ export function WelcomeHome() {
               Préstamos en dólares y bolívares
             </p>
             <h1 className="max-w-xl text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-              Revisa cuánto pagarías antes de acordar un préstamo.
+              Tus préstamos y cobros en dólares y bolívares, en orden.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
-              Clientes, cuotas, abonos, mora y cobranza en un solo lugar, con la tasa BCV del día y cálculos exactos al céntimo.
+              Registra clientes, crea préstamos con cuotas o sin fecha de fin, anota pagos a la tasa BCV del día y sabe cada mañana a quién cobrar.
+              Los intereses bajan con cada abono a capital, calculados al céntimo.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <button type="button" onClick={() => openAuthModal('register')} className="btn-primary min-h-12 px-7 text-base">
@@ -127,13 +142,14 @@ export function WelcomeHome() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 lg:px-6" aria-label="Servicios">
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICIOS.map(({ icon: Icon, title, description }) => (
-              <li key={title} className="rounded-2xl border border-slate-200 p-6 dark:border-slate-800">
-                <Icon size={26} className="text-brand-700 dark:text-brand-400" aria-hidden="true" />
-                <h2 className="mt-4 text-base font-semibold">{title}</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{description}</p>
+        <section className="mx-auto max-w-6xl px-4 lg:px-6" aria-labelledby="funciones">
+          <h2 id="funciones" className="text-2xl font-bold tracking-tight sm:text-3xl">Todo lo que necesitas para prestar con orden</h2>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FUNCIONES.map(({ icon: Icon, title, description }) => (
+              <li key={title} className="rounded-2xl border-2 border-slate-200 p-6 dark:border-slate-800">
+                <Icon size={28} className="text-brand-700 dark:text-brand-400" aria-hidden="true" />
+                <h3 className="mt-4 text-lg font-bold">{title}</h3>
+                <p className="mt-2 text-base leading-relaxed text-slate-600 dark:text-slate-400">{description}</p>
               </li>
             ))}
           </ul>
@@ -146,11 +162,19 @@ export function WelcomeHome() {
               {HOW_IT_WORKS.map((step, index) => (
                 <li key={step.title}>
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">{index + 1}</span>
-                  <h3 className="mt-4 font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{step.description}</p>
+                  <h3 className="mt-4 text-lg font-bold">{step.title}</h3>
+                  <p className="mt-2 text-base leading-relaxed text-slate-600 dark:text-slate-400">{step.description}</p>
                 </li>
               ))}
             </ol>
+          </section>
+
+          <section className="border-b border-slate-200 py-14 dark:border-slate-800 sm:py-16" aria-labelledby="para-quien">
+            <h2 id="para-quien" className="text-2xl font-bold tracking-tight">Para quién es</h2>
+            <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-400">
+              Para personas y pequeños negocios que prestan su propio dinero a clientes, familiares o empleados y hoy llevan las cuentas en un cuaderno,
+              una hoja de cálculo o de memoria. Si cobras por semana, por quincena o por mes, en dólares o en bolívares, PRGARCÍA hace las cuentas por ti.
+            </p>
           </section>
 
           <section className="py-14 sm:py-16" aria-labelledby="preguntas-frecuentes">
@@ -158,15 +182,15 @@ export function WelcomeHome() {
             <div className="mt-4 divide-y divide-slate-200 dark:divide-slate-800">
               {FAQS.map((faq) => (
                 <details key={faq.question} className="group py-5">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">
                     {faq.question}
                     <span aria-hidden="true" className="text-xl leading-none text-slate-500 transition-transform group-open:rotate-45">+</span>
                   </summary>
-                  <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">{faq.answer}</p>
+                  <p className="mt-2 max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-400">{faq.answer}</p>
                 </details>
               ))}
             </div>
-            <p className="mt-8 max-w-3xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            <p className="mt-8 max-w-3xl text-base leading-relaxed text-slate-600 dark:text-slate-400">
               PRGARCÍA es una herramienta de gestión. No otorga préstamos ni es una entidad financiera, y no está afiliada al Banco Central de Venezuela.
             </p>
           </section>

@@ -12,10 +12,10 @@
     <meta name="theme-color" content="#1C1C1E" media="(prefers-color-scheme: dark)" />
     
     <!-- Primary SEO Meta Tags -->
-    <title>PRGARCÍA™ | Estima cuotas de préstamos en USD y VES</title>
-    <meta name="title" content="PRGARCÍA™ | Estima cuotas de préstamos en USD y VES" />
-    <meta name="description" content="Estima intereses simples y revisa cuotas de préstamos en dólares y bolívares con una referencia de tasa BCV." />
-    <meta name="keywords" content="calculadora de prestamos, calculo prestamos tasa bcv, cuotas dolares bolivares, prestamos e intereses, simulador de prestamo bcv, prgarcia" />
+    <title>PRGARCÍA™ | Gestión de préstamos y cobranza en USD y VES</title>
+    <meta name="title" content="PRGARCÍA™ | Gestión de préstamos y cobranza en USD y VES" />
+    <meta name="description" content="Registra clientes, préstamos con cuotas o sin fecha de fin, pagos a la tasa BCV del día y la cobranza diaria, en dólares y bolívares." />
+    <meta name="keywords" content="gestion de prestamos, cobranza de prestamos, prestamos en dolares y bolivares, tasa bcv, interes sobre saldo, calculadora de prestamos, prgarcia" />
     <meta name="author" content="PRGARCÍA" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://prgarcia.app/" />
@@ -24,30 +24,26 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://prgarcia.app/" />
     <meta property="og:site_name" content="PRGARCÍA" />
-    <meta property="og:title" content="PRGARCÍA™ | Estima cuotas de préstamos en USD y VES" />
-    <meta property="og:description" content="Estima intereses simples y revisa cuotas en dólares y bolívares con referencia de tasa BCV." />
+    <meta property="og:title" content="PRGARCÍA™ | Gestión de préstamos y cobranza en USD y VES" />
+    <meta property="og:description" content="Registra clientes, préstamos con cuotas o sin fecha de fin, pagos a la tasa BCV del día y la cobranza diaria, en dólares y bolívares." />
     <meta property="og:image" content="https://prgarcia.app/og-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="PRGARCÍA, calculadora de préstamos en dólares y bolívares" />
+    <meta property="og:image:alt" content="PRGARCÍA, gestión de préstamos en dólares y bolívares" />
     <meta property="og:locale" content="es_VE" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://prgarcia.app/" />
-    <meta property="twitter:title" content="PRGARCÍA™ | Estima cuotas de préstamos en USD y VES" />
-    <meta property="twitter:description" content="Estima intereses simples y revisa cuotas en dólares y bolívares con referencia de tasa BCV." />
+    <meta property="twitter:title" content="PRGARCÍA™ | Gestión de préstamos y cobranza en USD y VES" />
+    <meta property="twitter:description" content="Registra clientes, préstamos con cuotas o sin fecha de fin, pagos a la tasa BCV del día y la cobranza diaria, en dólares y bolívares." />
     <meta property="twitter:image" content="https://prgarcia.app/og-image.png" />
-    <meta property="twitter:image:alt" content="PRGARCÍA, calculadora de préstamos en dólares y bolívares" />
+    <meta property="twitter:image:alt" content="PRGARCÍA, gestión de préstamos en dólares y bolívares" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://open.er-api.com">
-    <link rel="preconnect" href="https://api.exchangerate-api.com">
-    <link rel="preconnect" href="https://ve.dolarapi.com">
-    <link rel="preconnect" href="https://www.bcv.org.ve">
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- PWA Web App Manifest -->
@@ -65,7 +61,7 @@
           "name": "PRGARCÍA™",
           "url": "https://prgarcia.app/",
           "image": "https://prgarcia.app/og-image.png",
-          "description": "Calculadora informativa para estimar intereses simples y cuotas de préstamos en USD y VES.",
+          "description": "Aplicación para gestionar préstamos propios en USD y VES: clientes, cuotas, abonos a capital con interés sobre saldo, mora, pagos a la tasa BCV, cobranza y reportes.",
           "applicationCategory": "FinanceApplication",
           "inLanguage": "es",
           "operatingSystem": "All"
@@ -76,38 +72,83 @@
           "mainEntity": [
             {
               "@type": "Question",
-              "name": "¿PRGARCÍA otorga préstamos?",
-              "acceptedAnswer": { "@type": "Answer", "text": "No. PRGARCÍA es una herramienta informativa de simulación. No presta dinero, no aprueba solicitudes ni intermedia pagos." }
+              "name": "¿Qué pasa si mi cliente abona al capital?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "El interés se calcula sobre el saldo pendiente: lo que abone deja de generar interés desde la fecha del pago. Puedes elegir si el abono acorta el plazo o baja el monto de las cuotas restantes."
+              }
             },
             {
               "@type": "Question",
-              "name": "¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?",
-              "acceptedAnswer": { "@type": "Answer", "text": "La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. La aplicación usa interés simple sobre el capital y distribuye el interés según los días del cronograma." }
+              "name": "¿Puedo registrar préstamos sin fecha de fin?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sí. En un préstamo sin fecha de fin el cliente paga los intereses de cada período sobre el capital que debe y abona al capital cuando puede, hasta pagarlo completo."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Cómo se manejan los pagos en bolívares?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Cada pago se convierte a la tasa BCV del día en que se paga. En préstamos en dólares, los intereses y la mora pueden pagarse en bolívares, pero el capital se paga en dólares. Los préstamos en bolívares aceptan ambas monedas."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Cómo se calcula la mora?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Tú defines el porcentaje de mora diaria y los días de gracia de cada préstamo. La mora corre solo sobre lo vencido y aparece sumada en la cobranza del día."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Puedo corregir un pago mal registrado?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sí. El pago se anula indicando el motivo y los saldos se recalculan. El registro original queda en el historial para que siempre sepas qué pasó."
+              }
             },
             {
               "@type": "Question",
               "name": "¿De dónde sale la tasa BCV?",
-              "acceptedAnswer": { "@type": "Answer", "text": "La aplicación consulta las fuentes de referencia disponibles, que pueden retrasarse o fallar. Verifica siempre la tasa publicada en bcv.org.ve." }
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Se lee directamente del sitio oficial del Banco Central de Venezuela cada día. Si pactaste otra tasa con tu cliente, puedes escribirla al registrar el pago."
+              }
             },
             {
               "@type": "Question",
-              "name": "¿Puedo simular en dólares y bolívares?",
-              "acceptedAnswer": { "@type": "Answer", "text": "Sí. Puedes elegir USD o VES y consultar la equivalencia en la otra moneda usando la tasa indicada en la simulación." }
+              "name": "¿Quién puede ver mis clientes y préstamos?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Solo tu cuenta. Cada registro está protegido en la base de datos para que nadie más pueda leerlo, y cada cambio queda en una bitácora que no se puede alterar."
+              }
             },
             {
               "@type": "Question",
-              "name": "¿Se guardan mis cotizaciones?",
-              "acceptedAnswer": { "@type": "Answer", "text": "Las cotizaciones guardadas se asocian a tu cuenta cuando inicias sesión y eliges guardarlas." }
+              "name": "¿Funciona en el teléfono?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Sí. Está pensada primero para el teléfono, con letra grande y botones cómodos. Puedes instalarla en la pantalla de inicio y consultar lo último que viste aunque no tengas conexión."
+              }
             },
             {
               "@type": "Question",
-              "name": "¿La calculadora envía el mensaje por WhatsApp automáticamente?",
-              "acceptedAnswer": { "@type": "Answer", "text": "No. Al elegir compartir, se prepara el texto y WhatsApp se abre para que revises y envíes el mensaje." }
+              "name": "¿PRGARCÍA presta dinero o cobra por mí?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. Es una herramienta para que administres tus propios préstamos. No presta dinero, no procesa pagos y no envía mensajes sin que tú los revises."
+              }
             },
             {
               "@type": "Question",
-              "name": "¿Cuánto cuesta usar PRGARCÍA?",
-              "acceptedAnswer": { "@type": "Answer", "text": "El precio todavía no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio." }
+              "name": "¿Cuánto cuesta?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Por ahora es gratis. Si algún día hay planes de pago, se anunciarán con anticipación y nada se cobrará sin tu aceptación."
+              }
             }
           ]
         }
@@ -128,42 +169,52 @@
       </header>
       <main class="mx-auto max-w-4xl space-y-12 px-4 py-10 text-slate-800 lg:px-6">
         <section class="space-y-4">
-          <p class="text-sm font-bold uppercase text-brand-700">Calculadora financiera para Venezuela</p>
-          <h1 class="text-3xl font-extrabold text-slate-950">Revisa cuánto pagarías antes de acordar un préstamo.</h1>
-          <p class="max-w-3xl text-lg leading-relaxed">PRGARCÍA es una calculadora que estima cuotas con interés simple. Puedes comparar escenarios en USD y VES con una referencia de tasa BCV.</p>
-          <p class="max-w-3xl text-sm leading-relaxed">PRGARCÍA es una herramienta informativa. No es una entidad financiera ni está afiliada al Banco Central de Venezuela.</p>
+          <p class="text-sm font-bold uppercase text-brand-700">Préstamos en dólares y bolívares</p>
+          <h1 class="text-3xl font-extrabold text-slate-950">Tus préstamos y cobros en dólares y bolívares, en orden.</h1>
+          <p class="max-w-3xl text-lg leading-relaxed">Registra clientes, crea préstamos con cuotas o sin fecha de fin, anota pagos a la tasa BCV del día y sabe cada mañana a quién cobrar. Los intereses bajan con cada abono a capital, calculados al céntimo.</p>
+          <p class="max-w-3xl text-sm leading-relaxed">PRGARCÍA es una herramienta de gestión. No otorga préstamos ni es una entidad financiera, y no está afiliada al Banco Central de Venezuela.</p>
           <a href="/?auth=register" class="inline-flex min-h-11 items-center rounded-lg bg-brand-700 px-5 py-3 font-bold text-white no-underline">Crear una cuenta</a>
+        </section>
+
+        <section id="funciones" class="space-y-5">
+          <h2 class="text-2xl font-bold text-slate-950">Todo lo que necesitas para prestar con orden</h2>
+          <ul class="grid gap-5 md:grid-cols-2">
+            <li class="space-y-2"><h3 class="text-lg font-bold">Clientes en segundos</h3><p>Crea al cliente solo con su nombre mientras haces el préstamo y completa su ficha después. Cada ficha reúne sus préstamos, pagos y contacto.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">Préstamos a tu manera</h3><p>En dólares o bolívares, con tasa diaria, semanal, quincenal o mensual. Con cuotas y fecha de fin, o sin fecha de fin pagando intereses por período.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">Interés sobre lo que se debe</h3><p>Cada abono a capital baja los intereses desde el día del pago. Elige si el abono reduce el plazo o el monto de las cuotas.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">Pagos en USD o Bs.</h3><p>Registra pagos, abonos y cancelaciones totales en cualquiera de las dos monedas, convertidos a la tasa BCV del día. Un pago mal anotado se anula con su motivo.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">Cobranza del día</h3><p>Al entrar ves quién está atrasado, quién vence hoy y qué viene en la semana, con la mora calculada y botones para escribir por WhatsApp o llamar.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">Reportes claros</h3><p>Capital en la calle, antigüedad de la deuda, intereses cobrados y efecto del tipo de cambio. Todo se exporta en CSV.</p></li>
+          </ul>
         </section>
 
         <section id="como-funciona" class="space-y-5">
           <h2 class="text-2xl font-bold text-slate-950">Cómo funciona</h2>
           <ol class="grid gap-5 md:grid-cols-3">
-            <li class="space-y-2"><h3 class="text-lg font-bold">1. Ingresa las condiciones</h3><p>Elige moneda, monto, porcentaje y período de la tasa, además de las fechas del préstamo.</p></li>
-            <li class="space-y-2"><h3 class="text-lg font-bold">2. Revisa el resultado</h3><p>Consulta el total de intereses, el total a pagar y el cronograma estimado en USD y VES.</p></li>
-            <li class="space-y-2"><h3 class="text-lg font-bold">3. Guarda o comparte</h3><p>Si tienes una cuenta, guarda la cotización. También puedes revisar y compartir una propuesta por WhatsApp.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">1. Estima y comparte</h3><p>Usa la calculadora para ver la cuota o los intereses por período y envía la propuesta por WhatsApp.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">2. Conviértela en préstamo</h3><p>Con un toque los datos pasan al préstamo real. Elige o crea al cliente y el préstamo queda guardado con su cronograma de cobros.</p></li>
+            <li class="space-y-2"><h3 class="text-lg font-bold">3. Cobra y registra</h3><p>Cada día la cobranza te dice a quién cobrar. Anota el pago y los saldos, la mora y los reportes se actualizan solos.</p></li>
           </ol>
         </section>
 
-        <section class="space-y-3">
-          <h2 class="text-2xl font-bold text-slate-950">Por qué consultar una referencia BCV</h2>
-          <p>La tasa BCV sirve como referencia para expresar equivalencias entre USD y VES. Puede haber retrasos o fallos de consulta: verifica el valor en bcv.org.ve antes de acordar un pago.</p>
-        </section>
-
-        <section class="space-y-3">
+        <section id="para-quien" class="space-y-3">
           <h2 class="text-2xl font-bold text-slate-950">Para quién es</h2>
-          <p>Puede ser útil para prestamistas, comerciantes y personas que quieran comparar escenarios de pago. El resultado es una estimación; confirma por escrito las condiciones con la otra parte.</p>
+          <p>Para personas y pequeños negocios que prestan su propio dinero a clientes, familiares o empleados y hoy llevan las cuentas en un cuaderno, una hoja de cálculo o de memoria. Si cobras por semana, por quincena o por mes, en dólares o en bolívares, PRGARCÍA hace las cuentas por ti.</p>
         </section>
 
         <section id="preguntas-frecuentes" class="space-y-4">
           <h2 class="text-2xl font-bold text-slate-950">Preguntas frecuentes</h2>
           <div class="divide-y divide-slate-200">
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿PRGARCÍA otorga préstamos?</summary><p class="mt-2">No. PRGARCÍA es una herramienta informativa de simulación. No presta dinero, no aprueba solicitudes ni intermedia pagos.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Qué diferencia hay entre una tasa diaria, semanal, quincenal y mensual?</summary><p class="mt-2">La modalidad indica el período al que corresponde el porcentaje: 1, 7, 15 o 30 días. La aplicación usa interés simple sobre el capital y distribuye el interés según los días del cronograma.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿De dónde sale la tasa BCV?</summary><p class="mt-2">La aplicación consulta las fuentes de referencia disponibles, que pueden retrasarse o fallar. Verifica siempre la tasa publicada en <a href="https://www.bcv.org.ve">bcv.org.ve</a>.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Puedo simular en dólares y bolívares?</summary><p class="mt-2">Sí. Puedes elegir USD o VES y consultar la equivalencia en la otra moneda usando la tasa indicada en la simulación.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Se guardan mis cotizaciones?</summary><p class="mt-2">Las cotizaciones guardadas se asocian a tu cuenta cuando inicias sesión y eliges guardarlas.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿La calculadora envía el mensaje por WhatsApp automáticamente?</summary><p class="mt-2">No. Al elegir compartir, se prepara el texto y WhatsApp se abre para que revises y envíes el mensaje.</p></details>
-            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Cuánto cuesta usar PRGARCÍA?</summary><p class="mt-2">El precio todavía no está definido públicamente. Revisa las condiciones que se publiquen antes de usar el servicio.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Qué pasa si mi cliente abona al capital?</summary><p class="mt-2">El interés se calcula sobre el saldo pendiente: lo que abone deja de generar interés desde la fecha del pago. Puedes elegir si el abono acorta el plazo o baja el monto de las cuotas restantes.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Puedo registrar préstamos sin fecha de fin?</summary><p class="mt-2">Sí. En un préstamo sin fecha de fin el cliente paga los intereses de cada período sobre el capital que debe y abona al capital cuando puede, hasta pagarlo completo.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Cómo se manejan los pagos en bolívares?</summary><p class="mt-2">Cada pago se convierte a la tasa BCV del día en que se paga. En préstamos en dólares, los intereses y la mora pueden pagarse en bolívares, pero el capital se paga en dólares. Los préstamos en bolívares aceptan ambas monedas.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Cómo se calcula la mora?</summary><p class="mt-2">Tú defines el porcentaje de mora diaria y los días de gracia de cada préstamo. La mora corre solo sobre lo vencido y aparece sumada en la cobranza del día.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Puedo corregir un pago mal registrado?</summary><p class="mt-2">Sí. El pago se anula indicando el motivo y los saldos se recalculan. El registro original queda en el historial para que siempre sepas qué pasó.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿De dónde sale la tasa BCV?</summary><p class="mt-2">Se lee directamente del sitio oficial del Banco Central de Venezuela cada día. Si pactaste otra tasa con tu cliente, puedes escribirla al registrar el pago.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Quién puede ver mis clientes y préstamos?</summary><p class="mt-2">Solo tu cuenta. Cada registro está protegido en la base de datos para que nadie más pueda leerlo, y cada cambio queda en una bitácora que no se puede alterar.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Funciona en el teléfono?</summary><p class="mt-2">Sí. Está pensada primero para el teléfono, con letra grande y botones cómodos. Puedes instalarla en la pantalla de inicio y consultar lo último que viste aunque no tengas conexión.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿PRGARCÍA presta dinero o cobra por mí?</summary><p class="mt-2">No. Es una herramienta para que administres tus propios préstamos. No presta dinero, no procesa pagos y no envía mensajes sin que tú los revises.</p></details>
+            <details class="py-4"><summary class="cursor-pointer font-semibold">¿Cuánto cuesta?</summary><p class="mt-2">Por ahora es gratis. Si algún día hay planes de pago, se anunciarán con anticipación y nada se cobrará sin tu aceptación.</p></details>
           </div>
         </section>
       </main>
@@ -171,7 +222,7 @@
         <nav class="mb-2 flex flex-wrap justify-center gap-4" aria-label="Información legal">
           <a href="/terminos">Términos</a><a href="/privacidad">Privacidad</a><a href="/aviso-legal">Aviso legal</a>
         </nav>
-        <p>PRGARCÍA™ · Calculadora de préstamos en USD y VES.</p>
+        <p>PRGARCÍA™ · Gestión de préstamos USD y VES.</p>
       </footer>
     </div>
     <script type="module" src="/src/main.jsx"></script>

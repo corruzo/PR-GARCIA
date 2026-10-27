@@ -1,6 +1,31 @@
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { defineConfig } from 'vite';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { defineConfig, loadEnv } from 'vite';
+
+const LEGAL_PAGES = ['terminos.html', 'privacidad.html', 'aviso-legal.html'];
+
+/** Pone VITE_CONTACT_EMAIL en las páginas legales estáticas (public/ no pasa por Vite). */
+function contactoEnPaginasLegales(email) {
+  const valido = /^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+$/.test(email);
+  return {
+    name: 'prgarcia:contacto-legal',
+    apply: 'build',
+    closeBundle: {
+      // Antes de que el service worker calcule las revisiones de los archivos.
+      order: 'pre',
+      handler() {
+        for (const page of LEGAL_PAGES) {
+          const file = `dist/${page}`;
+          const html = readFileSync(file, 'utf8');
+          writeFileSync(file, valido
+            ? html.replaceAll('{{EMAIL_CONTACTO}}', email)
+            : html.replace(/<a href="mailto:\{\{EMAIL_CONTACTO\}\}">\{\{EMAIL_CONTACTO\}\}<\/a>/g, 'nuestro correo de contacto'));
+        }
+      },
+    },
+  };
+}
 
 const securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
@@ -13,7 +38,7 @@ const securityHeaders = {
   'X-Permitted-Cross-Domain-Policies': 'none',
 };
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/api': {
@@ -30,6 +55,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    contactoEnPaginasLegales(String(loadEnv(mode, process.cwd(), 'VITE_').VITE_CONTACT_EMAIL || '').trim()),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -43,6 +69,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
         globIgnores: ['**/icon-192.svg', '**/icon-512.svg', '**/icon-maskable.svg'],
         navigateFallback: '/index.html',
+        // Las páginas legales y la API no son parte de la app de una sola página.
+        navigateFallbackDenylist: [/^\/(terminos|privacidad|aviso-legal)(\.html)?$/, /^\/api\//],
         runtimeCaching: [
           {
             urlPattern: ({ request, sameOrigin, url }) => {
@@ -82,4 +110,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

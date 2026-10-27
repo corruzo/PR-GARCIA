@@ -11,10 +11,10 @@ const faqPage = schema['@graph'].find((item) => item['@type'] === 'FAQPage');
 
 test('the welcome page has server-delivered content and one H1', () => {
   assert.match(homepage, /<html lang="es-VE">/);
-  assert.match(homepage, /<h1[^>]*>Revisa cuánto pagarías antes de acordar un préstamo\.<\/h1>/);
+  assert.match(homepage, /<h1[^>]*>Tus préstamos y cobros en dólares y bolívares, en orden\.<\/h1>/);
   assert.equal([...homepage.matchAll(/<h1(?:\s|>)/g)].length, 1);
+  assert.match(homepage, /Todo lo que necesitas para prestar con orden/);
   assert.match(homepage, /Cómo funciona/);
-  assert.match(homepage, /Por qué consultar una referencia BCV/);
   assert.match(homepage, /Para quién es/);
   assert.match(homepage, /Crear una cuenta/);
 });
@@ -28,9 +28,12 @@ test('visible FAQs match FAQPage JSON-LD without a price offer', () => {
   assert.equal(Object.hasOwn(webApplication, 'offers'), false);
   assert.ok(faqPage.mainEntity.length >= 6);
 
+  const welcome = read('../src/components/WelcomeHome.jsx');
   for (const item of faqPage.mainEntity) {
     assert.ok(homepage.includes(item.name), `Missing visible question: ${item.name}`);
     assert.ok(homepage.includes(item.acceptedAnswer.text), `Missing visible answer: ${item.name}`);
+    assert.ok(welcome.includes(item.name), `Question missing in WelcomeHome: ${item.name}`);
+    assert.ok(welcome.includes(item.acceptedAnswer.text), `Answer missing in WelcomeHome: ${item.name}`);
   }
 });
 
@@ -57,10 +60,18 @@ test('unknown routes have a noindex 404 and Vercel has no SPA catch-all', () => 
   assert.equal(vercel.rewrites.some((rewrite) => rewrite.source.includes('(?!api/).*)')), false);
 });
 
-test('legal placeholders stay out of search results until the next phase', () => {
+test('legal pages have real content, stay noindex, and safe-area aware', () => {
   for (const page of ['terminos.html', 'privacidad.html', 'aviso-legal.html']) {
-    assert.match(read(`../public/${page}`), /name="robots" content="noindex,follow"/);
+    const html = read(`../public/${page}`);
+    assert.match(html, /name="robots" content="noindex,follow"/);
+    assert.match(html, /viewport-fit=cover/);
+    assert.match(html, /href="\/legal\.css"/);
+    assert.doesNotMatch(html, /próxima fase|pendiente de revisión/);
+    assert.match(html, /Última actualización/);
+    // El correo se inserta al compilar (vite.config.js) solo con este marcador exacto.
+    for (const placeholder of html.match(/\{\{[^}]*\}\}/g) ?? []) assert.equal(placeholder, '{{EMAIL_CONTACTO}}');
   }
+  assert.match(read('../public/legal.css'), /env\(safe-area-inset-top\)/);
 });
 
 test('public HTML pages have distinct titles, descriptions, and canonical URLs', () => {
@@ -86,7 +97,7 @@ test('the interactive welcome uses approved informational copy and reserves TM f
 
   assert.match(welcome, /PRGARCÍA™/);
   assert.match(welcome, /no está afiliada al Banco Central de Venezuela/);
-  assert.match(welcome, /Revisa cuánto pagarías antes de acordar un préstamo/);
+  assert.match(welcome, /Tus préstamos y cobros en dólares y bolívares, en orden\./);
   assert.doesNotMatch(welcome, /Protección cambiaria garantizada/);
   assert.doesNotMatch(app, /PRGARCÍA™/);
   assert.doesNotMatch(welcome, /PRGARCÍA®/);

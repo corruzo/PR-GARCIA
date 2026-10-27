@@ -373,6 +373,15 @@ function AuthModalContent() {
 
           {(tab === 'login' || tab === 'register') && <SocialLogin disabled={cargando} onLogin={handleSocialLogin} />}
 
+          {tab === 'register' && (
+            <p className="text-center text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              Al crear tu cuenta aceptas los{' '}
+              <a href="/terminos" target="_blank" rel="noopener" className="font-semibold text-brand-700 underline dark:text-brand-400">Términos de uso</a>
+              {' '}y la{' '}
+              <a href="/privacidad" target="_blank" rel="noopener" className="font-semibold text-brand-700 underline dark:text-brand-400">Política de privacidad</a>.
+            </p>
+          )}
+
         </form>
       </section>
     </div>,
