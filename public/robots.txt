@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://prgarcia.app/sitemap.xml
+Sitemap: https://prgarcia.lat/sitemap.xml

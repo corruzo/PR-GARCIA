@@ -4,6 +4,19 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.prgarcia.lat"
+        }
+      ],
+      "destination": "https://prgarcia.lat/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/bcv",
@@ -49,6 +62,21 @@
         {
           "key": "X-Permitted-Cross-Domain-Policies",
           "value": "none"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.vercel\\.app"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
         }
       ]
     }

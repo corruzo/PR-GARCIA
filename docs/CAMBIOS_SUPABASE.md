@@ -67,7 +67,7 @@ y luego `diff supabase/esquema/esquema_completo.actual.sql supabase/esquema/esqu
 
 ## Autenticación (panel de Supabase)
 
-- *Authentication → URL Configuration*: **Site URL** = dominio de producción; en **Redirect URLs** agrega ese dominio y `http://localhost:5173`.
+- *Authentication → URL Configuration*: **Site URL** = `https://prgarcia.lat`; en **Redirect URLs** agrega `https://prgarcia.lat/**`, `https://www.prgarcia.lat/**` y `http://localhost:5173/**` (pasos del dominio en `docs/DOMINIO.md`).
 - *Authentication → Providers*: activa Google para el botón «Google» (pasos en `docs/GOOGLE_LOGIN.md`; funciona en el plan gratuito). Apple aún no está disponible en la app.
 - *Authentication → Email Templates*: la recuperación de contraseña usa código de un solo uso; la plantilla debe incluir `{{ .Token }}`.
 - *Authentication → Providers → Email*: **Minimum password length = 8** y requisitos de letras y números (la app ya lo exige al registrar); activa *Secure password change* y *Confirm email*.

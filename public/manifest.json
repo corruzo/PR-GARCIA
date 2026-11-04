@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "PRGARCÍA",
   "short_name": "PRGARCÍA",
   "description": "Gestión de préstamos y cartera en dólares y bolívares con tasa oficial del BCV.",
@@ -27,5 +28,11 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "scope": "/",
+  "categories": [
+    "finance",
+    "business",
+    "productivity"
   ]
 }

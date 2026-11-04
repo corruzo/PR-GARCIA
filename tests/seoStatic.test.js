@@ -23,8 +23,8 @@ test('visible FAQs match FAQPage JSON-LD without a price offer', () => {
   assert.equal(schemaScripts.length, 1);
   assert.equal(webApplication.applicationCategory, 'FinanceApplication');
   assert.equal(webApplication.inLanguage, 'es');
-  assert.equal(webApplication.url, 'https://prgarcia.app/');
-  assert.equal(webApplication.image, 'https://prgarcia.app/og-image.png');
+  assert.equal(webApplication.url, 'https://prgarcia.lat/');
+  assert.equal(webApplication.image, 'https://prgarcia.lat/og-image.png');
   assert.equal(Object.hasOwn(webApplication, 'offers'), false);
   assert.ok(faqPage.mainEntity.length >= 6);
 
@@ -37,17 +37,24 @@ test('visible FAQs match FAQPage JSON-LD without a price offer', () => {
   }
 });
 
-test('the sitemap lists only the welcome and public legal pages', () => {
+test('the sitemap lists only indexable pages on the production domain', () => {
   const sitemap = read('../public/sitemap.xml');
   const locations = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
 
-  assert.deepEqual(locations, [
-    'https://prgarcia.app/',
-    'https://prgarcia.app/terminos',
-    'https://prgarcia.app/privacidad',
-    'https://prgarcia.app/aviso-legal',
-  ]);
-  assert.match(read('../public/robots.txt'), /Allow: \/[\s\S]*Sitemap: https:\/\/prgarcia\.app\/sitemap\.xml/);
+  // Las páginas legales son noindex: listarlas en el sitemap es un error para Search Console.
+  assert.deepEqual(locations, ['https://prgarcia.lat/']);
+  assert.match(read('../public/robots.txt'), /Allow: \/[\s\S]*Sitemap: https:\/\/prgarcia\.lat\/sitemap\.xml/);
+});
+
+test('only prgarcia.lat is indexed: www redirects there and vercel.app copies are noindex', () => {
+  const vercel = JSON.parse(read('../vercel.json'));
+  const www = vercel.redirects.find((r) => r.has?.[0]?.value === 'www.prgarcia.lat');
+  assert.equal(www.destination, 'https://prgarcia.lat/:path*');
+  assert.equal(www.permanent, true);
+  const copia = vercel.headers.find((h) => h.has?.[0]?.type === 'host');
+  assert.ok(new RegExp(`^${copia.has[0].value}$`).test('pr-garcia-abc123.vercel.app'));
+  assert.deepEqual(copia.headers, [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]);
+  assert.match(homepage, /"alternateName": \["PRGARCIA"/);
 });
 
 test('unknown routes have a noindex 404 and Vercel has no SPA catch-all', () => {
@@ -88,7 +95,7 @@ test('public HTML pages have distinct titles, descriptions, and canonical URLs',
   assert.ok(pages.every(([, html]) => /<meta name="description" content="[^"]+"/.test(html)));
   assert.equal(new Set(titles).size, pages.length);
   assert.equal(new Set(canonicals).size, canonicals.length);
-  assert.match(homepage, /<link rel="canonical" href="https:\/\/prgarcia\.app\/"/);
+  assert.match(homepage, /<link rel="canonical" href="https:\/\/prgarcia\.lat\/"/);
 });
 
 test('the interactive welcome uses approved informational copy and reserves TM for that page', () => {
