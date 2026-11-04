@@ -46,11 +46,11 @@ test('the sitemap lists only indexable pages on the production domain', () => {
   assert.match(read('../public/robots.txt'), /Allow: \/[\s\S]*Sitemap: https:\/\/prgarcia\.lat\/sitemap\.xml/);
 });
 
-test('only prgarcia.lat is indexed: www redirects there and vercel.app copies are noindex', () => {
+test('vercel.json does not redirect between prgarcia.lat and www (the Vercel Domains panel does it)', () => {
+  // Una redirección aquí contraria a la del panel de Vercel crea un bucle, y los
+  // archivos redirigidos a otro dominio los bloquea la CSP ('self'): la página se ve sin estilos.
   const vercel = JSON.parse(read('../vercel.json'));
-  const www = vercel.redirects.find((r) => r.has?.[0]?.value === 'www.prgarcia.lat');
-  assert.equal(www.destination, 'https://prgarcia.lat/:path*');
-  assert.equal(www.permanent, true);
+  assert.equal(vercel.redirects, undefined);
   const copia = vercel.headers.find((h) => h.has?.[0]?.type === 'host');
   assert.ok(new RegExp(`^${copia.has[0].value}$`).test('pr-garcia-abc123.vercel.app'));
   assert.deepEqual(copia.headers, [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]);

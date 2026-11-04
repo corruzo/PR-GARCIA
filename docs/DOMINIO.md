@@ -4,7 +4,6 @@ La app se publica en **https://prgarcia.lat** (sin `www`). En el código ya est�
 `canonical`, Open Graph (vista previa en WhatsApp, Facebook, X), datos estructurados para Google,
 `sitemap.xml`, `robots.txt` y el manifiesto de la PWA. Además:
 
-- `www.prgarcia.lat` redirige de forma permanente (301/308) a `prgarcia.lat`, para que Google vea un solo sitio.
 - Las copias en `*.vercel.app` (producción y vistas previas) responden `X-Robots-Tag: noindex`, para que
   no compitan con el dominio en los buscadores.
 - La sesión abierta marca la app como `noindex` (los datos de la cartera nunca se indexan).
@@ -13,10 +12,21 @@ Lo siguiente se hace en los paneles (no desde el código):
 
 ## 1. Vercel
 
-**Project → Settings → Domains**: agrega `prgarcia.lat` y `www.prgarcia.lat`. Deja `prgarcia.lat` como
-principal; si Vercel ofrece redirigir `www` al dominio principal, acéptalo. Copia los registros DNS que
-indica (A `76.76.21.21` para `prgarcia.lat` y CNAME `cname.vercel-dns.com` para `www`, o los que muestre)
-en el proveedor donde compraste el dominio. El certificado HTTPS se crea solo.
+**Project → Settings → Domains** (una sola redirección, solo aquí):
+
+1. `prgarcia.lat` → **Connect to an environment: Production** (dominio principal).
+2. `www.prgarcia.lat` → **Redirect to Another Domain** → `prgarcia.lat` (308, permanente).
+
+Al agregar un dominio, Vercel propone lo contrario (`prgarcia.lat` → `www`): cámbialo como arriba, porque
+la dirección oficial de la app (canonical, sitemap, Open Graph) es `https://prgarcia.lat`.
+
+**No agregues redirecciones de dominio en `vercel.json`**: si chocan con las del panel se forma un bucle y
+el navegador bloquea los archivos que llegan desde el otro dominio (la página se ve sin estilos y la consola
+muestra «violates the following Content Security Policy directive»).
+
+Copia los registros DNS que indica Vercel (A `76.76.21.21` para `prgarcia.lat` y CNAME
+`cname.vercel-dns.com` para `www`, o los que muestre) en el proveedor donde compraste el dominio. El
+certificado HTTPS se crea solo.
 
 ## 2. Supabase
 
@@ -51,4 +61,4 @@ En el cliente OAuth → **Orígenes autorizados de JavaScript**: `https://prgarc
 - Vista previa al compartir: pega `https://prgarcia.lat` en WhatsApp, o revisa en
   <https://developers.facebook.com/tools/debug/> y pulsa *Volver a extraer* si muestra una imagen vieja.
 - Datos estructurados: <https://search.google.com/test/rich-results> con `https://prgarcia.lat/`.
-- Redirección: `https://www.prgarcia.lat/terminos` debe terminar en `https://prgarcia.lat/terminos`.
+- Redirección: `https://www.prgarcia.lat/terminos` debe terminar en `https://prgarcia.lat/terminos` (la hace el panel de Vercel).
