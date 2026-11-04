@@ -7,11 +7,11 @@ Proyecto actual: `muxxvbcxzqszstiotbwu` (el proyecto anterior quedó sin acceso)
 
 ## Instalar en un proyecto nuevo (una sola vez)
 
-El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 10 archivos en `supabase/instalar/`:
+El SQL Editor de Supabase limita el tamaño de cada consulta, así que la instalación está dividida en 13 archivos en `supabase/instalar/`:
 
 1. Supabase → **SQL Editor** → *New query* → pega **todo** `parte-1.sql` → **Run**. Debe decir *Success*.
 2. Nueva consulta (o borra el contenido) → pega `parte-2.sql` → **Run**.
-3. Igual con `parte-3.sql` a `parte-10.sql`, en ese orden (ojo: `parte-10` va después de `parte-9`, aunque el explorador de archivos la muestre junto a `parte-1`).
+3. Igual con `parte-3.sql` a `parte-13.sql`, en ese orden (ojo: `parte-10` a `parte-13` van después de `parte-9`, aunque el explorador de archivos las muestre junto a `parte-1`).
 
 Ejecútalas **en orden** y **una sola vez**. Cada parte corre en una transacción: si una falla, no deja nada a medias; corrige el problema y repite solo esa parte.
 
@@ -23,7 +23,7 @@ Cada migración queda anotada en la tabla `app_migraciones`. Para saber qué fal
 select version, aplicada_en from public.app_migraciones order by version;
 ```
 
-Ejecuta solo las partes cuyas migraciones no aparezcan. Si pegas por error una parte ya aplicada, se detiene con
+Ejecuta solo las partes cuyas migraciones no aparezcan. **Pendiente en producción desde el 04/11/2026: `parte-13.sql`** (cronograma sin cuotas finales de 1 o 2 días; ver la tabla de migraciones). Si pegas por error una parte ya aplicada, se detiene con
 «La migración … ya está aplicada» sin tocar nada. Una instalación anterior a esta tabla (partes 1 a 6) necesita `parte-7.sql` a `parte-10.sql`:
 la parte 7 crea la tabla y registra las migraciones previas.
 
@@ -91,6 +91,7 @@ y luego `diff supabase/esquema/esquema_completo.actual.sql supabase/esquema/esqu
 | `20261014000300_correcciones_anulaciones.sql` | `anular_pago` (revierte mora y recalcula abiertos), `anular_pagos_desde`; libro contable, pagos y auditoría inmutables |
 | `20261018000100_endurecimiento.sql` | Clientes: solo columnas de la ficha; `user_history` sin altas; desembolso de hace ≤ 10 años |
 | `20261018000200_tasa_bcv_solo_oficial.sql` | Las tasas guardadas desde dolarapi.com pasan a `referencial`: solo la página del BCV es oficial |
+| `20261104000100_cuota_final_corta.sql` | `fin_cronograma`: un resto de menos de un tercio de período se suma a la última cuota (1 de enero → 1 de febrero mensual es 1 cuota de 31 días, no 30 + 1). Solo préstamos nuevos; los ya emitidos no cambian |
 | `20261014000400_correcciones_permisos.sql` | Préstamos anulados con saldo cero en las vistas; funciones internas cerradas a anónimos |
 
 ## Pruebas locales

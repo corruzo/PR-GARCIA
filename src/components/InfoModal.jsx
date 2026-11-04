@@ -54,43 +54,41 @@ export function InfoModal({ open, onClose }) {
 
         <div className="mt-5 space-y-5 text-sm text-gray-700 dark:text-gray-300">
           <article>
-            <h3 className="formula-heading">1. Días del préstamo</h3>
-            <p>Se cuentan los días exactos entre la fecha de inicio y la fecha de vencimiento.</p>
+            <h3 className="formula-heading">1. Días y períodos</h3>
+            <p>Se cuentan los días exactos entre la fecha de inicio y la de fin. Cada modalidad de tasa y cada frecuencia de pago equivale a un número fijo de días: diaria 1, semanal 7, quincenal 15 y mensual 30 (un «mes» son 30 días, no el mismo día del mes siguiente).</p>
             <code className="formula-code">días = fecha de fin − fecha de inicio</code>
           </article>
 
           <article>
             <h3 className="formula-heading">2. Interés simple</h3>
-            <p>El interés se calcula sobre el capital inicial, sin sumar intereses sobre intereses.</p>
+            <p>Nunca se cobra interés sobre interés. El interés de un tramo de días es:</p>
             <code className="formula-code">interés = capital × (tasa ÷ 100) × (días ÷ días de la modalidad)</code>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">La modalidad usa 1 día para diaria, 7 días para semanal y 15 días para quincenal.</p>
+            <p className="mt-2"><strong>Sobre saldo pendiente</strong> (recomendado): cada cuota cobra el interés de sus días sobre el capital que aún se debe, así que las cuotas bajan a medida que se paga el capital.</p>
+            <p className="mt-1"><strong>Interés fijo</strong>: el interés de todo el plazo se calcula sobre el capital inicial y se reparte entre las cuotas según sus días.</p>
           </article>
 
           <article>
-            <h3 className="formula-heading">3. Total a pagar</h3>
-            <p>El total combina el capital solicitado y el interés calculado.</p>
-            <code className="formula-code">total = capital + interés</code>
+            <h3 className="formula-heading">3. Cuotas</h3>
+            <p>Hay una cuota por cada período completo de la frecuencia elegida, y la última vence el día de fin. Si sobran días, forman una cuota más corta; si sobra menos de un tercio de período (por ejemplo, menos de 10 días en un préstamo mensual), esos días se suman a la última cuota en lugar de crear una cuota de pocos días.</p>
+            <code className="formula-code">cuota = capital ÷ número de cuotas + interés de sus días</code>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">El capital se divide en partes iguales; si no da exacto, los centavos que sobran van en las primeras cuotas.</p>
           </article>
 
           <article>
-            <h3 className="formula-heading">4. Número y monto de cuotas</h3>
-            <p>Las cuotas dependen de la frecuencia elegida. Si quedan días incompletos, se agrega una última cuota con el interés correspondiente únicamente a esos días.</p>
-            <code className="formula-code">número de cuotas = techo(días ÷ intervalo de pago)</code>
-            <code className="formula-code">interés de la cuota = interés total × (días del período ÷ días totales)</code>
-            <code className="formula-code">cuota = capital asignado + interés del período</code>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Los intervalos son: diario 1 día, semanal 7 días y quincenal 15 días.</p>
+            <h3 className="formula-heading">4. Sin fecha de fin</h3>
+            <p>Cada período (día, semana, quincena o mes) genera el interés del capital pendiente. El cliente paga ese interés en cada período y abona al capital cuando pueda; cada abono reduce el interés desde el día en que lo hace.</p>
           </article>
 
           <article>
             <h3 className="formula-heading">5. Conversión USD y VES</h3>
-            <p>La tasa BCV representa cuántos bolívares equivalen a 1 dólar.</p>
+            <p>La tasa BCV indica cuántos bolívares equivalen a 1 dólar. Cada cuota se convierte y redondea al céntimo, y el total es la suma de las cuotas convertidas.</p>
             <code className="formula-code">USD a VES = monto en USD × tasa BCV</code>
             <code className="formula-code">VES a USD = monto en VES ÷ tasa BCV</code>
           </article>
 
           <article>
-            <h3 className="formula-heading">6. Cronograma</h3>
-            <p>Cada fila muestra la fecha de pago, capital, interés, total de la cuota y saldo restante. La última cuota ajusta cualquier diferencia de redondeo.</p>
+            <h3 className="formula-heading">6. Igual que el préstamo real</h3>
+            <p>Al pulsar «Convertir en préstamo», el cronograma que se guarda es el mismo que muestra la calculadora: la base de datos lo recalcula con las mismas reglas, al céntimo.</p>
           </article>
 
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">

@@ -66,5 +66,6 @@ export function useTasaPersonalizada() {
 
 /** Texto con coma decimal para los campos de la app. */
 export function tasaATexto(tasa) {
-  return String(tasa).replace('.', ',');
+  // Hasta 8 decimales y sin notación científica (1e-7 → «0,0000001»).
+  return Number(tasa).toFixed(8).replace(/\.?0+$/, '').replace('.', ',');
 }

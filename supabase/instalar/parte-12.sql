@@ -1,5 +1,5 @@
--- PRGARCÍA · Instalación, parte 12 de 12. Generado por npm run db:bundle.
--- Ejecuta en orden solo las partes que aún no aplicaste (1 a 12) en Supabase → SQL Editor, una sola vez cada una.
+-- PRGARCÍA · Instalación, parte 12 de 13. Generado por npm run db:bundle.
+-- Ejecuta en orden solo las partes que aún no aplicaste (1 a 13) en Supabase → SQL Editor, una sola vez cada una.
 begin;
 -- 20261018000200_tasa_bcv_solo_oficial.sql
 create table if not exists public.app_migraciones (version text primary key, aplicada_en timestamptz not null default now());

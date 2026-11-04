@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { AlertCircle, Check, Copy, Info, Landmark, TrendingUp } from 'lucide-react';
-import { format } from 'date-fns';
 import { formatearMoneda, generarCronograma } from '../utils/calculator';
 import { buildQuoteMessage } from '../utils/quoteMessage';
 import { paymentTermsNote } from '../../shared/finance/report.js';
-import { toDisplayDate } from '../../shared/finance/dates.js';
-import { FRECUENCIA_PLURAL as FRECUENCIA, PERIODO } from '../../shared/catalogos.js';
+import { toDisplayDate, todayCaracas } from '../../shared/finance/dates.js';
+import { PERIODO, cuotasTexto } from '../../shared/catalogos.js';
 
 
 function Dato({ label, children, sub }) {
@@ -16,6 +15,16 @@ function Dato({ label, children, sub }) {
       {sub && <span className="block text-xs text-gray-500 dark:text-gray-400">{sub}</span>}
     </div>
   );
+}
+
+/**
+ * Sobre saldo, cada cuota es menor que la anterior (el interés baja con el
+ * saldo); con interés fijo son iguales salvo la última si su plazo es distinto.
+ */
+function detalleCuotas(r, fmt) {
+  if (r.numeroCuotas === 1) return undefined;
+  if (r.metodoInteres === 'saldo_insoluto' && r.cuotaFinal !== r.montoCuota) return `primera · bajan hasta ${fmt(r.cuotaFinal)}`;
+  return r.cuotaFinal !== r.montoCuota ? `última: ${fmt(r.cuotaFinal)}` : undefined;
 }
 
 const WhatsAppIcon = () => (
@@ -58,7 +67,7 @@ export function ResultPanel({ resultado, onConvertir }) {
   const mensaje = buildQuoteMessage({
     resultado,
     cronograma: generarCronograma(resultado),
-    fechaHoy: format(new Date(), 'dd/MM/yyyy'),
+    fechaHoy: toDisplayDate(todayCaracas()),
   });
 
   const copiar = async () => {
@@ -100,8 +109,7 @@ export function ResultPanel({ resultado, onConvertir }) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Dato label="Intereses" sub={eq(resultado.interesAlterna) ?? undefined}>{fmt(resultado.interes)}</Dato>
-            <Dato label={`${resultado.numeroCuotas} cuota(s) ${FRECUENCIA[frecuenciaPago]}`}
-              sub={resultado.cuotaFinal !== resultado.montoCuota ? `última: ${fmt(resultado.cuotaFinal)}` : undefined}>
+            <Dato label={cuotasTexto(resultado.numeroCuotas, frecuenciaPago)} sub={detalleCuotas(resultado, fmt)}>
               {fmt(resultado.montoCuota)}
             </Dato>
           </div>

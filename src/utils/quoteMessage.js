@@ -6,7 +6,10 @@
 import { paymentTermsNote } from '../../shared/finance/report.js';
 import { toDisplayDate } from '../../shared/finance/dates.js';
 import { formatearMoneda } from './calculator.js';
-import { FRECUENCIA_PLURAL, MODALIDADES_TASA, PERIODO } from '../../shared/catalogos.js';
+import { MODALIDADES_TASA, PERIODO, cuotasTexto } from '../../shared/catalogos.js';
+
+/** Cuotas que se listan una por una; con más, se resume el resto (WhatsApp corta los enlaces largos). */
+const MAX_CUOTAS_LISTADAS = 12;
 
 const MODALIDAD = Object.fromEntries(Object.entries(MODALIDADES_TASA).map(([k, v]) => [k, v.toLowerCase()]));
 
@@ -37,11 +40,15 @@ export function buildQuoteMessage({ resultado, cronograma = [], fechaHoy }) {
       `Sin fecha de fin: pagas los intereses cada ${periodo} y abonas al capital cuando puedas. Cada abono reduce los intereses desde el día en que lo haces.`,
     );
   } else {
-    const cuotas = cronograma.map((c) => `• Cuota ${c.cuota} (${c.fecha}): ${fmt(c.total)}`);
+    const linea = (c) => `• Cuota ${c.cuota} (${c.fecha}): ${fmt(c.total)}`;
+    const cuotas = cronograma.length <= MAX_CUOTAS_LISTADAS
+      ? cronograma.map(linea)
+      : [...cronograma.slice(0, MAX_CUOTAS_LISTADAS - 2).map(linea),
+        `• … ${cronograma.length - MAX_CUOTAS_LISTADAS + 1} cuotas más`, linea(cronograma.at(-1))];
     lines.push(
       `• Monto: ${fmt(resultado.monto)}`,
       `• Tasa: ${tasa}`,
-      `• Plazo: ${resultado.diasTotales} días, ${resultado.numeroCuotas} cuota(s) ${FRECUENCIA_PLURAL[resultado.frecuenciaPago] ?? ''}`.trim(),
+      `• Plazo: ${resultado.diasTotales} días, ${cuotasTexto(resultado.numeroCuotas, resultado.frecuenciaPago)}`,
       `• Intereses: ${fmt(resultado.interes)}`,
       `• Total a pagar: ${fmt(resultado.totalPagar)}`,
       '',

@@ -54,11 +54,11 @@ export function BCVField({ value, onChange }) {
   const consultada = cacheInfo?.fetchedAt ? new Date(cacheInfo.fetchedAt) : null;
   const escrita = parseRateInput(value);
   const esPersonalizada = Boolean(personalizada && escrita === personalizada.tasa);
-  const manual = value !== '' && cacheInfo?.rate && Math.abs(Number(String(value).replace(',', '.')) - Number(cacheInfo.rate)) > 0.01;
+  const manual = escrita !== null && !(cacheInfo?.rate && Math.abs(escrita - Number(cacheInfo.rate)) <= 0.01);
   const estado = esPersonalizada
     ? { texto: 'Tu tasa personalizada', detalle: 'se usa en préstamos y pagos', color: 'text-amber-700 dark:text-amber-400', icon: PencilLine }
     : manual
-    ? { texto: 'Tasa escrita a mano', detalle: 'no coincide con la tasa BCV consultada', color: 'text-brand-700 dark:text-brand-400', icon: PencilLine }
+    ? { texto: 'Tasa escrita a mano', detalle: cacheInfo?.rate ? 'no coincide con la tasa BCV consultada' : 'sin tasa BCV para compararla', color: 'text-brand-700 dark:text-brand-400', icon: PencilLine }
     : verificadaBCV
       ? { texto: 'Tasa oficial del BCV', detalle: fuente || 'consultada', color: 'text-emerald-700 dark:text-emerald-400', icon: CheckCircle2 }
       : (tasaAnticuada || error) && tasa

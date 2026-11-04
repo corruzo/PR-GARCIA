@@ -51,6 +51,16 @@ test('SQL helpers match the JavaScript finance core exactly', { skip: skipDb }, 
       startDate: '2026-01-01', endDate: end, currency: 'USD',
     });
   }
+  // Fines de mes, año bisiesto, restos cortos que se unen a la última cuota y los límites.
+  for (const [startDate, endDate, frequency] of [
+    ['2026-01-01', '2026-02-01', 'mensual'], ['2026-01-31', '2026-07-31', 'mensual'], ['2028-02-29', '2028-03-29', 'mensual'],
+    ['2026-01-01', '2026-02-09', 'mensual'], ['2026-01-01', '2026-02-10', 'mensual'], ['2026-01-01', '2026-01-10', 'semanal'],
+    ['2026-01-01', '2026-01-17', 'quincenal'], ['2026-01-01', '2027-08-24', 'diario'], ['2026-01-01', '2036-01-08', 'mensual'],
+  ]) {
+    for (const method of ['interes_fijo', 'saldo_insoluto']) {
+      cases.push({ principalCents: 123457, ratePercent: 7.12345678, rateMode: 'mensual', frequency, method, startDate, endDate, currency: 'USD' });
+    }
+  }
   const sql = `select json_agg(r) from (${cases.map((c, i) => `
     select ${i} as caso, json_agg(json_build_array(numero, fecha_vencimiento, dias, capital_cents, interes_cents, saldo_cents) order by numero) as cuotas
     from public.fin_cronograma(${c.principalCents}, ${c.ratePercent}, '${c.rateMode}', '${c.startDate}', '${c.endDate}', '${c.frequency}', '${c.method}')`).join(' union all ')}) r;`;

@@ -12,7 +12,7 @@
 --     (scripts/volcar-esquema.sh) o reconstruirla en un proyecto Supabase
 --     NUEVO y VACÍO. Requiere el esquema auth de Supabase.
 --   * Se regenera con scripts/esquema-desde-local.sh.
--- Migraciones incluidas: hasta 20261018000200.
+-- Migraciones incluidas: hasta 20261104000100.
 -- ════════════════════════════════════════════════════════════════════════════
 
 --
@@ -395,6 +395,7 @@ declare
   intervalo integer := public.fin_dias_frecuencia(p_frecuencia);
   base integer := public.fin_dias_modalidad(p_modalidad);
   n integer;
+  resto integer;
   fechas date[] := '{}';
   periodos bigint[] := '{}';
   capitales bigint[];
@@ -403,7 +404,9 @@ declare
   saldo bigint;
 begin
   perform public.fin_validar_terminos('USD', p_capital_cents, p_tasa, p_modalidad, p_inicio, p_fin, p_frecuencia, p_metodo);
-  n := ceil(dias_total::numeric / intervalo)::integer;
+  n := dias_total / intervalo;
+  resto := dias_total % intervalo;
+  if n = 0 or (resto > 0 and 3 * resto >= intervalo) then n := n + 1; end if;
   for i in 1..n loop
     fechas[i] := case when i = n then p_fin else p_inicio + i * intervalo end;
     periodos[i] := fechas[i] - (case when i = 1 then p_inicio else fechas[i - 1] end);
@@ -2996,5 +2999,5 @@ GRANT SELECT ON TABLE public.v_libro_mayor TO authenticated;
 --
 
 INSERT INTO public.app_migraciones (version) VALUES
-  ('20261011000000'),('20261011000100'),('20261011000200'),('20261011000300'),('20261011000400'),('20261012000100'),('20261012000200'),('20261013000100'),('20261014000100'),('20261014000200'),('20261014000300'),('20261014000400'),('20261018000100'),('20261018000200')
+  ('20261011000000'),('20261011000100'),('20261011000200'),('20261011000300'),('20261011000400'),('20261012000100'),('20261012000200'),('20261013000100'),('20261014000100'),('20261014000200'),('20261014000300'),('20261014000400'),('20261018000100'),('20261018000200'),('20261104000100')
 ON CONFLICT DO NOTHING;

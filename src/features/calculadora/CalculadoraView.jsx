@@ -58,8 +58,13 @@ export function CalculadoraView({ onConvertir }) {
     const tasa = parseFloat(values.tasa);
     if (!monto || !tasa || (values.tipoPlazo !== 'abierto' && !values.fechaFin)) return null;
     // La tasa BCV es opcional: sin ella no se muestran equivalencias en la otra moneda.
-    const tasaBCV = parseRateInput(values.tasaBCV) ?? undefined;
-    return simularPrestamo({ ...values, monto, tasa, tasaBCV });
+    // Escrita pero ilegible → NaN, para que la simulación avise en lugar de ignorarla.
+    const tasaBCV = String(values.tasaBCV ?? '').trim() ? (parseRateInput(values.tasaBCV) ?? NaN) : undefined;
+    try {
+      return simularPrestamo({ ...values, monto, tasa, tasaBCV });
+    } catch {
+      return { valido: false, errores: ['No se pudo calcular con estos valores. Revisa el monto, la tasa y las fechas.'] };
+    }
   }, [values]);
 
   const setTasaBCV = useCallback((value) => setValues((prev) => ({ ...prev, tasaBCV: value })), []);

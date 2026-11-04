@@ -106,6 +106,10 @@ export function simularPrestamo(params) {
 
   const interes = fromCents(plan.interestCents);
   const montoNormalizado = fromCents(terms.principalCents);
+  // Equivalencias: el total es la suma de las cuotas convertidas, así cuadra con el cronograma.
+  const totalAlternaCents = validarTasaCambio(tasaBCV)
+    ? cuotas.reduce((sum, c) => sum + convertCents(c.totalCents, tasaBCV, moneda, monedaAlterna), 0) : null;
+  const capitalAlternaCents = totalAlternaCents === null ? null : convertCents(terms.principalCents, tasaBCV, moneda, monedaAlterna);
 
   return {
     valido: true,
@@ -125,8 +129,8 @@ export function simularPrestamo(params) {
     cuotaInicial: fromCents(primera.totalCents),
     cuotaFinal: fromCents(ultima.totalCents),
     monedaAlterna,
-    interesAlterna: alterna(plan.interestCents),
-    totalAlterna: alterna(plan.totalCents),
+    interesAlterna: totalAlternaCents === null ? null : fromCents(totalAlternaCents - capitalAlternaCents),
+    totalAlterna: totalAlternaCents === null ? null : fromCents(totalAlternaCents),
     cuotaAlterna: alterna(primera.totalCents),
     cuotaFinalAlterna: alterna(ultima.totalCents),
     tasaEfectivaDiaria: (interes / montoNormalizado / plan.totalDays) * 100,

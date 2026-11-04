@@ -24,7 +24,7 @@ function initialForm(clienteId, prefill) {
     clienteId: clienteId || '',
     moneda: prefill?.moneda === 'VES' ? 'VES' : 'USD',
     monto: prefill?.monto ? String(prefill.monto) : '',
-    tasa: prefill?.tasa ? String(prefill.tasa) : '8',
+    tasa: prefill?.tasa ? tasaATexto(prefill.tasa) : '8',
     modalidadTasa: prefill?.modalidadTasa || 'semanal',
     frecuenciaPago: prefill?.frecuenciaPago || 'semanal',
     metodoInteres: prefill?.metodoInteres || 'saldo_insoluto',
@@ -32,8 +32,9 @@ function initialForm(clienteId, prefill) {
     fechaInicio: prefill?.fechaInicio || hoy,
     fechaFin: prefill?.fechaFin || addDaysISO(hoy, 30),
     // null = sin tocar: se usa la tasa BCV de referencia en cuanto llega.
-    tasaCambio: prefill?.tasaBCV ? String(prefill.tasaBCV) : null,
-    fuenteTasa: prefill?.tasaBCV ? 'BCV' : null,
+    tasaCambio: prefill?.tasaBCV ? tasaATexto(prefill.tasaBCV) : null,
+    // La fuente se decide al comparar con la tasa BCV de referencia (puede ser una tasa escrita a mano).
+    fuenteTasa: null,
     tasaMora: '0',
     diasGracia: '0',
     notas: '',
@@ -55,7 +56,7 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
   const tasaTexto = form.tasaCambio ?? (personalizada ? tasaATexto(personalizada.tasa) : tasaInicial(referencia));
   const fuenteTasa = parseRateInput(tasaTexto) === personalizada?.tasa
     ? 'personalizada'
-    : form.fuenteTasa ?? (tasaTexto && referencia?.oficial ? 'BCV' : 'manual');
+    : form.fuenteTasa ?? (referencia?.oficial && parseRateInput(tasaTexto) === Number(referencia.tasa) ? 'BCV' : 'manual');
   const set = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event?.target ? event.target.value : event }));
 
   const parsed = useMemo(() => {
@@ -83,6 +84,10 @@ export function NuevoPrestamoForm({ clienteId, prefill, onCreated, onCancel }) {
       frequency: form.frecuenciaPago, method: abierto ? 'saldo_insoluto' : form.metodoInteres,
     });
     if (!terms.ok && !errors.monto && !errors.tasa) errors.terminos = terms.errors.join(' ');
+    // Mismo límite que emitir_prestamo, para avisar antes de enviar.
+    else if (isISODate(form.fechaInicio) && form.fechaInicio > addDaysISO(todayCaracas(), 30)) {
+      errors.terminos = 'La fecha de inicio no puede ser más de 30 días en el futuro.';
+    }
     const plan = terms.ok && !abierto ? buildSchedule(terms.terms) : null;
     const periodo = terms.ok && abierto ? {
       interesCents: openLoanPeriodInterestCents({

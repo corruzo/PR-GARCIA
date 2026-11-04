@@ -21,6 +21,11 @@ export const FRECUENCIA_ADJETIVO = Object.freeze({ diario: 'diaria', semanal: 's
 /** «3 cuotas semanales». */
 export const FRECUENCIA_PLURAL = Object.freeze({ diario: 'diarias', semanal: 'semanales', quincenal: 'quincenales', mensual: 'mensuales' });
 
+/** "1 cuota mensual", "5 cuotas semanales". */
+export function cuotasTexto(n, frecuencia) {
+  return n === 1 ? `1 cuota ${FRECUENCIA_ADJETIVO[frecuencia] ?? ''}`.trim() : `${n} cuotas ${FRECUENCIA_PLURAL[frecuencia] ?? ''}`.trim();
+}
+
 /** Período de la tasa de interés (8 % semanal). */
 export const MODALIDADES_TASA = Object.freeze({ diaria: 'Diaria', semanal: 'Semanal', quincenal: 'Quincenal', mensual: 'Mensual' });
 

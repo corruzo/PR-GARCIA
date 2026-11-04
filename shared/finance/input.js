@@ -35,9 +35,15 @@ export function parseAmountInput(text) {
   }
 }
 
-/** Lee una tasa (interés o cambio) con hasta 8 decimales. */
+/**
+ * Lee una tasa (interés o cambio) con hasta 8 decimales: «215,5», «215.5»,
+ * «1.234,56» y «1.234.567» (puntos de miles). Un solo punto es decimal.
+ */
 export function parseRateInput(text) {
-  const value = String(text ?? '').trim().replace(',', '.');
+  let value = String(text ?? '').replace(/\s/g, '');
+  if (value.includes(',')) value = value.replace(/\./g, '').replace(',', '.');
+  else if ((value.match(/\./g) ?? []).length > 1) value = value.replace(/\./g, '');
+  value = value.replace(/\.$/, ''); // «215,» mientras se escribe
   if (!/^\d+(\.\d+)?$/.test(value)) return null;
   if (toRateUnits(value) <= 0n) return null;
   const [int, dec = ''] = value.split('.');

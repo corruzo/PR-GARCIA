@@ -77,8 +77,9 @@ test('payment schedules support daily, weekly, fortnightly, and monthly frequenc
   const frequencies = [
     ['diario', 31],
     ['semanal', 5],
-    ['quincenal', 3],
-    ['mensual', 2],
+    // 31 días: el resto de 1 día se suma a la última cuota (15 + 16 y una de 31).
+    ['quincenal', 2],
+    ['mensual', 1],
   ];
 
   for (const [frecuenciaPago, expectedCount] of frequencies) {
@@ -177,4 +178,18 @@ test('the calculator works without an exchange rate (no equivalences)', () => {
   assert.equal(r.totalAlterna, null);
   assert.equal(generarCronograma(r)[0].totalAlterna, null);
   assert.equal(simularPrestamo({ ...validLoan, tasaBCV: -1 }).valido, false);
+});
+
+test('a final remainder shorter than a third of a period joins the last installment', () => {
+  const dias = (fechaFin, frecuenciaPago) => generarCronograma(simularPrestamo(makeLoan({
+    fechaInicio: '2026-01-01', fechaFin, frecuenciaPago, modalidadTasa: 'mensual',
+  }))).map((c) => c.diasPeriodo);
+  assert.deepEqual(dias('2026-02-01', 'mensual'), [31]);
+  assert.deepEqual(dias('2026-01-20', 'mensual'), [19]);
+  assert.deepEqual(dias('2026-02-09', 'mensual'), [39]);
+  assert.deepEqual(dias('2026-02-10', 'mensual'), [30, 10]);
+  assert.deepEqual(dias('2026-01-10', 'semanal'), [9]);
+  assert.deepEqual(dias('2026-01-11', 'semanal'), [7, 3]);
+  assert.deepEqual(dias('2026-01-13', 'semanal'), [7, 5]);
+  assert.deepEqual(dias('2026-02-07', 'quincenal'), [15, 15, 7]);
 });

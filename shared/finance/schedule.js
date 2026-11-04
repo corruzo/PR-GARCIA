@@ -7,9 +7,12 @@
  *   - 'saldo_insoluto'  Interés simple de cada período sobre el saldo pendiente.
  * En ambos el capital se amortiza en partes iguales (centavos sobrantes en
  * las primeras cuotas), y la última cuota vence exactamente en la fecha fin.
+ * Un resto de menos de un tercio de período (menos de 10 días si es mensual)
+ * se suma a la última cuota en lugar de crear una cuota extra de pocos días:
+ * 1 de enero → 1 de febrero mensual es una cuota de 31 días, no 30 + 1.
  */
 
-import { allocateCents, isCurrency, simpleInterestCents, splitEvenly, toCents, toRateUnits } from './money.js';
+import { allocateCents, isCurrency, isValidCents, simpleInterestCents, splitEvenly, toCents, toRateUnits } from './money.js';
 import { addDaysISO, daysBetween, isISODate } from './dates.js';
 
 export const RATE_MODE_DAYS = Object.freeze({ diaria: 1, semanal: 7, quincenal: 15, mensual: 30 });
@@ -69,15 +72,32 @@ export function normalizeLoanTerms(input) {
     else if (terms.totalDays > LIMITS.maxTermDays) errors.push('El plazo no puede superar 10 años.');
     else if (Math.ceil(terms.totalDays / FREQUENCY_DAYS[terms.frequency]) > LIMITS.maxInstallments) {
       errors.push(`El préstamo no puede tener más de ${LIMITS.maxInstallments} cuotas.`);
+    } else if (installmentCount(terms.totalDays, terms.frequency) > terms.principalCents) {
+      errors.push('El monto es muy pequeño para tantas cuotas: cada cuota debe tener al menos 1 céntimo de capital.');
+    } else if (!totalFits(terms)) {
+      errors.push('El monto, la tasa y el plazo dan un total demasiado grande. Revisa los valores.');
     }
   }
 
   return errors.length ? { ok: false, errors } : { ok: true, terms };
 }
 
+/** El interés máximo posible (todo el plazo sobre el capital inicial) cabe en centavos exactos. */
+function totalFits({ principalCents, ratePercent, totalDays, rateMode }) {
+  try {
+    return isValidCents(principalCents + simpleInterestCents(principalCents, ratePercent, totalDays, RATE_MODE_DAYS[rateMode]));
+  } catch {
+    return false;
+  }
+}
+
 export function installmentCount(totalDays, frequency) {
   if (!totalDays || totalDays <= 0) return 0;
-  return Math.ceil(totalDays / (FREQUENCY_DAYS[frequency] ?? 1));
+  const interval = FREQUENCY_DAYS[frequency] ?? 1;
+  const full = Math.floor(totalDays / interval);
+  const rest = totalDays % interval;
+  // Mismo criterio que fin_cronograma: un resto de menos de un tercio de período se une a la anterior.
+  return full === 0 || (rest > 0 && 3 * rest >= interval) ? full + 1 : full;
 }
 
 /**
