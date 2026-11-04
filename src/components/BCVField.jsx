@@ -61,11 +61,11 @@ export function BCVField({ value, onChange }) {
     ? { texto: 'Tasa escrita a mano', detalle: 'no coincide con la tasa BCV consultada', color: 'text-brand-700 dark:text-brand-400', icon: PencilLine }
     : verificadaBCV
       ? { texto: 'Tasa oficial del BCV', detalle: fuente || 'consultada', color: 'text-emerald-700 dark:text-emerald-400', icon: CheckCircle2 }
-      : tasaAnticuada || error
+      : (tasaAnticuada || error) && tasa
         ? { texto: 'Última tasa guardada', detalle: 'podría haber cambiado', color: 'text-amber-700 dark:text-amber-400', icon: Clock3 }
         : fuente
           ? { texto: 'Tasa referencial', detalle: fuente, color: 'text-slate-600 dark:text-slate-400', icon: Clock3 }
-          : { texto: 'Sin tasa', detalle: 'pulsa Actualizar o escríbela', color: 'text-slate-600 dark:text-slate-400', icon: AlertCircle };
+          : { texto: 'Sin tasa', detalle: error ? 'no se pudo consultar el BCV; pulsa Cargar BCV o escríbela' : 'pulsa Cargar BCV o escríbela', color: 'text-slate-600 dark:text-slate-400', icon: AlertCircle };
   const Icono = estado.icon;
 
   return (
